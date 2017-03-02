@@ -2,11 +2,18 @@
   "name": "llvm-node",
   "version": "0.0.1",
   "main": "index.js",
+  "typings": "./llvm-node.d.ts",
   "author": "Micha Reiser <micha@famreiser.ch>",
   "license": "MIT",
   "devDependencies": {
+    "@types/jest": "^18.1.1",
+    "@types/requirejs": "^2.1.28",
+    "jest": "^19.0.2",
     "nan": "^2.5.1",
-    "node-gyp": "^3.5.0"
+    "node-cmake": "^2.2.1",
+    "node-gyp": "^3.5.0",
+    "ts-jest": "^19.0.0",
+    "typescript": "^2.2.1"
   },
   "dependencies": {
     "bindings": "^1.2.1"
@@ -14,6 +21,20 @@
   "scripts": {
     "configure": "node-gyp configure",
     "build": "node-gyp build",
+    "test": "jest --coverage",
+    "test:watch": "jest --watchAll --runInBand",
     "rebuild": "node-gyp rebuild"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testEnvironment": "node",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ]
   }
 }

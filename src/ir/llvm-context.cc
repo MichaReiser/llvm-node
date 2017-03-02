@@ -26,7 +26,7 @@ NAN_METHOD(LLVMContextWrapper::New) {
     info.GetReturnValue().Set(info.This());
 }
 
-llvm::LLVMContext &LLVMContextWrapper::get() {
+llvm::LLVMContext &LLVMContextWrapper::getContext() {
     return context;
 }
 

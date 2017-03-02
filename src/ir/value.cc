@@ -33,6 +33,7 @@ Nan::Persistent<v8::FunctionTemplate>& ValueWrapper::valueTemplate() {
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("type").ToLocalChecked(), ValueWrapper::getType);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), ValueWrapper::getName,
                          ValueWrapper::setName);
+        Nan::SetPrototypeMethod(localTemplate, "release", BasicBlockWrapper::release);
 
         functionTemplate.Reset(localTemplate);
     }
@@ -63,7 +64,7 @@ NAN_METHOD(ValueWrapper::dump) {
 NAN_GETTER(ValueWrapper::getType) {
     auto* type = ValueWrapper::FromValue(info.Holder())->value->getType();
 
-    info.GetReturnValue().Set(TypeWrapper::Create(type));
+    info.GetReturnValue().Set(TypeWrapper::of(type));
 }
 
 NAN_METHOD(ValueWrapper::hasName) {
@@ -86,6 +87,11 @@ NAN_SETTER(ValueWrapper::setName) {
 
     auto name = Nan::To<v8::String>(value).ToLocalChecked();
     ValueWrapper::FromValue(info.Holder())->value->setName(ToString(name));
+}
+
+NAN_METHOD(ValueWrapper::release) {
+    auto* wrapper = ValueWrapper::FromValue(info.Holder());
+    delete wrapper->getValue();
 }
 
 v8::Local<v8::Object> ValueWrapper::of(llvm::Value *value) {

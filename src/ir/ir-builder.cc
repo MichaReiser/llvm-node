@@ -42,7 +42,7 @@ NAN_METHOD(IRBuilderWrapper::New) {
     }
 
     auto llvmContextWrapper = LLVMContextWrapper::FromValue(info[0]);
-    auto* wrapper = new IRBuilderWrapper { llvmContextWrapper->get() };
+    auto* wrapper = new IRBuilderWrapper {llvmContextWrapper->getContext() };
     wrapper->Wrap(info.This());
 
     info.GetReturnValue().Set(info.This());

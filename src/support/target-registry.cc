@@ -15,7 +15,7 @@ NAN_METHOD(TargetRegistryWrapper::lookupTarget) {
             return;
         }
 
-        info.GetReturnValue().Set(TargetWrapper::Create(result));
+        info.GetReturnValue().Set(TargetWrapper::of(result));
     } else {
         Nan::ThrowTypeError("lookupTarget needs to be called with a single string argument");
     }
@@ -39,8 +39,8 @@ NAN_MODULE_INIT(TargetWrapper::Init) {
     tpl->SetInternalFieldCount(1);
 
     Nan::SetMethod(tpl, "createTargetMachine", TargetWrapper::createTargetMachine);
-    Nan::SetMethod(tpl, "getName", TargetWrapper::getName);
-    Nan::SetMethod(tpl, "getShortDescription", TargetWrapper::getShortDescription);
+    Nan::SetAccessor(tpl, Nan::New("name").ToLocalChecked(), TargetWrapper::getName);
+    Nan::SetAccessor(tpl, Nan::New("getShortDescription").ToLocalChecked(), TargetWrapper::getShortDescription);
 
     target_template.Reset(tpl);
 }
@@ -66,22 +66,22 @@ NAN_METHOD(TargetWrapper::createTargetMachine) {
     TargetWrapper* wrapper = TargetWrapper::FromValue(info.Holder());
 
     auto* targetMachinePtr = wrapper->target->createTargetMachine(targetTriple, cpu, features, options, llvm::Optional<llvm::Reloc::Model> {});
-    info.GetReturnValue().Set(TargetMachineWrapper::Create(targetMachinePtr));
+    info.GetReturnValue().Set(TargetMachineWrapper::of(targetMachinePtr));
 }
 
-NAN_METHOD(TargetWrapper::getName) {
+NAN_GETTER(TargetWrapper::getName) {
     TargetWrapper* wrapper = TargetWrapper::FromValue(info.Holder());
     auto result = v8::String::NewFromUtf8(info.GetIsolate(), wrapper->target->getName());
     info.GetReturnValue().Set(result);
 }
 
-NAN_METHOD(TargetWrapper::getShortDescription) {
+NAN_GETTER(TargetWrapper::getShortDescription) {
     TargetWrapper* wrapper = TargetWrapper::FromValue(info.Holder());
     auto result = v8::String::NewFromUtf8(info.GetIsolate(), wrapper->target->getShortDescription());
     info.GetReturnValue().Set(result);
 }
 
-v8::Local<v8::Object> TargetWrapper::Create(const llvm::Target *llvmTarget) {
+v8::Local<v8::Object> TargetWrapper::of(const llvm::Target *llvmTarget) {
     Nan::EscapableHandleScope escapeScope {};
 
     v8::Local<v8::ObjectTemplate> tpl = Nan::New(target_template);

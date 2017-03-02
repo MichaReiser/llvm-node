@@ -4,6 +4,8 @@ project(llvm_node)
 set(CMAKE_CXX_STANDARD 14)
 
 file(GLOB llvm_node_SRC
+        "src/*.h"
+        "src/*.cc"
         "src/**/*.h"
         "src/**/*.cc"
         )

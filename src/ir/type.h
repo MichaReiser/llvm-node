@@ -13,7 +13,7 @@
 class TypeWrapper: public Nan::ObjectWrap, public FromValueMixin<TypeWrapper> {
 public:
     static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> Create(llvm::Type* type);
+    static v8::Local<v8::Object> of(llvm::Type *type);
     using FromValueMixin::FromValue;
 
     llvm::Type* getType();
@@ -22,11 +22,12 @@ public:
 
 protected:
     llvm::Type* type;
-    TypeWrapper(llvm::Type* type) : Nan::ObjectWrap {}, type { type } {}
+    TypeWrapper(llvm::Type* type) : Nan::ObjectWrap {}, type { type } {
+        assert(type && "No type pointer passed");
+    }
 
     static Nan::Persistent<v8::Object>& getObjectWithStaticMethods();
     static Nan::Persistent<v8::FunctionTemplate>& typeTemplate();
-    static LLVMContextWrapper* getContext(const Nan::FunctionCallbackInfo<v8::Value>& info);
 
     // Static Methods
     static NAN_METHOD(New);

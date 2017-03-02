@@ -19,10 +19,10 @@ public:
     static bool isInstance(v8::Local<v8::Value> value);
 
 private:
-    std::unique_ptr<llvm::Module> module;
+    llvm::Module* module;
 
     ModuleWrapper(llvm::StringRef moduleId, llvm::LLVMContext& context)
-    : module {llvm::make_unique<llvm::Module>(moduleId, context) } {
+    : module { new llvm::Module (moduleId, context) } {
     }
 
     // static
@@ -31,9 +31,14 @@ private:
     // instance
     static NAN_METHOD(dump);
     static NAN_METHOD(getFunction);
+    static NAN_GETTER(getName);
     static NAN_METHOD(setDataLayout);
-    static NAN_METHOD(setSourceFileName);
-    static NAN_METHOD(setTargetTriple);
+    static NAN_GETTER(getModuleIdentifier);
+    static NAN_SETTER(setModuleIdentifier);
+    static NAN_SETTER(setSourceFileName);
+    static NAN_GETTER(getSourceFileName);
+    static NAN_GETTER(getTargetTriple);
+    static NAN_SETTER(setTargetTriple);
 
     static inline Nan::Persistent<v8::FunctionTemplate>& moduleTemplate() {
         static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};

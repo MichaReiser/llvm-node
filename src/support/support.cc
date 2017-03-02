@@ -23,27 +23,27 @@ NAN_METHOD(InitializeAllAsmPrinters) {
 
 NAN_MODULE_INIT(InitSupport) {
     Nan::Set(target, 
-        Nan::New<v8::String>("InitializeAllTargetInfos").ToLocalChecked(),
+        Nan::New<v8::String>("initializeAllTargetInfos").ToLocalChecked(),
         Nan::GetFunction(Nan::New<v8::FunctionTemplate>(InitializeAllTargetInfos)).ToLocalChecked()
     );
 
     Nan::Set(target, 
-        Nan::New<v8::String>("InitializeAllTargets").ToLocalChecked(),
+        Nan::New<v8::String>("initializeAllTargets").ToLocalChecked(),
         Nan::GetFunction(Nan::New<v8::FunctionTemplate>(InitializeAllTargets)).ToLocalChecked()
     );
 
      Nan::Set(target, 
-        Nan::New<v8::String>("InitializeAllTargetMCs").ToLocalChecked(),
+        Nan::New<v8::String>("initializeAllTargetMCs").ToLocalChecked(),
         Nan::GetFunction(Nan::New<v8::FunctionTemplate>(InitializeAllTargetMCs)).ToLocalChecked()
     );
 
      Nan::Set(target, 
-        Nan::New<v8::String>("InitializeAllAsmParsers").ToLocalChecked(),
+        Nan::New<v8::String>("initializeAllAsmParsers").ToLocalChecked(),
         Nan::GetFunction(Nan::New<v8::FunctionTemplate>(InitializeAllAsmParsers)).ToLocalChecked()
     );
 
      Nan::Set(target, 
-        Nan::New<v8::String>("InitializeAllAsmPrinters").ToLocalChecked(),
+        Nan::New<v8::String>("initializeAllAsmPrinters").ToLocalChecked(),
         Nan::GetFunction(Nan::New<v8::FunctionTemplate>(InitializeAllAsmPrinters)).ToLocalChecked()
     );
 

@@ -19,10 +19,10 @@ NAN_MODULE_INIT(TargetMachineWrapper::Init) {
 
 NAN_METHOD(TargetMachineWrapper::createDataLayout) {
     auto dataLayout = TargetMachineWrapper::FromValue(info.Holder())->targetMachine->createDataLayout();
-    info.GetReturnValue().Set(DataLayoutWrapper::Create(dataLayout));
+    info.GetReturnValue().Set(DataLayoutWrapper::of(dataLayout));
 }
 
-v8::Local<v8::Object> TargetMachineWrapper::Create(const llvm::TargetMachine* targetMachinePtr) {
+v8::Local<v8::Object> TargetMachineWrapper::of(const llvm::TargetMachine *targetMachinePtr) {
     Nan::EscapableHandleScope escapeScope {};
     v8::Local<v8::ObjectTemplate> tpl = Nan::New(targetMachineTemplate);
 

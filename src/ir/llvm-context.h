@@ -14,7 +14,7 @@ public:
     static NAN_MODULE_INIT(Init);
 
     static bool isInstance(v8::Local<v8::Value> value);
-    llvm::LLVMContext& get();
+    llvm::LLVMContext& getContext();
 
 private:
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate;

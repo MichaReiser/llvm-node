@@ -51,20 +51,30 @@ NAN_METHOD(TypeWrapper::New) {
 }
 
 NAN_METHOD(TypeWrapper::getDoubleTy) {
-    auto context = getContext(info);
-    auto* type = llvm::Type::getDoubleTy(context->get());
-    auto wrapped = TypeWrapper::Create(type);
+    if (info.Length() < 1 || !LLVMContextWrapper::isInstance(info[0])) {
+        return Nan::ThrowTypeError("needs to be called with the context");
+    }
+
+    auto context = LLVMContextWrapper::FromValue(info[0]);
+
+    auto* type = llvm::Type::getDoubleTy(context->getContext());
+    auto wrapped = TypeWrapper::of(type);
     info.GetReturnValue().Set(wrapped);
 }
 
 NAN_METHOD(TypeWrapper::getVoidTy) {
-    auto context = getContext(info);
-    auto* type = llvm::Type::getVoidTy(context->get());
-    auto wrapped = TypeWrapper::Create(type);
+    if (info.Length() < 1 || !LLVMContextWrapper::isInstance(info[0])) {
+        return Nan::ThrowTypeError("needs to be called with the context");
+    }
+
+    auto context = LLVMContextWrapper::FromValue(info[0]);
+
+    auto* type = llvm::Type::getVoidTy(context->getContext());
+    auto wrapped = TypeWrapper::of(type);
     info.GetReturnValue().Set(wrapped);
 }
 
-v8::Local<v8::Object> TypeWrapper::Create(llvm::Type *type) {
+v8::Local<v8::Object> TypeWrapper::of(llvm::Type *type) {
     if (type->isFunctionTy()) {
         return FunctionTypeWrapper::Create(static_cast<llvm::FunctionType*>(type));
     }
@@ -89,14 +99,6 @@ NAN_GETTER(TypeWrapper::getTypeID) {
     auto* wrapper = TypeWrapper::FromValue(info.Holder());
     auto result = Nan::New(wrapper->type->getTypeID());
     info.GetReturnValue().Set(result);
-}
-
-LLVMContextWrapper* TypeWrapper::getContext(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-    if (info.Length() < 1 || !LLVMContextWrapper::isInstance(info[0])) {
-        Nan::ThrowTypeError("needs to be called with the context");
-    }
-
-    return LLVMContextWrapper::FromValue(info[0]);
 }
 
 Nan::Persistent<v8::FunctionTemplate>& TypeWrapper::typeTemplate() {

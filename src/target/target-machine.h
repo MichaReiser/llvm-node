@@ -12,14 +12,15 @@
 class TargetMachineWrapper: public Nan::ObjectWrap, public FromValueMixin<TargetMachineWrapper> {
 public:
     static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> Create(const llvm::TargetMachine *ptr);
+    static v8::Local<v8::Object> of(const llvm::TargetMachine *ptr);
 
 private:
     const llvm::TargetMachine* targetMachine;
     static Nan::Persistent<v8::ObjectTemplate> targetMachineTemplate;
 
-    TargetMachineWrapper(const llvm::TargetMachine* targetMachine): targetMachine { targetMachine }
-    {}
+    TargetMachineWrapper(const llvm::TargetMachine* targetMachine): targetMachine { targetMachine } {
+        assert(targetMachine && "No target machine passed");
+    }
 
     static NAN_METHOD(createDataLayout);
 };

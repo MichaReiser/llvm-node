@@ -19,9 +19,8 @@ public:
 protected:
     static Nan::Persistent<v8::FunctionTemplate>& valueTemplate();
     ValueWrapper(llvm::Value* value)
-            : Nan::ObjectWrap {}, value { value }
-    {
-        assert(value);
+            : Nan::ObjectWrap {}, value { value } {
+        assert(value && "value pointer is missing");
     }
 
 
@@ -34,6 +33,7 @@ private:
     static NAN_METHOD(hasName);
     static NAN_GETTER(getName);
     static NAN_SETTER(setName);
+    static NAN_METHOD(release);
 };
 
 

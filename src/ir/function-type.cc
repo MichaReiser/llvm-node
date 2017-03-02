@@ -54,7 +54,7 @@ NAN_METHOD(FunctionTypeWrapper::get) {
     if (info.Length() < 2 || !TypeWrapper::isInstance(info[0])
         || (!(info.Length() == 2 && info[1]->IsBoolean())
             && !(info.Length() == 3 && info[1]->IsArray() && info[2]->IsBoolean()))) {
-        return Nan::ThrowTypeError("Get needs to be called with: result: Type, params: Type[], isVarArg?: boolean");
+        return Nan::ThrowTypeError("Get needs to be called with: result: Type, params: Type[], isVarArg: boolean");
     }
 
     auto returnType = TypeWrapper::FromValue(info[0])->getType();
@@ -114,7 +114,7 @@ NAN_METHOD(FunctionTypeWrapper::isValidArgumentType) {
 NAN_GETTER(FunctionTypeWrapper::getReturnType) {
     auto* functionTypeWrapper = FunctionTypeWrapper::FromValue(info.Holder());
     auto* returnType = functionTypeWrapper->functionType()->getReturnType();
-    info.GetReturnValue().Set(TypeWrapper::Create(returnType));
+    info.GetReturnValue().Set(TypeWrapper::of(returnType));
 }
 
 NAN_GETTER(FunctionTypeWrapper::isVarArg) {
@@ -133,7 +133,7 @@ NAN_METHOD(FunctionTypeWrapper::getParams) {
 
     uint32_t i = 0;
     for (auto paramsIterator = functionTypeWrapper->functionType()->param_begin(); paramsIterator != functionTypeWrapper->functionType()->param_end(); ++paramsIterator) {
-        result->Set(i, TypeWrapper::Create(*paramsIterator));
+        result->Set(i, TypeWrapper::of(*paramsIterator));
         ++i;
     }
 
@@ -150,7 +150,7 @@ NAN_METHOD(FunctionTypeWrapper::getParamType) {
     if (index < functionTypeWrapper->functionType()->getNumParams()) {
         auto* paramType = functionTypeWrapper->functionType()->getParamType(index);
 
-        info.GetReturnValue().Set(TypeWrapper::Create(paramType));
+        info.GetReturnValue().Set(TypeWrapper::of(paramType));
     } else {
         return Nan::ThrowRangeError("Index out of range");
     }

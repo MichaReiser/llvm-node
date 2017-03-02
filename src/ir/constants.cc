@@ -139,7 +139,7 @@ NAN_METHOD(ConstantFPWrapper::get) {
         return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number");
     }
 
-    auto& context = LLVMContextWrapper::FromValue(info[0])->get();
+    auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
     double number = Nan::To<double>(info[1]).ToChecked();
 
     auto* constant = llvm::ConstantFP::get(context, llvm::APFloat { number } );

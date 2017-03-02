@@ -14,7 +14,7 @@ FunctionWrapper::FunctionWrapper(llvm::Function *function) : ConstantWrapper(fun
 NAN_MODULE_INIT(FunctionWrapper::Init) {
     v8::Local<v8::Object> object = Nan::New<v8::Object>();
 
-    Nan::SetMethod(object, "Create", FunctionWrapper::Create);
+    Nan::SetMethod(object, "create", FunctionWrapper::Create);
 
     Nan::Set(target, Nan::New("Function").ToLocalChecked(), object);
 }

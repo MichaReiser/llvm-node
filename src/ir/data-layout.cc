@@ -7,7 +7,7 @@
 
 Nan::Persistent<v8::FunctionTemplate> DataLayoutWrapper::functionTemplate {};
 
-v8::Local<v8::Object> DataLayoutWrapper::Create(llvm::DataLayout layout) {
+v8::Local<v8::Object> DataLayoutWrapper::of(llvm::DataLayout layout) {
     v8::Local<v8::FunctionTemplate> localFunctionTemplate = Nan::New(functionTemplate);
     v8::Local<v8::Object> object = Nan::NewInstance(localFunctionTemplate->InstanceTemplate()).ToLocalChecked();
 
@@ -52,7 +52,7 @@ NAN_METHOD(DataLayoutWrapper::getStringRepresentation) {
     info.GetReturnValue().Set(v8::String::NewFromUtf8(info.GetIsolate(), representation.c_str()));
 }
 
-llvm::DataLayout DataLayoutWrapper::get() {
+llvm::DataLayout DataLayoutWrapper::getDataLayout() {
     return layout;
 }
 

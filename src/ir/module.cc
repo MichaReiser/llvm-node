@@ -15,9 +15,11 @@ NAN_MODULE_INIT(ModuleWrapper::Init) {
 
     Nan::SetPrototypeMethod(functionTemplate, "dump", dump);
     Nan::SetPrototypeMethod(functionTemplate, "getFunction", getFunction);
+    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), getName);
     Nan::SetPrototypeMethod(functionTemplate, "setDataLayout", setDataLayout);
-    Nan::SetPrototypeMethod(functionTemplate, "setSourceFileName", setSourceFileName);
-    Nan::SetPrototypeMethod(functionTemplate, "setTargetTriple", setTargetTriple);
+    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("moduleIdentifier").ToLocalChecked(), getModuleIdentifier, setModuleIdentifier);
+    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("sourceFileName").ToLocalChecked(), getSourceFileName, setSourceFileName);
+    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("targetTriple").ToLocalChecked(), getTargetTriple, setTargetTriple);
     moduleTemplate().Reset(functionTemplate);
 
     auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
@@ -36,7 +38,8 @@ NAN_METHOD(ModuleWrapper::New) {
     auto moduleId = ToString(info[0]->ToString());
     auto* llvmContextWrapper = LLVMContextWrapper::FromValue(info[1]);
 
-    auto* moduleWrapper = new ModuleWrapper { llvm::StringRef { moduleId.c_str(), moduleId.length() }, llvmContextWrapper->get() };
+    auto* moduleWrapper = new ModuleWrapper { llvm::StringRef { moduleId.c_str(), moduleId.length() },
+                                              llvmContextWrapper->getContext() };
     moduleWrapper->Wrap(info.This());
 
     info.GetReturnValue().Set(info.This());
@@ -62,6 +65,12 @@ NAN_METHOD(ModuleWrapper::getFunction) {
     info.GetReturnValue().Set(Nan::Undefined());
 }
 
+NAN_GETTER(ModuleWrapper::getName) {
+    auto* module = ModuleWrapper::FromValue(info.Holder())->getModule();
+    auto name = Nan::New(module->getName().str()).ToLocalChecked();
+    info.GetReturnValue().Set(name);
+}
+
 NAN_METHOD(ModuleWrapper::setDataLayout) {
     if (info.Length() < 1 || !DataLayoutWrapper::isInstance(info[0])) {
         return Nan::ThrowTypeError("setDataLayout needs to be called with a single argument, the data layout");
@@ -69,32 +78,61 @@ NAN_METHOD(ModuleWrapper::setDataLayout) {
 
     DataLayoutWrapper* dataLayoutWrapper = DataLayoutWrapper::FromValue(info[0]);
     auto wrapper = ModuleWrapper::FromValue(info.Holder());
-    wrapper->module->setDataLayout(dataLayoutWrapper->get());
+    wrapper->module->setDataLayout(dataLayoutWrapper->getDataLayout());
 }
 
-NAN_METHOD(ModuleWrapper::setSourceFileName) {
-    if (info.Length() < 1 || !info[0]->IsString()) {
-        return Nan::ThrowTypeError("setSourceFileName needs to be called with a single string argument (the source file name)");
+NAN_GETTER(ModuleWrapper::getModuleIdentifier) {
+    auto* module = ModuleWrapper::FromValue(info.Holder())->getModule();
+    auto identifier = Nan::New(module->getModuleIdentifier()).ToLocalChecked();
+    info.GetReturnValue().Set(identifier);
+}
+
+NAN_SETTER(ModuleWrapper::setModuleIdentifier) {
+    if (!value->IsString()) {
+        return Nan::ThrowTypeError("moduleIdentifier needs to be a string");
     }
 
-    Nan::Utf8String sourceFileName { Nan::To<v8::String>(info[0]).ToLocalChecked() };
+    Nan::Utf8String moduleIdentifier{ Nan::To<v8::String>(value).ToLocalChecked() };
+    auto wrapper = ModuleWrapper::FromValue(info.Holder());
+
+    wrapper->module->setModuleIdentifier(llvm::StringRef(*moduleIdentifier));
+}
+
+NAN_GETTER(ModuleWrapper::getSourceFileName) {
+    auto* module = ModuleWrapper::FromValue(info.Holder())->getModule();
+    auto name = Nan::New(module->getSourceFileName()).ToLocalChecked();
+    info.GetReturnValue().Set(name);
+}
+
+NAN_SETTER(ModuleWrapper::setSourceFileName) {
+    if (!value->IsString()) {
+        return Nan::ThrowTypeError("sourceFileName needs to be a string");
+    }
+
+    Nan::Utf8String sourceFileName { Nan::To<v8::String>(value).ToLocalChecked() };
     auto wrapper = ModuleWrapper::FromValue(info.Holder());
 
     wrapper->module->setSourceFileName(llvm::StringRef(*sourceFileName));
 }
 
-NAN_METHOD(ModuleWrapper::setTargetTriple) {
-    if (info.Length() < 1 || !info[0]->IsString()) {
-        return Nan::ThrowTypeError("setTargetTryple needs to be called with a single argument, the target triple (string)");
+NAN_GETTER(ModuleWrapper::getTargetTriple) {
+    auto* module = ModuleWrapper::FromValue(info.Holder())->getModule();
+    auto name = Nan::New(module->getTargetTriple()).ToLocalChecked();
+    info.GetReturnValue().Set(name);
+}
+
+NAN_SETTER(ModuleWrapper::setTargetTriple) {
+    if (!value->IsString()) {
+        return Nan::ThrowTypeError("targetTriple needs to be a string");
     }
 
-    Nan::Utf8String triple { Nan::To<v8::String>(info[0]).ToLocalChecked() };
+    Nan::Utf8String triple { Nan::To<v8::String>(value).ToLocalChecked() };
     auto wrapper = ModuleWrapper::FromValue(info.Holder());
     wrapper->module->setTargetTriple(llvm::StringRef(*triple));
 }
 
 llvm::Module *ModuleWrapper::getModule() {
-    return module.get();
+    return module;
 }
 
 bool ModuleWrapper::isInstance(v8::Local<v8::Value> value) {

@@ -10,7 +10,7 @@
 NAN_MODULE_INIT(BasicBlockWrapper::Init) {
     auto object = Nan::New<v8::Object>();
 
-    Nan::SetMethod(object, "Create", BasicBlockWrapper::Create);
+    Nan::SetMethod(object, "create", BasicBlockWrapper::Create);
 
     Nan::Set(target, Nan::New("BasicBlock").ToLocalChecked(), object);
 }
@@ -46,10 +46,10 @@ NAN_METHOD(BasicBlockWrapper::Create) {
         || (info.Length() > 2 && !FunctionWrapper::isInstance(info[2]))
         || (info.Length() > 3 && !BasicBlockWrapper::isInstance(info[3]))
         || info.Length() > 4) {
-        return Nan::ThrowTypeError("BasicBlock.Create needs to be called with: context: LLVMContext, name: string?, parent: Function?, insertBefore: BasicBlock?");
+        return Nan::ThrowTypeError("BasicBlock.create needs to be called with: context: LLVMContext, name: string?, parent: Function?, insertBefore: BasicBlock?");
     }
 
-    llvm::LLVMContext& context = LLVMContextWrapper::FromValue(info[0])->get();
+    llvm::LLVMContext& context = LLVMContextWrapper::FromValue(info[0])->getContext();
     std::string name {};
     llvm::Function* parent = nullptr;
     llvm::BasicBlock* insertBefore = nullptr;
@@ -73,8 +73,11 @@ NAN_METHOD(BasicBlockWrapper::Create) {
 NAN_GETTER(BasicBlockWrapper::getParent) {
     auto* wrapper = BasicBlockWrapper::FromValue(info.Holder());
     auto* function = wrapper->getBasicBlock()->getParent();
-    auto functionObject = FunctionWrapper::of(function);
-    info.GetReturnValue().Set(functionObject);
+
+    if (function) {
+        auto functionObject = FunctionWrapper::of(function);
+        return info.GetReturnValue().Set(functionObject);
+    }
 }
 
 Nan::Persistent<v8::FunctionTemplate>& BasicBlockWrapper::basicBlockTemplate() {
