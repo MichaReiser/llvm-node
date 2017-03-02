@@ -1,0 +1,19 @@
+{
+  "name": "llvm-node",
+  "version": "0.0.1",
+  "main": "index.js",
+  "author": "Micha Reiser <micha@famreiser.ch>",
+  "license": "MIT",
+  "devDependencies": {
+    "nan": "^2.5.1",
+    "node-gyp": "^3.5.0"
+  },
+  "dependencies": {
+    "bindings": "^1.2.1"
+  },
+  "scripts": {
+    "configure": "node-gyp configure",
+    "build": "node-gyp build",
+    "rebuild": "node-gyp rebuild"
+  }
+}
