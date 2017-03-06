@@ -50,26 +50,30 @@ NAN_METHOD(TypeWrapper::New) {
     info.GetReturnValue().Set(info.This());
 }
 
-NAN_METHOD(TypeWrapper::getDoubleTy) {
+typedef llvm::Type* (getTypeFn)(llvm::LLVMContext&);
+template<getTypeFn method>
+NAN_METHOD(TypeWrapper::getType) {
     if (info.Length() < 1 || !LLVMContextWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("needs to be called with the context");
+        return Nan::ThrowTypeError("getType needs to be called with the context");
     }
 
     auto context = LLVMContextWrapper::FromValue(info[0]);
 
-    auto* type = llvm::Type::getDoubleTy(context->getContext());
+    auto* type = method(context->getContext());
     auto wrapped = TypeWrapper::of(type);
     info.GetReturnValue().Set(wrapped);
 }
 
-NAN_METHOD(TypeWrapper::getVoidTy) {
+typedef llvm::IntegerType* (getIntTypeFn)(llvm::LLVMContext&);
+template<getIntTypeFn method>
+NAN_METHOD(TypeWrapper::getIntType) {
     if (info.Length() < 1 || !LLVMContextWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("needs to be called with the context");
+        return Nan::ThrowTypeError("getIntTy needs to be called with the context");
     }
 
     auto context = LLVMContextWrapper::FromValue(info[0]);
 
-    auto* type = llvm::Type::getVoidTy(context->getContext());
+    auto* type = method(context->getContext());
     auto wrapped = TypeWrapper::of(type);
     info.GetReturnValue().Set(wrapped);
 }
@@ -89,9 +93,11 @@ v8::Local<v8::Object> TypeWrapper::of(llvm::Type *type) {
     return escapeScope.Escape(object);
 }
 
-NAN_METHOD(TypeWrapper::isDoubleTy) {
-    auto wrapper = TypeWrapper::FromValue(info.Holder());
-    auto result = Nan::New(wrapper->type->isDoubleTy());
+typedef bool (llvm::Type::*isTy)() const;
+template<isTy method>
+NAN_METHOD(TypeWrapper::isOfType) {
+    auto* type = TypeWrapper::FromValue(info.Holder())->getType();
+    auto result = Nan::New((type->*method)());
     info.GetReturnValue().Set(result);
 }
 
@@ -110,7 +116,15 @@ Nan::Persistent<v8::FunctionTemplate>& TypeWrapper::typeTemplate() {
         typeTemplate->SetClassName(Nan::New("Type").ToLocalChecked());
         typeTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
-        Nan::SetPrototypeMethod(typeTemplate, "isDoubleTy", isDoubleTy);
+        Nan::SetPrototypeMethod(typeTemplate, "isVoidTy", &TypeWrapper::isOfType<&llvm::Type::isVoidTy>);
+        Nan::SetPrototypeMethod(typeTemplate, "isFloatTy", &TypeWrapper::isOfType<&llvm::Type::isFloatTy>);
+        Nan::SetPrototypeMethod(typeTemplate, "isDoubleTy", &TypeWrapper::isOfType<&llvm::Type::isDoubleTy>);
+        Nan::SetPrototypeMethod(typeTemplate, "isLabelTy", &TypeWrapper::isOfType<&llvm::Type::isLabelTy>);
+        Nan::SetPrototypeMethod(typeTemplate, "isIntegerTy", &TypeWrapper::isOfType<&llvm::Type::isIntegerTy>);
+        Nan::SetPrototypeMethod(typeTemplate, "isFunctionTy", &TypeWrapper::isOfType<&llvm::Type::isFunctionTy>);
+        Nan::SetPrototypeMethod(typeTemplate, "isStructTy", &TypeWrapper::isOfType<&llvm::Type::isStructTy>);
+        Nan::SetPrototypeMethod(typeTemplate, "isArrayTy", &TypeWrapper::isOfType<&llvm::Type::isArrayTy>);
+        Nan::SetPrototypeMethod(typeTemplate, "isPointerTy", &TypeWrapper::isOfType<&llvm::Type::isPointerTy>);
         Nan::SetAccessor(typeTemplate->InstanceTemplate(), Nan::New("typeID").ToLocalChecked(), TypeWrapper::getTypeID);
 
         persistentTemplate.Reset(typeTemplate);
@@ -124,9 +138,15 @@ Nan::Persistent<v8::Object>& TypeWrapper::getObjectWithStaticMethods() {
 
     if (object.IsEmpty()) {
         v8::Local<v8::Object> localObject = Nan::New<v8::Object>();
-        Nan::SetMethod(localObject, "getDoubleTy", getDoubleTy);
-        Nan::SetMethod(localObject, "getVoidTy", getVoidTy);
-
+        Nan::SetMethod(localObject, "getDoubleTy",  &getType<&llvm::Type::getDoubleTy>);
+        Nan::SetMethod(localObject, "getVoidTy",  &getType<&llvm::Type::getVoidTy>);
+        Nan::SetMethod(localObject, "getLabelTy",  &getType<&llvm::Type::getLabelTy>);
+        Nan::SetMethod(localObject, "getInt1Ty", &getIntType<&llvm::Type::getInt1Ty>);
+        Nan::SetMethod(localObject, "getInt8Ty", &getIntType<&llvm::Type::getInt8Ty>);
+        Nan::SetMethod(localObject, "getInt16Ty", &getIntType<&llvm::Type::getInt16Ty>);
+        Nan::SetMethod(localObject, "getInt32Ty", &getIntType<&llvm::Type::getInt32Ty>);
+        Nan::SetMethod(localObject, "getInt64Ty", &getIntType<&llvm::Type::getInt64Ty>);
+        Nan::SetMethod(localObject, "getInt128Ty", &getIntType<&llvm::Type::getInt128Ty>);
         object.Reset(localObject);
     }
 

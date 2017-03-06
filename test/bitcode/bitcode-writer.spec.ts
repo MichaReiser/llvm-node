@@ -1,11 +1,11 @@
-const llvm = require("../../index");
+import * as llvm from "../../";
 const fs = require("fs");
 
 const filename = "./bitcode-writer-test.bc";
 
 describe("BitcodeWriter", () => {
     let mod: llvm.Module;
-    let context: llvm.Context;
+    let context: llvm.LLVMContext;
 
     beforeEach(() => {
         if (fs.existsSync(filename)) {

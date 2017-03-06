@@ -14,6 +14,7 @@ NAN_MODULE_INIT(ModuleWrapper::Init) {
     functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
     Nan::SetPrototypeMethod(functionTemplate, "dump", dump);
+    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("empty").ToLocalChecked(), empty);
     Nan::SetPrototypeMethod(functionTemplate, "getFunction", getFunction);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), getName);
     Nan::SetPrototypeMethod(functionTemplate, "setDataLayout", setDataLayout);
@@ -47,6 +48,11 @@ NAN_METHOD(ModuleWrapper::New) {
 
 NAN_METHOD(ModuleWrapper::dump) {
     ModuleWrapper::FromValue(info.Holder())->module->dump();
+}
+
+NAN_GETTER(ModuleWrapper::empty) {
+    bool empty = ModuleWrapper::FromValue(info.Holder())->module->empty();
+    info.GetReturnValue().Set(Nan::New(empty));
 }
 
 NAN_METHOD(ModuleWrapper::getFunction) {

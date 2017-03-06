@@ -8,6 +8,7 @@
 #include "function.h"
 #include "type.h"
 #include "phi-node.h"
+#include "alloca-inst.h"
 
 NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New<v8::FunctionTemplate>(New);
@@ -15,15 +16,29 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
     Nan::SetPrototypeMethod(functionTemplate, "setInsertionPoint", IRBuilderWrapper::SetInsertionPoint);
+    Nan::SetPrototypeMethod(functionTemplate, "createAlloca", IRBuilderWrapper::CreateAlloca);
     Nan::SetPrototypeMethod(functionTemplate, "createBr", IRBuilderWrapper::CreateBr);
     Nan::SetPrototypeMethod(functionTemplate, "createCall", IRBuilderWrapper::CreateCall);
     Nan::SetPrototypeMethod(functionTemplate, "createCondBr", IRBuilderWrapper::CreateCondBr);
-    Nan::SetPrototypeMethod(functionTemplate, "createFAdd", &IRBuilderWrapper::BinaryOperation<&llvm::IRBuilder<>::CreateFAdd>);
-    Nan::SetPrototypeMethod(functionTemplate, "createFCmpOLE", &IRBuilderWrapper::BinaryOperation<&llvm::IRBuilder<>::CreateFCmpOLE>);
-    Nan::SetPrototypeMethod(functionTemplate, "createFSub", &IRBuilderWrapper::BinaryOperation<&llvm::IRBuilder<>::CreateFSub>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFAdd", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFAdd>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpOLE", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFCmpOLE>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpOLT", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFCmpOLT>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpOEQ", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFCmpOEQ>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpULE", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFCmpULE>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpULT", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFCmpULT>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpUEQ", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFCmpUEQ>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFPToSI", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateFPToSI>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFDiv", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFDiv>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFRem", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFRem>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFSub", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFSub>);
+    Nan::SetPrototypeMethod(functionTemplate, "createICmpEQ", &IRBuilderWrapper::BinaryOperation<&llvm::IRBuilder<>::CreateICmpEQ>);
+    Nan::SetPrototypeMethod(functionTemplate, "createSRem", &IRBuilderWrapper::BinaryOperation<&llvm::IRBuilder<>::CreateSRem>);
+    Nan::SetPrototypeMethod(functionTemplate, "createLoad", IRBuilderWrapper::CreateLoad);
     Nan::SetPrototypeMethod(functionTemplate, "createPhi", IRBuilderWrapper::CreatePHI);
     Nan::SetPrototypeMethod(functionTemplate, "createRet", IRBuilderWrapper::CreateRet);
     Nan::SetPrototypeMethod(functionTemplate, "createRetVoid", IRBuilderWrapper::CreateRetVoid);
+    Nan::SetPrototypeMethod(functionTemplate, "createSIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateSIToFP>);
+    Nan::SetPrototypeMethod(functionTemplate, "createStore", IRBuilderWrapper::CreateStore);
     Nan::SetPrototypeMethod(functionTemplate, "getInsertBlock", IRBuilderWrapper::GetInsertBlock);
 
     auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
@@ -37,20 +52,26 @@ NAN_METHOD(IRBuilderWrapper::New) {
         return Nan::ThrowTypeError("IRBuilder constructor needs to be called with new");
     }
 
-    if (info.Length() < 1 || !LLVMContextWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("IRBuilder constructor needs to be called with a single argument, the context");
+    if (info.Length() < 1 || !(LLVMContextWrapper::isInstance(info[0]) || BasicBlockWrapper::isInstance(info[0]))) {
+        return Nan::ThrowTypeError("IRBuilder constructor needs either be called with a context or a basic block");
     }
 
-    auto llvmContextWrapper = LLVMContextWrapper::FromValue(info[0]);
-    auto* wrapper = new IRBuilderWrapper {llvmContextWrapper->getContext() };
-    wrapper->Wrap(info.This());
+    IRBuilderWrapper* wrapper = nullptr;
+    if (LLVMContextWrapper::isInstance(info[0])) {
+        auto& llvmContext = LLVMContextWrapper::FromValue(info[0])->getContext();
+        wrapper = new IRBuilderWrapper { llvm::IRBuilder<> { llvmContext } };
+    } else {
+        auto* basicBlock = BasicBlockWrapper::FromValue(info[0])->getBasicBlock();
+        wrapper = new IRBuilderWrapper { llvm::IRBuilder<> { basicBlock, basicBlock->begin() } };
+    }
 
+    wrapper->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
 }
 
-typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpFn)(llvm::Value*, llvm::Value*, const llvm::Twine&, llvm::MDNode *FPMathTag);
-template<BinaryOpFn method>
-NAN_METHOD(IRBuilderWrapper::BinaryOperation) {
+typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpFloatFn)(llvm::Value*, llvm::Value*, const llvm::Twine&, llvm::MDNode *FPMathTag);
+template<BinaryOpFloatFn method>
+NAN_METHOD(IRBuilderWrapper::BinaryOperationFloat) {
     if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1])
                         || (info.Length() == 3 && !info[2]->IsString())
                         || info.Length() > 3) {
@@ -69,6 +90,116 @@ NAN_METHOD(IRBuilderWrapper::BinaryOperation) {
     llvm::Value* value = (wrapper->irBuilder.*method)(lhs, rhs, name, nullptr);
 
     info.GetReturnValue().Set(ValueWrapper::of(value));
+}
+
+typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpFn)(llvm::Value*, llvm::Value*, const llvm::Twine&);
+template<BinaryOpFn method>
+NAN_METHOD(IRBuilderWrapper::BinaryOperation) {
+    if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1])
+        || (info.Length() == 3 && !info[2]->IsString())
+        || info.Length() > 3) {
+        return Nan::ThrowTypeError("Binary operation needs to be called with: lhs: Value, rhs: Value, name: string?");
+    }
+
+    auto* lhs = ValueWrapper::FromValue(info[0])->getValue();
+    auto* rhs = ValueWrapper::FromValue(info[1])->getValue();
+    std::string name {};
+
+    if (info.Length() == 3) {
+        name = ToString(info[2]);
+    }
+
+    auto* wrapper = IRBuilderWrapper::FromValue(info.Holder());
+    llvm::Value* value = (wrapper->irBuilder.*method)(lhs, rhs, name);
+
+    info.GetReturnValue().Set(ValueWrapper::of(value));
+}
+
+typedef llvm::Value* (llvm::IRBuilder<>::*ConvertOperationFn)(llvm::Value*, llvm::Type*, const llvm::Twine&);
+template<ConvertOperationFn method>
+NAN_METHOD(IRBuilderWrapper::ConvertOperation) {
+    if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !TypeWrapper::isInstance(info[1])
+        || (info.Length() == 3 && !info[2]->IsString())
+        || info.Length() > 3) {
+        return Nan::ThrowTypeError("Convert operation needs to be called with: value: Value, type: Type, name: string?");
+    }
+
+    auto* value = ValueWrapper::FromValue(info[0])->getValue();
+    auto* type = TypeWrapper::FromValue(info[1])->getType();
+    std::string name {};
+
+    if (info.Length() == 3) {
+        name = ToString(info[2]);
+    }
+
+    auto* wrapper = IRBuilderWrapper::FromValue(info.Holder());
+    llvm::Value* returnValue = (wrapper->irBuilder.*method)(value, type, name);
+
+    info.GetReturnValue().Set(ValueWrapper::of(returnValue));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateAlloca) {
+    if (info.Length() < 1 || !TypeWrapper::isInstance(info[0])
+            || (info.Length() > 1 && !ValueWrapper::isInstance(info[1]) && !info[1]->IsUndefined())
+            || (info.Length() > 2 && !info[2]->IsString())
+            || info.Length() > 3) {
+        return Nan::ThrowTypeError("createAlloca needs to be called with: type: Type, arraySize: Value, name?: string");
+    }
+
+    auto* type = TypeWrapper::FromValue(info[0])->getType();
+    llvm::Value* value = nullptr;
+    std::string name {};
+
+    if (info.Length() > 1 && !info[1]->IsUndefined()) {
+        value = ValueWrapper::FromValue(info[1])->getValue();
+    }
+
+    if (info.Length() > 2) {
+        name = ToString(Nan::To<v8::String>(info[2]).ToLocalChecked());
+    }
+
+    auto& irBuilder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
+    auto* alloc = irBuilder.CreateAlloca(type, value, name);
+
+    info.GetReturnValue().Set(AllocaInstWrapper::of(alloc));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateLoad) {
+    if (info.Length() < 1 || !ValueWrapper::isInstance(info[0])
+            || (info.Length() > 1 && !info[1]->IsString())
+            || info.Length() > 2) {
+        return Nan::ThrowTypeError("createLoad needs to be called with: value: Value, name?: string");
+    }
+
+    auto* value = ValueWrapper::FromValue(info[0])->getValue();
+    std::string name {};
+
+    if (info.Length() > 1) {
+        name = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
+    }
+
+    auto& irBuilder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
+    auto* inst = irBuilder.CreateLoad(value, name);
+    info.GetReturnValue().Set(ValueWrapper::of(inst));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateStore) {
+    if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1])
+            || (info.Length() > 2 && !info[2]->IsBoolean())
+            || info.Length() > 3) {
+        return Nan::ThrowTypeError("createStore needs to be called with: value: Value, ptr: Value, isVolatile?: boolean");
+    }
+
+    auto* value = ValueWrapper::FromValue(info[0])->getValue();
+    auto* ptr = ValueWrapper::FromValue(info[1])->getValue();
+    bool isVolatile = false;
+
+    if (info.Length() > 2) {
+        isVolatile = Nan::To<bool>(info[2]).FromJust();
+    }
+
+    auto* inst = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateStore(value, ptr, isVolatile);
+    info.GetReturnValue().Set(ValueWrapper::of(inst));
 }
 
 NAN_METHOD(IRBuilderWrapper::CreateCall) {

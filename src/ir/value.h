@@ -34,6 +34,8 @@ private:
     static NAN_GETTER(getName);
     static NAN_SETTER(setName);
     static NAN_METHOD(release);
+    static NAN_METHOD(replaceAllUsesWith);
+    static NAN_METHOD(useEmpty);
 };
 
 

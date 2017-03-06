@@ -10,6 +10,7 @@
 #include "constants.h"
 #include "type.h"
 #include "phi-node.h"
+#include "alloca-inst.h"
 
 NAN_MODULE_INIT(ValueWrapper::Init) {
     auto object = Nan::New<v8::Object>();
@@ -34,6 +35,8 @@ Nan::Persistent<v8::FunctionTemplate>& ValueWrapper::valueTemplate() {
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), ValueWrapper::getName,
                          ValueWrapper::setName);
         Nan::SetPrototypeMethod(localTemplate, "release", BasicBlockWrapper::release);
+        Nan::SetPrototypeMethod(localTemplate, "replaceAllUsesWith", BasicBlockWrapper::replaceAllUsesWith);
+        Nan::SetPrototypeMethod(localTemplate, "useEmpty", BasicBlockWrapper::useEmpty);
 
         functionTemplate.Reset(localTemplate);
     }
@@ -94,6 +97,22 @@ NAN_METHOD(ValueWrapper::release) {
     delete wrapper->getValue();
 }
 
+NAN_METHOD(ValueWrapper::replaceAllUsesWith) {
+    if (info.Length() != 1 || !ValueWrapper::isInstance(info[0])) {
+        return Nan::ThrowTypeError("replaceAllUsesWith needs to be called with: value: Value");
+    }
+
+    auto* self = ValueWrapper::FromValue(info.Holder())->getValue();
+    auto* value = ValueWrapper::FromValue(info[0])->getValue();
+
+    self->replaceAllUsesWith(value);
+}
+
+NAN_METHOD(ValueWrapper::useEmpty) {
+    auto* value = ValueWrapper::FromValue(info.Holder())->getValue();
+    info.GetReturnValue().Set(Nan::New(value->use_empty()));
+}
+
 v8::Local<v8::Object> ValueWrapper::of(llvm::Value *value) {
     v8::Local<v8::Object> result {};
 
@@ -103,6 +122,8 @@ v8::Local<v8::Object> ValueWrapper::of(llvm::Value *value) {
         result = BasicBlockWrapper::of(static_cast<llvm::BasicBlock*>(value));
     } else if(llvm::PHINode::classof(value)) {
         result = PhiNodeWrapper::of(static_cast<llvm::PHINode*>(value));
+    } else if(llvm::AllocaInst::classof(value)) {
+        result = AllocaInstWrapper::of(static_cast<llvm::AllocaInst*>(value));
     } else {
         auto constructorFunction = Nan::GetFunction(Nan::New(valueTemplate())).ToLocalChecked();
         v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(value) };

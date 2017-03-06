@@ -58,5 +58,29 @@ private:
     static NAN_GETTER(getValueAPF);
 };
 
+class ConstantIntWrapper: public ConstantWrapper, public FromValueMixin<ConstantIntWrapper> {
+public:
+    static NAN_MODULE_INIT(Init);
+    static v8::Local<v8::Object> of(llvm::ConstantInt* constantInt);
+    using FromValueMixin<ConstantIntWrapper>::FromValue;
+    llvm::ConstantInt* getConstantInt();
+
+private:
+    ConstantIntWrapper(llvm::ConstantInt* constant)
+            : ConstantWrapper { constant }
+    {}
+
+    static Nan::Persistent<v8::FunctionTemplate>& constantIntTemplate();
+
+    // static
+    static NAN_METHOD(New);
+    static NAN_METHOD(get);
+    static NAN_METHOD(getTrue);
+    static NAN_METHOD(getFalse);
+
+    // instance
+    static NAN_GETTER(getValueApf);
+};
+
 
 #endif //LLVM_NODE_CONSTANTFPWRAPPER_H

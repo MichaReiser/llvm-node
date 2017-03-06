@@ -30,6 +30,7 @@ private:
 
     // instance
     static NAN_METHOD(dump);
+    static NAN_GETTER(empty);
     static NAN_METHOD(getFunction);
     static NAN_GETTER(getName);
     static NAN_METHOD(setDataLayout);

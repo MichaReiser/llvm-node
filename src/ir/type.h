@@ -33,11 +33,19 @@ protected:
     static NAN_METHOD(New);
 
 private:
-    static NAN_METHOD(getDoubleTy);
-    static NAN_METHOD(getVoidTy);
+    typedef llvm::Type* (getTypeFn)(llvm::LLVMContext&);
+    template<getTypeFn method>
+    static NAN_METHOD(getType);
+
+    typedef llvm::IntegerType* (getIntTypeFn)(llvm::LLVMContext&);
+    template<getIntTypeFn method>
+    static NAN_METHOD(getIntType);
+
+    typedef bool (llvm::Type::*isTy)() const;
+    template<isTy method>
+    static NAN_METHOD(isOfType);
 
     // Instance Methods
-    static NAN_METHOD(isDoubleTy);
     static NAN_GETTER(getTypeID);
 };
 

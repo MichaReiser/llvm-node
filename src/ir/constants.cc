@@ -23,6 +23,8 @@ v8::Local<v8::Object> ConstantWrapper::of(llvm::Constant *constant) {
         result = FunctionWrapper::of(static_cast<llvm::Function*>(constant));
     } else if (llvm::ConstantFP::classof(constant)) {
         result = ConstantFPWrapper::of(static_cast<llvm::ConstantFP*>(constant));
+    } else if (llvm::ConstantInt::classof(constant)) {
+        result = ConstantIntWrapper::of(static_cast<llvm::ConstantInt*>(constant));
     } else {
         auto constructorFunction = Nan::GetFunction(Nan::New(constantTemplate())).ToLocalChecked();
         v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(constant) };
@@ -110,6 +112,10 @@ llvm::Constant *ConstantWrapper::getConstant() {
     return static_cast<llvm::Constant*>(getValue());
 }
 
+//---------------------------------------------
+// Constant FP
+//---------------------------------------------
+
 NAN_MODULE_INIT(ConstantFPWrapper::Init) {
     auto object = Nan::New<v8::Object>();
 
@@ -177,6 +183,108 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantFPWrapper::constantFpTemplate() {
         localTemplate->Inherit(Nan::New(constantTemplate()));
 
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("value").ToLocalChecked(), ConstantFPWrapper::getValueAPF);
+
+        functionTemplate.Reset(localTemplate);
+    }
+
+    return functionTemplate;
+}
+
+//---------------------------------------------
+// Constant Int
+//---------------------------------------------
+
+NAN_MODULE_INIT(ConstantIntWrapper::Init) {
+    auto object = Nan::New<v8::Object>();
+
+    Nan::SetMethod(object, "get", ConstantIntWrapper::get);
+    Nan::SetMethod(object, "getFalse", ConstantIntWrapper::getFalse);
+    Nan::SetMethod(object, "getTrue", ConstantIntWrapper::getTrue);
+
+    Nan::Set(target, Nan::New("ConstantInt").ToLocalChecked(), object);
+}
+
+NAN_METHOD(ConstantIntWrapper::New) {
+    if (!info.IsConstructCall()) {
+        return Nan::ThrowTypeError("Class Constructor ConstantInt cannot be invoked without new");
+    }
+
+    if (info.Length() != 1 || !info[0]->IsExternal()) {
+        return Nan::ThrowTypeError("ConstantInt constructor needs to be called with: constantInt: external");
+    }
+
+    auto* constantInt = static_cast<llvm::ConstantInt*>(v8::External::Cast(*info[0])->Value());
+    auto* wrapper = new ConstantIntWrapper { constantInt };
+    wrapper->Wrap(info.This());
+
+    info.GetReturnValue().Set(info.This());
+}
+
+NAN_METHOD(ConstantIntWrapper::get) {
+    if (info.Length() != 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsInt32()) {
+        return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number");
+    }
+
+    auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
+    int32_t number = Nan::To<int32_t >(info[1]).ToChecked();
+
+    auto* constant = llvm::ConstantInt::get(context, llvm::APInt { 32, static_cast<uint64_t>(number), true } );
+
+    info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
+}
+
+NAN_METHOD(ConstantIntWrapper::getTrue) {
+    if (info.Length() != 1 || !LLVMContextWrapper::isInstance(info[0])) {
+        return Nan::ThrowTypeError("getTrue needs to be called with: context: LLVMContext");
+    }
+
+    auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
+    auto* constant = llvm::ConstantInt::getTrue(context);
+
+    info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
+}
+
+NAN_METHOD(ConstantIntWrapper::getFalse) {
+    if (info.Length() != 1 || !LLVMContextWrapper::isInstance(info[0])) {
+        return Nan::ThrowTypeError("getFalse needs to be called with: context: LLVMContext");
+    }
+
+    auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
+    auto* constant = llvm::ConstantInt::getFalse(context);
+
+    info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
+}
+
+NAN_GETTER(ConstantIntWrapper::getValueApf) {
+    auto* wrapper = ConstantIntWrapper::FromValue(info.Holder());
+    auto value = wrapper->getConstantInt()->getValue();
+
+    info.GetReturnValue().Set(Nan::New(value.signedRoundToDouble()));
+}
+
+llvm::ConstantInt *ConstantIntWrapper::getConstantInt() {
+    return static_cast<llvm::ConstantInt*>(getValue());
+}
+
+v8::Local<v8::Object> ConstantIntWrapper::of(llvm::ConstantInt *constantInt) {
+    auto constructorFunction = Nan::GetFunction(Nan::New(constantIntTemplate())).ToLocalChecked();
+    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantInt) };
+    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+
+    Nan::EscapableHandleScope escapeScpoe {};
+    return escapeScpoe.Escape(instance);
+}
+
+Nan::Persistent<v8::FunctionTemplate>& ConstantIntWrapper::constantIntTemplate() {
+    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+
+    if (functionTemplate.IsEmpty()) {
+        auto localTemplate = Nan::New<v8::FunctionTemplate>(ConstantIntWrapper::New);
+        localTemplate->SetClassName(Nan::New("ConstantInt").ToLocalChecked());
+        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+        localTemplate->Inherit(Nan::New(constantTemplate()));
+
+        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("value").ToLocalChecked(), ConstantIntWrapper::getValueApf);
 
         functionTemplate.Reset(localTemplate);
     }

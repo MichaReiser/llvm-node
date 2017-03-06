@@ -1,4 +1,4 @@
-const llvm = require("../../index");
+import * as llvm from "../../";
 
 test("can call initialize functions", () => {
     llvm.initializeAllTargetInfos();

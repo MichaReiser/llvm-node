@@ -30,6 +30,7 @@ private:
     // instance
     static NAN_METHOD(addBasicBlock);
     static NAN_METHOD(getArguments);
+    static NAN_METHOD(getEntryBlock);
 
     static Nan::Persistent<v8::FunctionTemplate>& functionTemplate();
 };

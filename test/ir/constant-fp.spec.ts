@@ -1,4 +1,5 @@
-const llvm = require("../../");
+import * as llvm from "../../";
+
 describe("ConstantFP", () => {
 
     let context: llvm.LLVMContext;

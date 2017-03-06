@@ -16,12 +16,15 @@
 #include "basic-block.h"
 #include "phi-node.h"
 #include "verifier.h"
+#include "alloca-inst.h"
 
 NAN_MODULE_INIT(InitIR) {
+    AllocaInstWrapper::Init(target);
     ArgumentWrapper::Init(target);
     BasicBlockWrapper::Init(target);
     ConstantWrapper::Init(target);
     ConstantFPWrapper::Init(target);
+    ConstantIntWrapper::Init(target);
     DataLayoutWrapper::Init(target);
     FunctionWrapper::Init(target);
     FunctionTypeWrapper::Init(target);

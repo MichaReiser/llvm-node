@@ -1,4 +1,4 @@
-const llvm = require("../../index");
+import * as llvm from "../../";
 
 describe("Verifier", () => {
     let context: llvm.LLVMContext;

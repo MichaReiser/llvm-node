@@ -29,7 +29,11 @@ private:
     static NAN_METHOD(Create);
 
     // instance methods
+    static NAN_METHOD(eraseFromParent);
+    static NAN_GETTER(empty);
     static NAN_GETTER(getParent);
+    static NAN_METHOD(getTerminator);
+
     static Nan::Persistent<v8::FunctionTemplate>& basicBlockTemplate();
 };
 

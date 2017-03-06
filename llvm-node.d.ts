@@ -1,20 +1,26 @@
-declare module "llvm-node" {
+declare namespace llvm {
+
     // bitcode/bitcodewriter
-    export function writeBitcodeToFile(module: Module, filename: string): void;
+    function writeBitcodeToFile(module: Module, filename: string): void;
 
     // IR/verifier
-    export function verifyModule(mod: Module): void;
-    export function verifyFunction(fun: Function): void;
+    function verifyModule(mod: Module): void;
+
+    function verifyFunction(fun: Function): void;
 
     // support
-    export function initializeAllTargetInfos(): void;
-    export function initializeAllTargets(): void;
-    export function initializeAllTargetMCs(): void;
-    export function initializeAllAsmParsers(): void;
-    export function initializeAllAsmPrinters(): void;
+    function initializeAllTargetInfos(): void;
+
+    function initializeAllTargets(): void;
+
+    function initializeAllTargetMCs(): void;
+
+    function initializeAllAsmParsers(): void;
+
+    function initializeAllAsmPrinters(): void;
 
     //ir
-    export enum LinkageTypes {
+    enum LinkageTypes {
         ExternalLinkage,
         AvailableExternallyLinkage,
         LinkOnceAnyLinkage,
@@ -28,9 +34,10 @@ declare module "llvm-node" {
         CommonLinkage
     }
 
-    export class Value {
+    class Value {
         static MaxAlignmentExponent: number;
         static MaximumAlignment: number;
+        protected constructor();
 
         type: Type;
         name: string;
@@ -42,52 +49,87 @@ declare module "llvm-node" {
          * Deletes the value. It is, therefore, forbidden to use the value any further
          */
         release(): void;
+
+        replaceAllUsesWith(value: Value): void;
+        useEmpty(): boolean;
     }
 
-    export class Argument extends Value {
+    class Argument extends Value {
         argumentNumber: number;
-        parent: Function;
+        parent?: Function;
+
         constructor(type: Type, name?: string, func?: Function);
     }
 
-    export class BasicBlock extends Value {
-        static create(context: LLVMContext, name?: string, parent?: Function, insertBefore?: BasicBlock): BasicBlock;
+    class AllocaInst extends Value {
+        allocatedType: Type;
 
-        parent: Function;
+        private constructor();
     }
 
-    export class Constant extends Value {
+    class BasicBlock extends Value {
+        static create(context: LLVMContext, name?: string, parent?: Function, insertBefore?: BasicBlock): BasicBlock;
+        protected constructor();
+
+        parent?: Function;
+        empty: boolean;
+        eraseFromParent(): void;
+        getTerminator(): Value | undefined;
+    }
+
+    class Constant extends Value {
         static getNullValue(type: Type): Constant;
+
         static getAllOnesValue(type: Type): Constant;
 
+        protected constructor();
+
         isNullValue(): boolean;
+
         isOneValue(): boolean;
+
         isAllOnesValue(): boolean;
     }
 
-    export class ConstantFP extends Constant {
+    class ConstantFP extends Constant {
         static get(context: LLVMContext, value: number): ConstantFP;
+
+        private constructor();
 
         value: number;
     }
 
-    export class PhiNode {
+    class ConstantInt extends Constant {
+        static get(context: LLVMContext, value: number): ConstantInt;
+        static getFalse(context: LLVMContext): ConstantInt;
+        static getTrue(context: LLVMContext): ConstantInt;
+
+        private constructor();
+
+        value: number;
+    }
+
+    class PhiNode extends Value {
+        private constructor();
         addIncoming(value: Value, basicBlock: BasicBlock): void;
     }
 
-    export class Function extends Constant {
+    class Function extends Constant {
         static create(functionType: FunctionType, linkageTypes: LinkageTypes, name?: string, module?: Module): Function;
 
-        getArguments(): Argument[];
+        private constructor();
         addBasicBlock(basicBlock: BasicBlock);
+        getArguments(): Argument[];
+        getEntryBlock(): BasicBlock;
     }
 
-    export class DataLayout {
+    class DataLayout {
         constructor(layout: string);
+
         getStringRepresentation(): string;
     }
 
-    export class Type {
+    class Type {
         static TypeID: {
             VoidTyID: number,
             HalfTyID: number,
@@ -109,69 +151,115 @@ declare module "llvm-node" {
 
         static getDoubleTy(context: LLVMContext): Type;
         static getVoidTy(context: LLVMContext): Type;
+        static getLabelTy(context: LLVMContext): Type;
+        static getInt1Ty(context: LLVMContext): Type;
+        static getInt8Ty(context: LLVMContext): Type;
+        static getInt16Ty(context: LLVMContext): Type;
+        static getInt32Ty(context: LLVMContext): Type;
+        static getInt64Ty(context: LLVMContext): Type;
+        static getInt128Ty(context: LLVMContext): Type;
 
+        protected constructor();
+
+        isVoidTy(): boolean;
+        isFloatTy(): boolean;
+        isDoubleTy(): boolean;
+        isLabelTy(): boolean;
+        isIntegerTy(): boolean;
+        isFunctionTy(): boolean;
+        isStructTy(): boolean;
+        isArrayTy(): boolean;
+        isPointerTy(): boolean;
         isDoubleTy(): boolean;
         isVoidTy(): boolean;
     }
 
-    export class FunctionType extends Type {
+    class FunctionType extends Type {
         static get(result: Type, isVarArg: boolean): FunctionType;
         static get(result: Type, params: Type[], isVarArg: boolean): FunctionType;
+
         static isValidReturnType(type: Type): boolean;
+
         static isValidArgumentType(type: Type): boolean;
 
         returnType: Type;
         isVarArg: boolean;
         numParams: number;
+
+        private constructor();
         getParams(): Type[];
         getParamType(index: number): Type;
     }
 
-    export class IRBuilder {
+    class IRBuilder {
         constructor(context: LLVMContext);
+        constructor(basicBlock: BasicBlock);
 
         setInsertionPoint(basicBlock: BasicBlock): void;
+        createAlloca(type: Type, arraySize?: Value, name?: string): AllocaInst;
         createBr(basicBlock: BasicBlock): Value;
         createCall(callee: Function, args: Value[], name?: string): Value;
         createCondBr(condition: Value, then: BasicBlock, elseBlock: BasicBlock): Value;
         createFAdd(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpOLE(lhs: Value, rhs: Value, name?: string): Value;
-        createFSub(lhs: Value ,rhs: Value, name?: string): Value;
+        createFCmpOLT(lhs: Value, rhs: Value, name?: string): Value;
+        createFCmpOEQ(lhs: Value, rhs: Value, name?: string): Value;
+        createFCmpULE(lhs: Value, rhs: Value, name?: string): Value;
+        createFCmpULT(lhs: Value, rhs: Value, name?: string): Value;
+        createFCmpUEQ(lhs: Value, rhs: Value, name?: string): Value;
+        createFDiv(lhs: Value, rhs: Value, name?: string): Value;
+        createFRem(lhs: Value, rhs: Value, name?: string): Value;
+        createFSub(lhs: Value, rhs: Value, name?: string): Value;
+        createFPToSI(value: Value, type: Type, name?: string): Value;
+        createICmpEQ(lhs: Value, rhs: Value, name?: string): Value;
+        createLoad(ptr: Value, name?: string): Value;
         createPhi(type: Type, numReservedValues: number, name?: string): PhiNode;
         createRet(value: Value): Value;
         createRetVoid(): Value;
+        createSIToFP(value: Value, type: Type, name?: string): Value;
+        createStore(value: Value, ptr: Value, isVolatile?: boolean): Value;
+        createSRem(lhs: Value, rhs: Value, name?: string): Value;
         getInsertBlock(): BasicBlock;
     }
 
-    export class LLVMContext {
+    class LLVMContext {
         constructor();
     }
 
-    export class Module {
-        sourceFileName: string;
+    class Module {
+        empty: boolean;
         moduleIdentifier: string;
+        sourceFileName: string;
         targetTriple: string;
 
         constructor(moduleId: string, context: LLVMContext);
+
         dump(): void;
+
         getFunction(name: string): Function;
-        setDataLayout(): void;
+
+        setDataLayout(dataLayout: DataLayout): void;
     }
 
     // support
-    export const TargetRegistry:  {
-        lookupTarget(target: string): Target;
-    };
+    class TargetRegistry {
+        private constructor();
+        static lookupTarget(target: string): Target;
+    }
 
-    export interface Target {
+    class Target {
         name: string;
         shortDescription: string;
-
+        private constructor();
         createTargetMachine(triple: string, cpu: string): TargetMachine;
     }
 
     // target
-    export interface TargetMachine {
+    class TargetMachine {
+        private constructor();
         createDataLayout(): DataLayout;
     }
 }
+
+export = llvm;
+export as namespace llvm;

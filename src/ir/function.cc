@@ -12,11 +12,8 @@
 FunctionWrapper::FunctionWrapper(llvm::Function *function) : ConstantWrapper(function) {}
 
 NAN_MODULE_INIT(FunctionWrapper::Init) {
-    v8::Local<v8::Object> object = Nan::New<v8::Object>();
-
-    Nan::SetMethod(object, "create", FunctionWrapper::Create);
-
-    Nan::Set(target, Nan::New("Function").ToLocalChecked(), object);
+    auto constructorFunction = Nan::GetFunction(Nan::New(functionTemplate())).ToLocalChecked();
+    Nan::Set(target, Nan::New("Function").ToLocalChecked(), constructorFunction);
 }
 
 NAN_METHOD(FunctionWrapper::New) {
@@ -46,8 +43,10 @@ Nan::Persistent<v8::FunctionTemplate> &FunctionWrapper::functionTemplate() {
         localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
         localTemplate->Inherit(valueTemplate);
 
-        Nan::SetPrototypeMethod(localTemplate, "getArguments", FunctionWrapper::getArguments);
+        Nan::SetMethod(localTemplate, "create", FunctionWrapper::Create);
         Nan::SetPrototypeMethod(localTemplate, "addBasicBlock", FunctionWrapper::addBasicBlock);
+        Nan::SetPrototypeMethod(localTemplate, "getArguments", FunctionWrapper::getArguments);
+        Nan::SetPrototypeMethod(localTemplate, "getEntryBlock", FunctionWrapper::getEntryBlock);
 
         tmpl.Reset(localTemplate);
     }
@@ -114,6 +113,13 @@ NAN_METHOD(FunctionWrapper::getArguments) {
     }
 
     info.GetReturnValue().Set(result);
+}
+
+NAN_METHOD(FunctionWrapper::getEntryBlock) {
+    auto* wrapper = FunctionWrapper::FromValue(info.Holder());
+    auto& entryBlock = wrapper->getFunction()->getEntryBlock();
+
+    info.GetReturnValue().Set(BasicBlockWrapper::of(&entryBlock));
 }
 
 llvm::Function *FunctionWrapper::getFunction() {

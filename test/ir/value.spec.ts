@@ -1,7 +1,7 @@
-const llvm = require("../../index");
+import * as llvm from "../../";
 
 describe("Value", () => {
-    const context: llvm.LLVMContext;
+    let context: llvm.LLVMContext;
 
     beforeEach(() => {
         context = new llvm.LLVMContext();

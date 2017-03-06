@@ -11,6 +11,7 @@
                 "src/bitcode/bitcode-writer.cc",
                 "src/ir/ir.h",
                 "src/ir/ir.cc",
+                "src/ir/alloca-inst.cc",
                 "src/ir/argument.cc",
                 "src/ir/basic-block.cc",
                 "src/ir/constants.cc",

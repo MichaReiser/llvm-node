@@ -2,6 +2,7 @@
 // Created by Micha Reiser on 01.03.17.
 //
 
+#include <llvm/IR/InstrTypes.h>
 #include "function.h"
 #include "llvm-context.h"
 #include "basic-block.h"
@@ -70,6 +71,16 @@ NAN_METHOD(BasicBlockWrapper::Create) {
     info.GetReturnValue().Set(BasicBlockWrapper::of(basicBlock));
 }
 
+NAN_GETTER(BasicBlockWrapper::empty) {
+    auto* basicBlock = BasicBlockWrapper::FromValue(info.Holder())->getBasicBlock();
+    info.GetReturnValue().Set(Nan::New(basicBlock->empty()));
+}
+
+NAN_METHOD(BasicBlockWrapper::eraseFromParent) {
+    auto* basicBlock = BasicBlockWrapper::FromValue(info.Holder())->getBasicBlock();
+    basicBlock->eraseFromParent();
+}
+
 NAN_GETTER(BasicBlockWrapper::getParent) {
     auto* wrapper = BasicBlockWrapper::FromValue(info.Holder());
     auto* function = wrapper->getBasicBlock()->getParent();
@@ -78,6 +89,17 @@ NAN_GETTER(BasicBlockWrapper::getParent) {
         auto functionObject = FunctionWrapper::of(function);
         return info.GetReturnValue().Set(functionObject);
     }
+}
+
+NAN_METHOD(BasicBlockWrapper::getTerminator) {
+    auto* basicBlock = BasicBlockWrapper::FromValue(info.Holder())->getBasicBlock();
+    auto* terminator = basicBlock->getTerminator();
+
+    if (terminator) {
+        return info.GetReturnValue().Set(ValueWrapper::of(terminator));
+    }
+
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 Nan::Persistent<v8::FunctionTemplate>& BasicBlockWrapper::basicBlockTemplate() {
@@ -89,7 +111,10 @@ Nan::Persistent<v8::FunctionTemplate>& BasicBlockWrapper::basicBlockTemplate() {
         localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
         localTemplate->Inherit(Nan::New(ValueWrapper::valueTemplate()));
 
+        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("empty").ToLocalChecked(), BasicBlockWrapper::empty);
+        Nan::SetPrototypeMethod(localTemplate, "eraseFromParent", BasicBlockWrapper::eraseFromParent);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("parent").ToLocalChecked(), BasicBlockWrapper::getParent);
+        Nan::SetPrototypeMethod(localTemplate, "getTerminator", BasicBlockWrapper::getTerminator);
 
         functionTemplate.Reset(localTemplate);
     }

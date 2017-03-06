@@ -18,22 +18,34 @@ public:
 private:
     llvm::IRBuilder<> irBuilder;
 
-    IRBuilderWrapper(llvm::LLVMContext& context) : irBuilder { context } {
+    IRBuilderWrapper(llvm::IRBuilder<> irBuilder) : irBuilder { irBuilder } {
     }
 
     // static
     static NAN_METHOD(New);
 
     // instance
-    typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpFn)(llvm::Value*, llvm::Value*, const llvm::Twine&, llvm::MDNode *FPMathTag);
+    typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpFlaotFn)(llvm::Value*, llvm::Value*, const llvm::Twine&, llvm::MDNode *FPMathTag);
+    template<BinaryOpFlaotFn method>
+    static NAN_METHOD(BinaryOperationFloat);
+
+    typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpFn)(llvm::Value*, llvm::Value*, const llvm::Twine&);
     template<BinaryOpFn method>
     static NAN_METHOD(BinaryOperation);
+
+    typedef llvm::Value* (llvm::IRBuilder<>::*ConvertOperationFn)(llvm::Value*, llvm::Type*, const llvm::Twine&);
+    template<ConvertOperationFn method>
+    static NAN_METHOD(ConvertOperation);
+
+    static NAN_METHOD(CreateAlloca);
     static NAN_METHOD(CreateBr);
     static NAN_METHOD(CreateCall);
     static NAN_METHOD(CreateCondBr);
+    static NAN_METHOD(CreateLoad);
     static NAN_METHOD(CreatePHI);
     static NAN_METHOD(CreateRet);
     static NAN_METHOD(CreateRetVoid);
+    static NAN_METHOD(CreateStore);
     static NAN_METHOD(GetInsertBlock);
     static NAN_METHOD(SetInsertionPoint);
 
