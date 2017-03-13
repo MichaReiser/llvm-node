@@ -19,12 +19,16 @@
 #include "alloca-inst.h"
 #include "pointer-type.h"
 #include "array-type.h"
+#include "calling-conv.h"
+#include "call-inst.h"
 
 NAN_MODULE_INIT(InitIR) {
     AllocaInstWrapper::Init(target);
     ArgumentWrapper::Init(target);
     ArrayTypeWrapper::Init(target);
     BasicBlockWrapper::Init(target);
+    InitCallingConv(target);
+    CallInstWrapper::Init(target);
     ConstantWrapper::Init(target);
     ConstantFPWrapper::Init(target);
     ConstantIntWrapper::Init(target);

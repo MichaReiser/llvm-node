@@ -47,6 +47,7 @@ Nan::Persistent<v8::FunctionTemplate> &FunctionWrapper::functionTemplate() {
         Nan::SetPrototypeMethod(localTemplate, "addBasicBlock", FunctionWrapper::addBasicBlock);
         Nan::SetPrototypeMethod(localTemplate, "getArguments", FunctionWrapper::getArguments);
         Nan::SetPrototypeMethod(localTemplate, "getEntryBlock", FunctionWrapper::getEntryBlock);
+        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("callingConv").ToLocalChecked(), FunctionWrapper::getCallingConv, FunctionWrapper::setCallingConv);
 
         tmpl.Reset(localTemplate);
     }
@@ -120,6 +121,21 @@ NAN_METHOD(FunctionWrapper::getEntryBlock) {
     auto& entryBlock = wrapper->getFunction()->getEntryBlock();
 
     info.GetReturnValue().Set(BasicBlockWrapper::of(&entryBlock));
+}
+
+NAN_GETTER(FunctionWrapper::getCallingConv) {
+    auto callingConv = FunctionWrapper::FromValue(info.Holder())->getFunction()->getCallingConv();
+    info.GetReturnValue().Set(Nan::New(callingConv));
+}
+
+NAN_SETTER(FunctionWrapper::setCallingConv) {
+    if (!value->IsUint32()) {
+        return Nan::ThrowTypeError("callingConv needs to be a value of llvm.CallingConv");
+    }
+
+    uint32_t callingConvention = Nan::To<uint32_t>(value).ToChecked();
+
+    FunctionWrapper::FromValue(info.Holder())->getFunction()->setCallingConv(callingConvention);
 }
 
 llvm::Function *FunctionWrapper::getFunction() {

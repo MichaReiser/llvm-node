@@ -9,6 +9,7 @@
 #include "type.h"
 #include "phi-node.h"
 #include "alloca-inst.h"
+#include "call-inst.h"
 
 typedef llvm::Value* (*BinaryOpFn)(llvm::IRBuilder<>& builder, llvm::Value*, llvm::Value*, const llvm::Twine&);
 template<BinaryOpFn method>
@@ -85,6 +86,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createFRem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFRem>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFSub", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFSub>>);
     Nan::SetPrototypeMethod(functionTemplate, "createInBoundsGEP", IRBuilderWrapper::CreateInBoundsGEP);
+    Nan::SetPrototypeMethod(functionTemplate, "createIntCast", IRBuilderWrapper::CreateIntCast);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSGT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSGT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSLT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSLT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSLE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSLE>>);
@@ -208,6 +210,26 @@ NAN_METHOD(IRBuilderWrapper::CreateInBoundsGEP) {
     info.GetReturnValue().Set(ValueWrapper::of(grep));
 }
 
+NAN_METHOD(IRBuilderWrapper::CreateIntCast) {
+    if (info.Length() < 3 || !ValueWrapper::isInstance(info[0]) || !TypeWrapper::isInstance(info[1]) || !info[2]->IsBoolean() ||
+            (info.Length() == 4 && !info[3]->IsString()) ||
+            info.Length() > 4) {
+        return Nan::ThrowTypeError("createIntCast needs to be called with: value: Value, type: Type, isSigned: boolean, name?: string");
+    }
+
+    auto* value = ValueWrapper::FromValue(info[0])->getValue();
+    auto* type = TypeWrapper::FromValue(info[1])->getType();
+    auto isSigned = Nan::To<bool>(info[2]).ToChecked();
+    std::string name {};
+
+    if (info.Length() == 4) {
+        name = ToString(info[3]);
+    }
+
+    auto* casted = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateIntCast(value, type, isSigned, name);
+    info.GetReturnValue().Set(ValueWrapper::of(casted));
+}
+
 NAN_METHOD(IRBuilderWrapper::CreateLoad) {
     if (info.Length() < 1 || !ValueWrapper::isInstance(info[0])
             || (info.Length() > 1 && !info[1]->IsString())
@@ -270,7 +292,7 @@ NAN_METHOD(IRBuilderWrapper::CreateCall) {
     }
 
     auto* callInstr = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateCall(callee, args, name);
-    info.GetReturnValue().Set(ValueWrapper::of(callInstr));
+    info.GetReturnValue().Set(CallInstWrapper::of(callInstr));
 }
 
 NAN_METHOD(IRBuilderWrapper::CreatePHI) {

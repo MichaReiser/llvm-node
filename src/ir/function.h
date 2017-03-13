@@ -31,6 +31,8 @@ private:
     static NAN_METHOD(addBasicBlock);
     static NAN_METHOD(getArguments);
     static NAN_METHOD(getEntryBlock);
+    static NAN_GETTER(getCallingConv);
+    static NAN_SETTER(setCallingConv);
 
     static Nan::Persistent<v8::FunctionTemplate>& functionTemplate();
 };

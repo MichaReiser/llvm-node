@@ -15,6 +15,8 @@
                 "src/ir/array-type.cc",
                 "src/ir/argument.cc",
                 "src/ir/basic-block.cc",
+                "src/ir/call-inst.cc",
+                "src/ir/calling-conv.cc",
                 "src/ir/constants.cc",
                 "src/ir/data-layout.cc",
                 "src/ir/function.cc",

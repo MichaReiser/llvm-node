@@ -120,10 +120,57 @@ declare namespace llvm {
     class Function extends Constant {
         static create(functionType: FunctionType, linkageTypes: LinkageTypes, name?: string, module?: Module): Function;
 
+        callingConv: CallingConv;
+
         private constructor();
         addBasicBlock(basicBlock: BasicBlock);
         getArguments(): Argument[];
         getEntryBlock(): BasicBlock;
+    }
+
+
+
+    class CallInst extends Value {
+        callingConv: CallingConv;
+
+        private constructor();
+    }
+
+    enum CallingConv {
+        C,
+        Fast,
+        Cold,
+        GHC,
+        HiPE,
+        WebKit_JS,
+        AnyReg,
+        PreserveMost,
+        PreserveAll,
+        Swift,
+        CXX_FAST_TLS,
+        FirstTargetCC,
+        X86_StdCall,
+        X86_FastCall,
+        ARM_APCS,
+        ARM_AAPCS,
+        ARM_AAPCS_VFP,
+        MSP430_INTR,
+        X86_ThisCall,
+        PTX_Kernel,
+        PTX_Device,
+        SPIR_FUNC,
+        SPIR_KERNEL,
+        Intel_OCL_BI,
+        X86_64_SysV,
+        X86_64_Win64,
+        X86_VectorCall,
+        HHVM,
+        HHVM_C,
+        X86_INTR,
+        AVR_INTR,
+        AVR_SIGNAL,
+        AVR_BUILTIN,
+        MaxID,
     }
 
     interface DataLayout {
@@ -152,6 +199,7 @@ declare namespace llvm {
             VectorTyID: number
         };
 
+        static getFloatTy(context: LLVMContext): Type;
         static getDoubleTy(context: LLVMContext): Type;
         static getVoidTy(context: LLVMContext): Type;
         static getLabelTy(context: LLVMContext): Type;
@@ -211,7 +259,7 @@ declare namespace llvm {
         private constructor();
     }
 
-    interface IRBuilder {
+    class IRBuilder {
         constructor(context: LLVMContext);
         constructor(basicBlock: BasicBlock);
 
@@ -219,7 +267,7 @@ declare namespace llvm {
         createAdd(lhs: Value, rhs: Value, name?: string): Value;
         createAlloca(type: Type, arraySize?: Value, name?: string): AllocaInst;
         createBr(basicBlock: BasicBlock): Value;
-        createCall(callee: Function, args: Value[], name?: string): Value;
+        createCall(callee: Function, args: Value[], name?: string): CallInst;
         createCondBr(condition: Value, then: BasicBlock, elseBlock: BasicBlock): Value;
         createFAdd(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpOGT(lhs: Value, rhs: Value, name?: string): Value;
@@ -234,6 +282,7 @@ declare namespace llvm {
         createFSub(lhs: Value, rhs: Value, name?: string): Value;
         createFPToSI(value: Value, type: Type, name?: string): Value;
         createInBoundsGEP(ptr: Value, idxList: Value[], name?: string): Value;
+        createIntCast(vlaue: Value, type: Type, isSigned: boolean, name?: string): Value;
         createICmpEQ(lhs: Value, rhs: Value, name?: string): Value;
         createICmpSGT(lhs: Value, rhs: Value, name?: string): Value;
         createICmpSLE(lhs: Value, rhs: Value, name?: string): Value;
@@ -251,11 +300,11 @@ declare namespace llvm {
         getInsertBlock(): BasicBlock;
     }
 
-    interface LLVMContext {
+    class LLVMContext {
         constructor();
     }
 
-    interface Module {
+    class Module {
         empty: boolean;
         moduleIdentifier: string;
         sourceFileName: string;

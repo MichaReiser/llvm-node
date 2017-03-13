@@ -11,6 +11,7 @@
 #include "type.h"
 #include "phi-node.h"
 #include "alloca-inst.h"
+#include "call-inst.h"
 
 NAN_MODULE_INIT(ValueWrapper::Init) {
     auto object = Nan::New<v8::Object>();
@@ -124,6 +125,8 @@ v8::Local<v8::Object> ValueWrapper::of(llvm::Value *value) {
         result = PhiNodeWrapper::of(static_cast<llvm::PHINode*>(value));
     } else if(llvm::AllocaInst::classof(value)) {
         result = AllocaInstWrapper::of(static_cast<llvm::AllocaInst*>(value));
+    } else if(llvm::CallInst::classof(value)) {
+        result = CallInstWrapper::of(static_cast<llvm::CallInst*>(value));
     } else {
         auto constructorFunction = Nan::GetFunction(Nan::New(valueTemplate())).ToLocalChecked();
         v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(value) };

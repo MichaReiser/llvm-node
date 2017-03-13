@@ -36,6 +36,7 @@ private:
     static NAN_METHOD(CreateCall);
     static NAN_METHOD(CreateCondBr);
     static NAN_METHOD(CreateInBoundsGEP);
+    static NAN_METHOD(CreateIntCast);
     static NAN_METHOD(CreateLoad);
     static NAN_METHOD(CreatePHI);
     static NAN_METHOD(CreateRet);
