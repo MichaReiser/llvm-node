@@ -31,20 +31,9 @@ protected:
 
     // Static Methods
     static NAN_METHOD(New);
+    static NAN_METHOD(getPointerTo);
 
 private:
-    typedef llvm::Type* (getTypeFn)(llvm::LLVMContext&);
-    template<getTypeFn method>
-    static NAN_METHOD(getType);
-
-    typedef llvm::IntegerType* (getIntTypeFn)(llvm::LLVMContext&);
-    template<getIntTypeFn method>
-    static NAN_METHOD(getIntType);
-
-    typedef bool (llvm::Type::*isTy)() const;
-    template<isTy method>
-    static NAN_METHOD(isOfType);
-
     // Instance Methods
     static NAN_GETTER(getTypeID);
 };

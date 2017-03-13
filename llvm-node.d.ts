@@ -54,17 +54,15 @@ declare namespace llvm {
         useEmpty(): boolean;
     }
 
-    class Argument extends Value {
+    interface Argument extends Value {
         argumentNumber: number;
         parent?: Function;
 
         constructor(type: Type, name?: string, func?: Function);
     }
 
-    class AllocaInst extends Value {
+    interface AllocaInst extends Value {
         allocatedType: Type;
-
-        private constructor();
     }
 
     class BasicBlock extends Value {
@@ -109,8 +107,13 @@ declare namespace llvm {
         value: number;
     }
 
-    class PhiNode extends Value {
+    class ConstantPointerNull extends Constant {
+        static get(pointerType: PointerType): ConstantPointerNull;
+
         private constructor();
+    }
+
+    interface PhiNode extends Value {
         addIncoming(value: Value, basicBlock: BasicBlock): void;
     }
 
@@ -123,7 +126,7 @@ declare namespace llvm {
         getEntryBlock(): BasicBlock;
     }
 
-    class DataLayout {
+    interface DataLayout {
         constructor(layout: string);
 
         getStringRepresentation(): string;
@@ -159,6 +162,10 @@ declare namespace llvm {
         static getInt64Ty(context: LLVMContext): Type;
         static getInt128Ty(context: LLVMContext): Type;
 
+        static getInt1PtrTy(context: LLVMContext, AS?: number): PointerType;
+        static getInt8PtrTy(context: LLVMContext, AS?: number): PointerType;
+        static getInt32PtrTy(context: LLVMContext, AS?: number): PointerType;
+
         protected constructor();
 
         isVoidTy(): boolean;
@@ -172,6 +179,7 @@ declare namespace llvm {
         isPointerTy(): boolean;
         isDoubleTy(): boolean;
         isVoidTy(): boolean;
+        getPointerTo(addressSpace?: number): PointerType;
     }
 
     class FunctionType extends Type {
@@ -191,16 +199,30 @@ declare namespace llvm {
         getParamType(index: number): Type;
     }
 
-    class IRBuilder {
+    class PointerType extends Type {
+        static get(elementType: Type, AS: number): PointerType;
+
+        private constructor();
+    }
+
+    class ArrayType extends Type {
+        static get(elementType: Type, numElements: number): ArrayType;
+
+        private constructor();
+    }
+
+    interface IRBuilder {
         constructor(context: LLVMContext);
         constructor(basicBlock: BasicBlock);
 
         setInsertionPoint(basicBlock: BasicBlock): void;
+        createAdd(lhs: Value, rhs: Value, name?: string): Value;
         createAlloca(type: Type, arraySize?: Value, name?: string): AllocaInst;
         createBr(basicBlock: BasicBlock): Value;
         createCall(callee: Function, args: Value[], name?: string): Value;
         createCondBr(condition: Value, then: BasicBlock, elseBlock: BasicBlock): Value;
         createFAdd(lhs: Value, rhs: Value, name?: string): Value;
+        createFCmpOGT(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpOLE(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpOLT(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpOEQ(lhs: Value, rhs: Value, name?: string): Value;
@@ -211,22 +233,29 @@ declare namespace llvm {
         createFRem(lhs: Value, rhs: Value, name?: string): Value;
         createFSub(lhs: Value, rhs: Value, name?: string): Value;
         createFPToSI(value: Value, type: Type, name?: string): Value;
+        createInBoundsGEP(ptr: Value, idxList: Value[], name?: string): Value;
         createICmpEQ(lhs: Value, rhs: Value, name?: string): Value;
+        createICmpSGT(lhs: Value, rhs: Value, name?: string): Value;
+        createICmpSLE(lhs: Value, rhs: Value, name?: string): Value;
+        createICmpSLT(lhs: Value, rhs: Value, name?: string): Value;
         createLoad(ptr: Value, name?: string): Value;
+        createMul(lhs: Value, rhs: Value, name?: string): Value;
         createPhi(type: Type, numReservedValues: number, name?: string): PhiNode;
         createRet(value: Value): Value;
         createRetVoid(): Value;
+        createSDiv(lhs: Value, rhs: Value, name?: string): Value;
         createSIToFP(value: Value, type: Type, name?: string): Value;
+        createSub(lhs: Value, rhs: Value, name?: string): Value;
         createStore(value: Value, ptr: Value, isVolatile?: boolean): Value;
         createSRem(lhs: Value, rhs: Value, name?: string): Value;
         getInsertBlock(): BasicBlock;
     }
 
-    class LLVMContext {
+    interface LLVMContext {
         constructor();
     }
 
-    class Module {
+    interface Module {
         empty: boolean;
         moduleIdentifier: string;
         sourceFileName: string;
@@ -255,8 +284,7 @@ declare namespace llvm {
     }
 
     // target
-    class TargetMachine {
-        private constructor();
+    interface TargetMachine {
         createDataLayout(): DataLayout;
     }
 }

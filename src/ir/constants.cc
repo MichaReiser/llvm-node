@@ -6,6 +6,7 @@
 #include "constants.h"
 #include "type.h"
 #include "function.h"
+#include "pointer-type.h"
 
 NAN_MODULE_INIT(ConstantWrapper::Init) {
     v8::Local<v8::Object> object = Nan::New<v8::Object>();
@@ -25,6 +26,8 @@ v8::Local<v8::Object> ConstantWrapper::of(llvm::Constant *constant) {
         result = ConstantFPWrapper::of(static_cast<llvm::ConstantFP*>(constant));
     } else if (llvm::ConstantInt::classof(constant)) {
         result = ConstantIntWrapper::of(static_cast<llvm::ConstantInt*>(constant));
+    } else if (llvm::ConstantPointerNull::classof(constant)) {
+        result = ConstantPointerNullWrapper::of(static_cast<llvm::ConstantPointerNull*>(constant));
     } else {
         auto constructorFunction = Nan::GetFunction(Nan::New(constantTemplate())).ToLocalChecked();
         v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(constant) };
@@ -221,12 +224,12 @@ NAN_METHOD(ConstantIntWrapper::New) {
 }
 
 NAN_METHOD(ConstantIntWrapper::get) {
-    if (info.Length() != 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsInt32()) {
+    if (info.Length() != 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsNumber()) {
         return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number");
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
-    int32_t number = Nan::To<int32_t >(info[1]).ToChecked();
+    int64_t number = Nan::To<int64_t >(info[1]).ToChecked();
 
     auto* constant = llvm::ConstantInt::get(context, llvm::APInt { 32, static_cast<uint64_t>(number), true } );
 
@@ -285,6 +288,74 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantIntWrapper::constantIntTemplate()
         localTemplate->Inherit(Nan::New(constantTemplate()));
 
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("value").ToLocalChecked(), ConstantIntWrapper::getValueApf);
+
+        functionTemplate.Reset(localTemplate);
+    }
+
+    return functionTemplate;
+}
+
+
+//---------------------------------------------
+// ConstantPointerNull
+//---------------------------------------------
+
+NAN_MODULE_INIT(ConstantPointerNullWrapper::Init) {
+    auto object = Nan::New<v8::Object>();
+
+    Nan::SetMethod(object, "get", ConstantPointerNullWrapper::get);
+
+    Nan::Set(target, Nan::New("ConstantPointerNull").ToLocalChecked(), object);
+}
+
+NAN_METHOD(ConstantPointerNullWrapper::New) {
+    if (!info.IsConstructCall()) {
+        return Nan::ThrowTypeError("Class Constructor ConstantPointerNull cannot be invoked without new");
+    }
+
+    if (info.Length() != 1 || !info[0]->IsExternal()) {
+        return Nan::ThrowTypeError("ConstantPointerNull constructor needs to be called with: constantPointerNull: external");
+    }
+
+    auto* constantPointerNull = static_cast<llvm::ConstantPointerNull*>(v8::External::Cast(*info[0])->Value());
+    auto* wrapper = new ConstantPointerNullWrapper { constantPointerNull };
+    wrapper->Wrap(info.This());
+
+    info.GetReturnValue().Set(info.This());
+}
+
+NAN_METHOD(ConstantPointerNullWrapper::get) {
+    if (info.Length() != 1 || !PointerTypeWrapper::isInstance(info[0])) {
+        return Nan::ThrowTypeError("get needs to be called with: type: PointerType");
+    }
+
+    auto* type = PointerTypeWrapper::FromValue(info[0])->getPointerType();
+    auto* constant = llvm::ConstantPointerNull::get(type);
+
+    info.GetReturnValue().Set(ConstantPointerNullWrapper::of(constant));
+}
+
+llvm::ConstantPointerNull *ConstantPointerNullWrapper::getConstantPointerNull() {
+    return static_cast<llvm::ConstantPointerNull*>(getValue());
+}
+
+v8::Local<v8::Object> ConstantPointerNullWrapper::of(llvm::ConstantPointerNull *constantPointerNull) {
+    auto constructorFunction = Nan::GetFunction(Nan::New(constantPointerNullTemplate())).ToLocalChecked();
+    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantPointerNull) };
+    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+
+    Nan::EscapableHandleScope escapeScpoe {};
+    return escapeScpoe.Escape(instance);
+}
+
+Nan::Persistent<v8::FunctionTemplate>& ConstantPointerNullWrapper::constantPointerNullTemplate() {
+    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+
+    if (functionTemplate.IsEmpty()) {
+        auto localTemplate = Nan::New<v8::FunctionTemplate>(ConstantPointerNullWrapper::New);
+        localTemplate->SetClassName(Nan::New("ConstantPointerNull").ToLocalChecked());
+        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+        localTemplate->Inherit(Nan::New(constantTemplate()));
 
         functionTemplate.Reset(localTemplate);
     }

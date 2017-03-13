@@ -10,33 +10,93 @@
 #include "phi-node.h"
 #include "alloca-inst.h"
 
+typedef llvm::Value* (*BinaryOpFn)(llvm::IRBuilder<>& builder, llvm::Value*, llvm::Value*, const llvm::Twine&);
+template<BinaryOpFn method>
+NAN_METHOD(NANBinaryOperation) {
+    if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1])
+        || (info.Length() == 3 && !info[2]->IsString())
+        || info.Length() > 3) {
+        return Nan::ThrowTypeError("Binary operation needs to be called with: lhs: Value, rhs: Value, name: string?");
+    }
+
+    auto* lhs = ValueWrapper::FromValue(info[0])->getValue();
+    auto* rhs = ValueWrapper::FromValue(info[1])->getValue();
+    std::string name {};
+
+    if (info.Length() == 3) {
+        name = ToString(info[2]);
+    }
+
+    auto* wrapper = IRBuilderWrapper::FromValue(info.Holder());
+    llvm::Value* value = method(wrapper->getIRBuilder(), lhs, rhs, name);
+
+    info.GetReturnValue().Set(ValueWrapper::of(value));
+}
+
+typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpFloatFn)(llvm::Value*, llvm::Value*, const llvm::Twine&, llvm::MDNode *FPMathTag);
+template<BinaryOpFloatFn method>
+llvm::Value* ToBinaryOp(llvm::IRBuilder<>& builder, llvm::Value* lhs, llvm::Value* rhs, const llvm::Twine& name) {
+    return (builder.*method)(lhs, rhs, name, nullptr);
+}
+
+typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOp)(llvm::Value*, llvm::Value*, const llvm::Twine&);
+template<BinaryOp method>
+llvm::Value* ToBinaryOp(llvm::IRBuilder<>& builder, llvm::Value* lhs, llvm::Value* rhs, const llvm::Twine& name) {
+    llvm::Value* value = (builder.*method)(lhs, rhs, name);
+    return value;
+}
+
+typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpWithOneBoolArg)(llvm::Value*, llvm::Value*, const llvm::Twine&, bool isExact);
+template<BinaryOpWithOneBoolArg method>
+llvm::Value* ToBinaryOp(llvm::IRBuilder<>& builder, llvm::Value* lhs, llvm::Value* rhs, const llvm::Twine& name) {
+    llvm::Value* value = (builder.*method)(lhs, rhs, name, false);
+    return value;
+}
+
+typedef llvm::Value* (llvm::IRBuilder<>::*BinaryIntOp)(llvm::Value*, llvm::Value*, const llvm::Twine&, bool HasNUW, bool HasNSW);
+template<BinaryIntOp method>
+llvm::Value* ToBinaryOp(llvm::IRBuilder<>& builder, llvm::Value* lhs, llvm::Value* rhs, const llvm::Twine& name) {
+    llvm::Value* value = (builder.*method)(lhs, rhs, name, false, false);
+    return value;
+}
+
+
 NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New<v8::FunctionTemplate>(New);
     functionTemplate->SetClassName(Nan::New("IRBuilder").ToLocalChecked());
     functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
     Nan::SetPrototypeMethod(functionTemplate, "setInsertionPoint", IRBuilderWrapper::SetInsertionPoint);
+    Nan::SetPrototypeMethod(functionTemplate, "createAdd", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateAdd>>);
     Nan::SetPrototypeMethod(functionTemplate, "createAlloca", IRBuilderWrapper::CreateAlloca);
     Nan::SetPrototypeMethod(functionTemplate, "createBr", IRBuilderWrapper::CreateBr);
     Nan::SetPrototypeMethod(functionTemplate, "createCall", IRBuilderWrapper::CreateCall);
     Nan::SetPrototypeMethod(functionTemplate, "createCondBr", IRBuilderWrapper::CreateCondBr);
-    Nan::SetPrototypeMethod(functionTemplate, "createFAdd", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFAdd>);
-    Nan::SetPrototypeMethod(functionTemplate, "createFCmpOLE", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFCmpOLE>);
-    Nan::SetPrototypeMethod(functionTemplate, "createFCmpOLT", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFCmpOLT>);
-    Nan::SetPrototypeMethod(functionTemplate, "createFCmpOEQ", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFCmpOEQ>);
-    Nan::SetPrototypeMethod(functionTemplate, "createFCmpULE", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFCmpULE>);
-    Nan::SetPrototypeMethod(functionTemplate, "createFCmpULT", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFCmpULT>);
-    Nan::SetPrototypeMethod(functionTemplate, "createFCmpUEQ", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFCmpUEQ>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFAdd", &NANBinaryOperation<ToBinaryOp<&llvm::IRBuilder<>::CreateFAdd>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpOGT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpOGT>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpOLE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpOLE>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpOLT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpOLT>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpOEQ", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpOEQ>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpULE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpULE>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpULT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpULT>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpUEQ", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpUEQ>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFPToSI", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateFPToSI>);
-    Nan::SetPrototypeMethod(functionTemplate, "createFDiv", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFDiv>);
-    Nan::SetPrototypeMethod(functionTemplate, "createFRem", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFRem>);
-    Nan::SetPrototypeMethod(functionTemplate, "createFSub", &IRBuilderWrapper::BinaryOperationFloat<&llvm::IRBuilder<>::CreateFSub>);
-    Nan::SetPrototypeMethod(functionTemplate, "createICmpEQ", &IRBuilderWrapper::BinaryOperation<&llvm::IRBuilder<>::CreateICmpEQ>);
-    Nan::SetPrototypeMethod(functionTemplate, "createSRem", &IRBuilderWrapper::BinaryOperation<&llvm::IRBuilder<>::CreateSRem>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFDiv", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFDiv>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFRem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFRem>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFSub", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFSub>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createInBoundsGEP", IRBuilderWrapper::CreateInBoundsGEP);
+    Nan::SetPrototypeMethod(functionTemplate, "createICmpSGT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSGT>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createICmpSLT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSLT>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createICmpSLE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSLE>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createICmpEQ", &NANBinaryOperation<ToBinaryOp<&llvm::IRBuilder<>::CreateICmpEQ>>);
     Nan::SetPrototypeMethod(functionTemplate, "createLoad", IRBuilderWrapper::CreateLoad);
+    Nan::SetPrototypeMethod(functionTemplate, "createMul", &NANBinaryOperation<ToBinaryOp<&llvm::IRBuilder<>::CreateMul>>);
     Nan::SetPrototypeMethod(functionTemplate, "createPhi", IRBuilderWrapper::CreatePHI);
     Nan::SetPrototypeMethod(functionTemplate, "createRet", IRBuilderWrapper::CreateRet);
     Nan::SetPrototypeMethod(functionTemplate, "createRetVoid", IRBuilderWrapper::CreateRetVoid);
+    Nan::SetPrototypeMethod(functionTemplate, "createSDiv", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSDiv>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createSub", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSub>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createSRem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSRem>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateSIToFP>);
     Nan::SetPrototypeMethod(functionTemplate, "createStore", IRBuilderWrapper::CreateStore);
     Nan::SetPrototypeMethod(functionTemplate, "getInsertBlock", IRBuilderWrapper::GetInsertBlock);
@@ -67,52 +127,6 @@ NAN_METHOD(IRBuilderWrapper::New) {
 
     wrapper->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
-}
-
-typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpFloatFn)(llvm::Value*, llvm::Value*, const llvm::Twine&, llvm::MDNode *FPMathTag);
-template<BinaryOpFloatFn method>
-NAN_METHOD(IRBuilderWrapper::BinaryOperationFloat) {
-    if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1])
-                        || (info.Length() == 3 && !info[2]->IsString())
-                        || info.Length() > 3) {
-    return Nan::ThrowTypeError("Binary operation needs to be called with: lhs: Value, rhs: Value, name: string?");
-    }
-
-    auto* lhs = ValueWrapper::FromValue(info[0])->getValue();
-    auto* rhs = ValueWrapper::FromValue(info[1])->getValue();
-    std::string name {};
-
-    if (info.Length() == 3) {
-    name = ToString(info[2]);
-    }
-
-    auto* wrapper = IRBuilderWrapper::FromValue(info.Holder());
-    llvm::Value* value = (wrapper->irBuilder.*method)(lhs, rhs, name, nullptr);
-
-    info.GetReturnValue().Set(ValueWrapper::of(value));
-}
-
-typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpFn)(llvm::Value*, llvm::Value*, const llvm::Twine&);
-template<BinaryOpFn method>
-NAN_METHOD(IRBuilderWrapper::BinaryOperation) {
-    if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1])
-        || (info.Length() == 3 && !info[2]->IsString())
-        || info.Length() > 3) {
-        return Nan::ThrowTypeError("Binary operation needs to be called with: lhs: Value, rhs: Value, name: string?");
-    }
-
-    auto* lhs = ValueWrapper::FromValue(info[0])->getValue();
-    auto* rhs = ValueWrapper::FromValue(info[1])->getValue();
-    std::string name {};
-
-    if (info.Length() == 3) {
-        name = ToString(info[2]);
-    }
-
-    auto* wrapper = IRBuilderWrapper::FromValue(info.Holder());
-    llvm::Value* value = (wrapper->irBuilder.*method)(lhs, rhs, name);
-
-    info.GetReturnValue().Set(ValueWrapper::of(value));
 }
 
 typedef llvm::Value* (llvm::IRBuilder<>::*ConvertOperationFn)(llvm::Value*, llvm::Type*, const llvm::Twine&);
@@ -162,6 +176,36 @@ NAN_METHOD(IRBuilderWrapper::CreateAlloca) {
     auto* alloc = irBuilder.CreateAlloca(type, value, name);
 
     info.GetReturnValue().Set(AllocaInstWrapper::of(alloc));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateInBoundsGEP) {
+    if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !info[1]->IsArray() ||
+            (info.Length() == 3 && !info[2]->IsString())) {
+        return Nan::ThrowTypeError("createInBoundsGEP needs to be called with: ptr: Value, idxList: Value[], name?: string");
+    }
+
+    auto* ptr = ValueWrapper::FromValue(info[0])->getValue();
+    auto indexValues = v8::Array::Cast(*info[1]);
+    std::vector<llvm::Value*> idxList { indexValues->Length() };
+
+    for (uint32_t i = 0; i < indexValues->Length(); ++i) {
+        auto idx = indexValues->Get(i);
+
+        if (!ValueWrapper::isInstance(idx)) {
+            return Nan::ThrowTypeError("Value expected for idxList element");
+        }
+
+        idxList[i] = ValueWrapper::FromValue(idx)->getValue();
+    }
+
+    std::string name {};
+
+    if (info.Length() == 3) {
+        name = ToString(info[2]);
+    }
+
+    auto* grep = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateInBoundsGEP(ptr, idxList, name);
+    info.GetReturnValue().Set(ValueWrapper::of(grep));
 }
 
 NAN_METHOD(IRBuilderWrapper::CreateLoad) {
@@ -306,4 +350,8 @@ NAN_METHOD(IRBuilderWrapper::CreateCondBr) {
 
     auto* branchInst = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateCondBr(value, thenBlock, elseBlock);
     info.GetReturnValue().Set(ValueWrapper::of(branchInst));
+}
+
+llvm::IRBuilder<> &IRBuilderWrapper::getIRBuilder() {
+    return this->irBuilder;
 }

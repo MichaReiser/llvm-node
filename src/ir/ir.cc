@@ -17,14 +17,18 @@
 #include "phi-node.h"
 #include "verifier.h"
 #include "alloca-inst.h"
+#include "pointer-type.h"
+#include "array-type.h"
 
 NAN_MODULE_INIT(InitIR) {
     AllocaInstWrapper::Init(target);
     ArgumentWrapper::Init(target);
+    ArrayTypeWrapper::Init(target);
     BasicBlockWrapper::Init(target);
     ConstantWrapper::Init(target);
     ConstantFPWrapper::Init(target);
     ConstantIntWrapper::Init(target);
+    ConstantPointerNullWrapper::Init(target);
     DataLayoutWrapper::Init(target);
     FunctionWrapper::Init(target);
     FunctionTypeWrapper::Init(target);
@@ -33,6 +37,7 @@ NAN_MODULE_INIT(InitIR) {
     ModuleWrapper::Init(target);
     LLVMContextWrapper::Init(target);
     PhiNodeWrapper::Init(target);
+    PointerTypeWrapper::Init(target);
     TypeWrapper::Init(target);
     ValueWrapper::Init(target);
     InitVerifier(target);

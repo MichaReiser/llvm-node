@@ -12,9 +12,11 @@
 #include "value.h"
 #include "../util/string.h"
 
-class IRBuilderWrapper: public Nan::ObjectWrap, FromValueMixin<IRBuilderWrapper> {
+class IRBuilderWrapper: public Nan::ObjectWrap, public FromValueMixin<IRBuilderWrapper> {
 public:
     static NAN_MODULE_INIT(Init);
+    llvm::IRBuilder<>& getIRBuilder();
+
 private:
     llvm::IRBuilder<> irBuilder;
 
@@ -25,14 +27,6 @@ private:
     static NAN_METHOD(New);
 
     // instance
-    typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpFlaotFn)(llvm::Value*, llvm::Value*, const llvm::Twine&, llvm::MDNode *FPMathTag);
-    template<BinaryOpFlaotFn method>
-    static NAN_METHOD(BinaryOperationFloat);
-
-    typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpFn)(llvm::Value*, llvm::Value*, const llvm::Twine&);
-    template<BinaryOpFn method>
-    static NAN_METHOD(BinaryOperation);
-
     typedef llvm::Value* (llvm::IRBuilder<>::*ConvertOperationFn)(llvm::Value*, llvm::Type*, const llvm::Twine&);
     template<ConvertOperationFn method>
     static NAN_METHOD(ConvertOperation);
@@ -41,6 +35,7 @@ private:
     static NAN_METHOD(CreateBr);
     static NAN_METHOD(CreateCall);
     static NAN_METHOD(CreateCondBr);
+    static NAN_METHOD(CreateInBoundsGEP);
     static NAN_METHOD(CreateLoad);
     static NAN_METHOD(CreatePHI);
     static NAN_METHOD(CreateRet);
