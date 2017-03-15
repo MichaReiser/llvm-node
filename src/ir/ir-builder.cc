@@ -197,7 +197,7 @@ NAN_METHOD(IRBuilderWrapper::CreateAlignedStore) {
 NAN_METHOD(IRBuilderWrapper::CreateAlloca) {
     if (info.Length() < 1 || !TypeWrapper::isInstance(info[0])
             || (info.Length() > 1 && !ValueWrapper::isInstance(info[1]) && !info[1]->IsUndefined())
-            || (info.Length() > 2 && !info[2]->IsString())
+            || (info.Length() > 2 && !info[2]->IsString() && !info[2]->IsUndefined())
             || info.Length() > 3) {
         return Nan::ThrowTypeError("createAlloca needs to be called with: type: Type, arraySize: Value, name?: string");
     }
@@ -210,7 +210,7 @@ NAN_METHOD(IRBuilderWrapper::CreateAlloca) {
         value = ValueWrapper::FromValue(info[1])->getValue();
     }
 
-    if (info.Length() > 2) {
+    if (info.Length() > 2 && !info[2]->IsUndefined()) {
         name = ToString(Nan::To<v8::String>(info[2]).ToLocalChecked());
     }
 
@@ -234,7 +234,7 @@ NAN_METHOD(IRBuilderWrapper::CreateInBoundsGEP) {
 
 Nan::NAN_METHOD_RETURN_TYPE IRBuilderWrapper::CreateInBoundsGEPWithType(Nan::NAN_METHOD_ARGS_TYPE info) {
     if (info.Length() < 3 || !TypeWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1]) || !info[2]->IsArray() ||
-        (info.Length() == 4 && !info[3]->IsString())) {
+        (info.Length() == 4 && !info[3]->IsString() && !info[3]->IsUndefined())) {
         return Nan::ThrowTypeError("createInBoundsGEP needs to be called with: ptr: Value, idxList: Value[], name?: string or type: Type, ptr: Value, idxList: Value[], name?: string");
     }
 
@@ -255,7 +255,7 @@ Nan::NAN_METHOD_RETURN_TYPE IRBuilderWrapper::CreateInBoundsGEPWithType(Nan::NAN
 
     std::string name {};
 
-    if (info.Length() == 4) {
+    if (info.Length() == 4 && !info[3]->IsUndefined()) {
         name = ToString(info[3]);
     }
 
@@ -265,7 +265,7 @@ Nan::NAN_METHOD_RETURN_TYPE IRBuilderWrapper::CreateInBoundsGEPWithType(Nan::NAN
 
 Nan::NAN_METHOD_RETURN_TYPE IRBuilderWrapper::CreateInBoundsGEPWithoutType(Nan::NAN_METHOD_ARGS_TYPE info) {
     if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !info[1]->IsArray() ||
-        (info.Length() == 3 && !info[2]->IsString())) {
+        (info.Length() == 3 && !info[2]->IsString() && !info[2]->IsUndefined())) {
         return Nan::ThrowTypeError("createInBoundsGEP needs to be called with: ptr: Value, idxList: Value[], name?: string or type: Type, ptr: Value, idxList: Value[], name?: string");
     }
 
@@ -285,7 +285,7 @@ Nan::NAN_METHOD_RETURN_TYPE IRBuilderWrapper::CreateInBoundsGEPWithoutType(Nan::
 
     std::string name {};
 
-    if (info.Length() == 3) {
+    if (info.Length() == 3 && !info[2]->IsUndefined()) {
         name = ToString(info[2]);
     }
 
