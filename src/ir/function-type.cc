@@ -3,6 +3,7 @@
 //
 
 #include "function-type.h"
+#include "../util/string.h"
 
 NAN_MODULE_INIT(FunctionTypeWrapper::Init) {
     auto functionTypeObject = Nan::New<v8::Object>();
@@ -34,7 +35,7 @@ NAN_METHOD(FunctionTypeWrapper::New) {
 }
 
 
-llvm::FunctionType *FunctionTypeWrapper::functionType() {
+llvm::FunctionType *FunctionTypeWrapper::getFunctionType() {
     return static_cast<llvm::FunctionType*>(this->type);
 }
 
@@ -113,26 +114,27 @@ NAN_METHOD(FunctionTypeWrapper::isValidArgumentType) {
 
 NAN_GETTER(FunctionTypeWrapper::getReturnType) {
     auto* functionTypeWrapper = FunctionTypeWrapper::FromValue(info.Holder());
-    auto* returnType = functionTypeWrapper->functionType()->getReturnType();
+    auto* returnType = functionTypeWrapper->getFunctionType()->getReturnType();
     info.GetReturnValue().Set(TypeWrapper::of(returnType));
 }
 
 NAN_GETTER(FunctionTypeWrapper::isVarArg) {
     auto* functionTypeWrapper = FunctionTypeWrapper::FromValue(info.Holder());
-    info.GetReturnValue().Set(Nan::New(functionTypeWrapper->functionType()->isVarArg()));
+    info.GetReturnValue().Set(Nan::New(functionTypeWrapper->getFunctionType()->isVarArg()));
 }
 
 NAN_GETTER(FunctionTypeWrapper::getNumParams) {
     auto* functionTypeWrapper = FunctionTypeWrapper::FromValue(info.Holder());
-    info.GetReturnValue().Set(Nan::New(functionTypeWrapper->functionType()->getNumParams()));
+    info.GetReturnValue().Set(Nan::New(functionTypeWrapper->getFunctionType()->getNumParams()));
 }
 
 NAN_METHOD(FunctionTypeWrapper::getParams) {
     auto* functionTypeWrapper = FunctionTypeWrapper::FromValue(info.Holder());
-    auto result = Nan::New<v8::Array>(functionTypeWrapper->functionType()->getNumParams());
+    auto result = Nan::New<v8::Array>(functionTypeWrapper->getFunctionType()->getNumParams());
 
     uint32_t i = 0;
-    for (auto paramsIterator = functionTypeWrapper->functionType()->param_begin(); paramsIterator != functionTypeWrapper->functionType()->param_end(); ++paramsIterator) {
+    for (auto paramsIterator = functionTypeWrapper->getFunctionType()->param_begin(); paramsIterator !=
+            functionTypeWrapper->getFunctionType()->param_end(); ++paramsIterator) {
         result->Set(i, TypeWrapper::of(*paramsIterator));
         ++i;
     }
@@ -147,8 +149,8 @@ NAN_METHOD(FunctionTypeWrapper::getParamType) {
     auto* functionTypeWrapper = FunctionTypeWrapper::FromValue(info.Holder());
 
     unsigned index = Nan::To<unsigned>(info[0]).FromJust();
-    if (index < functionTypeWrapper->functionType()->getNumParams()) {
-        auto* paramType = functionTypeWrapper->functionType()->getParamType(index);
+    if (index < functionTypeWrapper->getFunctionType()->getNumParams()) {
+        auto* paramType = functionTypeWrapper->getFunctionType()->getParamType(index);
 
         info.GetReturnValue().Set(TypeWrapper::of(paramType));
     } else {

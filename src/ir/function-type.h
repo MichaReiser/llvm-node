@@ -18,7 +18,7 @@ public:
     static v8::Local<v8::Object> Create(llvm::FunctionType* functionType);
     static bool isInstance(v8::Local<v8::Value> value);
     using FromValueMixin<FunctionTypeWrapper>::FromValue;
-    llvm::FunctionType* functionType();
+    llvm::FunctionType* getFunctionType();
 
 private:
     FunctionTypeWrapper(llvm::FunctionType* functionType):

@@ -27,6 +27,7 @@
                 "src/ir/llvm-context.cc",
                 "src/ir/phi-node.cc",
                 "src/ir/pointer-type.cc",
+                "src/ir/struct-type.cc",
                 "src/ir/type.cc",
                 "src/ir/value.cc",
                 "src/ir/verifier.cc",

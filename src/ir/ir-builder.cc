@@ -70,6 +70,8 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "setInsertionPoint", IRBuilderWrapper::SetInsertionPoint);
     Nan::SetPrototypeMethod(functionTemplate, "createAdd", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateAdd>>);
     Nan::SetPrototypeMethod(functionTemplate, "createAlloca", IRBuilderWrapper::CreateAlloca);
+    Nan::SetPrototypeMethod(functionTemplate, "createAlignedLoad", IRBuilderWrapper::CreateAlignedLoad);
+    Nan::SetPrototypeMethod(functionTemplate, "createAlignedStore", IRBuilderWrapper::CreateAlignedStore);
     Nan::SetPrototypeMethod(functionTemplate, "createBr", IRBuilderWrapper::CreateBr);
     Nan::SetPrototypeMethod(functionTemplate, "createCall", IRBuilderWrapper::CreateCall);
     Nan::SetPrototypeMethod(functionTemplate, "createCondBr", IRBuilderWrapper::CreateCondBr);
@@ -154,6 +156,44 @@ NAN_METHOD(IRBuilderWrapper::ConvertOperation) {
     info.GetReturnValue().Set(ValueWrapper::of(returnValue));
 }
 
+NAN_METHOD(IRBuilderWrapper::CreateAlignedLoad) {
+    if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !info[1]->IsUint32() ||
+            (info.Length() == 3 && !info[2]->IsString()) ||
+            info.Length() > 3) {
+        return Nan::ThrowTypeError("createAlignedLoad needs to be called with: ptr: Value, alignment: uint32, name?: string");
+    }
+
+    auto* ptr = ValueWrapper::FromValue(info[0])->getValue();
+    auto alignment = Nan::To<uint32_t>(info[1]).FromJust();
+    std::string name {};
+
+    if (info.Length() == 3) {
+        name = ToString(info[2]);
+    }
+
+    auto* load = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateAlignedLoad(ptr, alignment, name);
+    info.GetReturnValue().Set(ValueWrapper::of(load));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateAlignedStore) {
+    if (info.Length() < 3 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1]) || !info[2]->IsUint32()
+            || (info.Length() == 4 && !info[3]->IsBoolean())) {
+        return Nan::ThrowTypeError("createAlignedStore needs to be called with: value: Value, ptr: Value, align: uint32, volatile?: boolean");
+    }
+
+    auto* value = ValueWrapper::FromValue(info[0])->getValue();
+    auto* ptr = ValueWrapper::FromValue(info[1])->getValue();
+    auto align = Nan::To<uint32_t>(info[2]).FromJust();
+    bool isVolatile = false;
+
+    if (info.Length() == 3) {
+        isVolatile = Nan::To<bool>(info[3]).FromJust();
+    }
+
+    auto* store = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateAlignedStore(value, ptr, align, isVolatile);
+    info.GetReturnValue().Set(ValueWrapper::of(store));
+}
+
 NAN_METHOD(IRBuilderWrapper::CreateAlloca) {
     if (info.Length() < 1 || !TypeWrapper::isInstance(info[0])
             || (info.Length() > 1 && !ValueWrapper::isInstance(info[1]) && !info[1]->IsUndefined())
@@ -181,9 +221,52 @@ NAN_METHOD(IRBuilderWrapper::CreateAlloca) {
 }
 
 NAN_METHOD(IRBuilderWrapper::CreateInBoundsGEP) {
+    if (info.Length() < 1 || !(ValueWrapper::isInstance(info[0]) || TypeWrapper::isInstance(info[0]))) {
+        return Nan::ThrowTypeError("createInBoundsGEP needs to be called with: ptr: Value, idxList: Value[], name?: string or type: Type, ptr: Value, idxList: Value[], name?: string");
+    }
+
+    if (ValueWrapper::isInstance(info[0])) {
+        return CreateInBoundsGEPWithoutType(info);
+    }
+
+    return CreateInBoundsGEPWithType(info);
+}
+
+Nan::NAN_METHOD_RETURN_TYPE IRBuilderWrapper::CreateInBoundsGEPWithType(Nan::NAN_METHOD_ARGS_TYPE info) {
+    if (info.Length() < 3 || !TypeWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1]) || !info[2]->IsArray() ||
+        (info.Length() == 4 && !info[3]->IsString())) {
+        return Nan::ThrowTypeError("createInBoundsGEP needs to be called with: ptr: Value, idxList: Value[], name?: string or type: Type, ptr: Value, idxList: Value[], name?: string");
+    }
+
+    auto* type = TypeWrapper::FromValue(info[0])->getType();
+    auto* ptr = ValueWrapper::FromValue(info[1])->getValue();
+    auto indexValues = v8::Array::Cast(*info[2]);
+    std::vector<llvm::Value*> idxList { indexValues->Length() };
+
+    for (uint32_t i = 0; i < indexValues->Length(); ++i) {
+        auto idx = indexValues->Get(i);
+
+        if (!ValueWrapper::isInstance(idx)) {
+            return Nan::ThrowTypeError("Value expected for idxList element");
+        }
+
+        idxList[i] = ValueWrapper::FromValue(idx)->getValue();
+    }
+
+    std::string name {};
+
+    if (info.Length() == 4) {
+        name = ToString(info[3]);
+    }
+
+    auto* grep = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateInBoundsGEP(type, ptr, idxList, name);
+    info.GetReturnValue().Set(ValueWrapper::of(grep));
+}
+
+Nan::NAN_METHOD_RETURN_TYPE IRBuilderWrapper::CreateInBoundsGEPWithoutType(Nan::NAN_METHOD_ARGS_TYPE info) {
     if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !info[1]->IsArray() ||
-            (info.Length() == 3 && !info[2]->IsString())) {
-        return Nan::ThrowTypeError("createInBoundsGEP needs to be called with: ptr: Value, idxList: Value[], name?: string");
+        (info.Length() == 3 && !info[2]->IsString())) {
+        return Nan::ThrowTypeError("createInBoundsGEP needs to be called with: ptr: Value, idxList: Value[], name?: string or type: Type, ptr: Value, idxList: Value[], name?: string");
     }
 
     auto* ptr = ValueWrapper::FromValue(info[0])->getValue();

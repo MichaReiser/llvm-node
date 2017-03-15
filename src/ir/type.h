@@ -32,6 +32,7 @@ protected:
     // Static Methods
     static NAN_METHOD(New);
     static NAN_METHOD(getPointerTo);
+    static NAN_METHOD(getIntNTy);
 
 private:
     // Instance Methods

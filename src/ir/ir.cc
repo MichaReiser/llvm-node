@@ -21,6 +21,7 @@
 #include "array-type.h"
 #include "calling-conv.h"
 #include "call-inst.h"
+#include "struct-type.h"
 
 NAN_MODULE_INIT(InitIR) {
     AllocaInstWrapper::Init(target);
@@ -42,6 +43,7 @@ NAN_MODULE_INIT(InitIR) {
     LLVMContextWrapper::Init(target);
     PhiNodeWrapper::Init(target);
     PointerTypeWrapper::Init(target);
+    StructTypeWrapper::Init(target);
     TypeWrapper::Init(target);
     ValueWrapper::Init(target);
     InitVerifier(target);

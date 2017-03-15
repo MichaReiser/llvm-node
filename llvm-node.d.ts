@@ -124,8 +124,10 @@ declare namespace llvm {
 
         private constructor();
         addBasicBlock(basicBlock: BasicBlock);
+        addFnAttr(attribute: string, value?: string);
         getArguments(): Argument[];
         getEntryBlock(): BasicBlock;
+        viewCFG(): void;
     }
 
 
@@ -175,8 +177,9 @@ declare namespace llvm {
 
     interface DataLayout {
         constructor(layout: string);
-
         getStringRepresentation(): string;
+        getPointerSize(as: number): number;
+        getPrefTypeAlignment(type: Type): number;
     }
 
     class Type {
@@ -209,6 +212,7 @@ declare namespace llvm {
         static getInt32Ty(context: LLVMContext): Type;
         static getInt64Ty(context: LLVMContext): Type;
         static getInt128Ty(context: LLVMContext): Type;
+        static getIntNTy(context: LLVMContext, N: number): Type;
 
         static getInt1PtrTy(context: LLVMContext, AS?: number): PointerType;
         static getInt8PtrTy(context: LLVMContext, AS?: number): PointerType;
@@ -259,6 +263,17 @@ declare namespace llvm {
         private constructor();
     }
 
+    class StructType extends Type {
+        static get(context: LLVMContext, elements: Type[], isPacked?: boolean);
+
+        name: string;
+        readonly numElements: number;
+
+        private constructor();
+
+        getElementType(index: number): Type;
+    }
+
     class IRBuilder {
         constructor(context: LLVMContext);
         constructor(basicBlock: BasicBlock);
@@ -266,6 +281,8 @@ declare namespace llvm {
         setInsertionPoint(basicBlock: BasicBlock): void;
         createAdd(lhs: Value, rhs: Value, name?: string): Value;
         createAlloca(type: Type, arraySize?: Value, name?: string): AllocaInst;
+        createAlignedLoad(ptr: Value, align: number, name?: string): Value;
+        createAlignedStore(value: Value, ptr: Value, align: number, isVolatile?: boolean);
         createBr(basicBlock: BasicBlock): Value;
         createCall(callee: Function, args: Value[], name?: string): CallInst;
         createCondBr(condition: Value, then: BasicBlock, elseBlock: BasicBlock): Value;
@@ -282,6 +299,7 @@ declare namespace llvm {
         createFSub(lhs: Value, rhs: Value, name?: string): Value;
         createFPToSI(value: Value, type: Type, name?: string): Value;
         createInBoundsGEP(ptr: Value, idxList: Value[], name?: string): Value;
+        createInBoundsGEP(type: Type, ptr: Value, idxList: Value[], name?: string): Value;
         createIntCast(vlaue: Value, type: Type, isSigned: boolean, name?: string): Value;
         createICmpEQ(lhs: Value, rhs: Value, name?: string): Value;
         createICmpSGT(lhs: Value, rhs: Value, name?: string): Value;
@@ -308,6 +326,7 @@ declare namespace llvm {
         empty: boolean;
         moduleIdentifier: string;
         sourceFileName: string;
+        dataLayout: DataLayout;
         targetTriple: string;
 
         constructor(moduleId: string, context: LLVMContext);
@@ -315,8 +334,6 @@ declare namespace llvm {
         dump(): void;
 
         getFunction(name: string): Function;
-
-        setDataLayout(dataLayout: DataLayout): void;
     }
 
     // support

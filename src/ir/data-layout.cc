@@ -4,6 +4,7 @@
 
 #include "../util/string.h"
 #include "data-layout.h"
+#include "type.h"
 
 Nan::Persistent<v8::FunctionTemplate> DataLayoutWrapper::functionTemplate {};
 
@@ -24,6 +25,8 @@ NAN_MODULE_INIT(DataLayoutWrapper::Init) {
     tpl->SetClassName(Nan::New("DataLayout").ToLocalChecked());
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
     Nan::SetPrototypeMethod(tpl, "getStringRepresentation", DataLayoutWrapper::getStringRepresentation);
+    Nan::SetPrototypeMethod(tpl, "getPrefTypeAlignment", DataLayoutWrapper::getPrefTypeAlignment);
+    Nan::SetPrototypeMethod(tpl, "getPointerSize", DataLayoutWrapper::getPointerSize);
 
     functionTemplate.Reset(tpl);
 
@@ -50,6 +53,27 @@ NAN_METHOD(DataLayoutWrapper::getStringRepresentation) {
     std::string representation = wrapper->layout.getStringRepresentation();
 
     info.GetReturnValue().Set(v8::String::NewFromUtf8(info.GetIsolate(), representation.c_str()));
+}
+
+NAN_METHOD(DataLayoutWrapper::getPointerSize) {
+    if (info.Length() != 1 || !info[0]->IsUint32()) {
+        return Nan::ThrowTypeError("getPointerSize needs to be called with: AS: uint32");
+    }
+
+    auto as = Nan::To<uint32_t>(info[0]).FromJust();
+    auto dataLayout = DataLayoutWrapper::FromValue(info.Holder())->getDataLayout();
+    info.GetReturnValue().Set(Nan::New(dataLayout.getPointerSize(as)));
+}
+
+NAN_METHOD(DataLayoutWrapper::getPrefTypeAlignment) {
+    if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
+        return Nan::ThrowTypeError("getPrefTypeAlignment needs to be called with: type: Type");
+    }
+
+    auto* type = TypeWrapper::FromValue(info[0])->getType();
+    auto dataLayout = DataLayoutWrapper::FromValue(info.Holder())->getDataLayout();
+
+    info.GetReturnValue().Set(Nan::New(dataLayout.getPrefTypeAlignment(type)));
 }
 
 llvm::DataLayout DataLayoutWrapper::getDataLayout() {

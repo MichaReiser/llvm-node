@@ -45,8 +45,10 @@ Nan::Persistent<v8::FunctionTemplate> &FunctionWrapper::functionTemplate() {
 
         Nan::SetMethod(localTemplate, "create", FunctionWrapper::Create);
         Nan::SetPrototypeMethod(localTemplate, "addBasicBlock", FunctionWrapper::addBasicBlock);
+        Nan::SetPrototypeMethod(localTemplate, "addFnAttr", FunctionWrapper::addFnAttr);
         Nan::SetPrototypeMethod(localTemplate, "getArguments", FunctionWrapper::getArguments);
         Nan::SetPrototypeMethod(localTemplate, "getEntryBlock", FunctionWrapper::getEntryBlock);
+        Nan::SetPrototypeMethod(localTemplate, "viewCFG", FunctionWrapper::viewCFG);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("callingConv").ToLocalChecked(), FunctionWrapper::getCallingConv, FunctionWrapper::setCallingConv);
 
         tmpl.Reset(localTemplate);
@@ -74,7 +76,7 @@ NAN_METHOD(FunctionWrapper::Create) {
         return Nan::ThrowTypeError("Create needs to be called with: functionType: FunctionType, linkageTypes: uint32, name: string?, module?: Module");
     }
 
-    auto* functionType = FunctionTypeWrapper::FromValue(info[0])->functionType();
+    auto* functionType = FunctionTypeWrapper::FromValue(info[0])->getFunctionType();
     auto linkageType = static_cast<llvm::GlobalValue::LinkageTypes>(Nan::To<uint32_t>(info[1]).FromJust());
 
     std::string name = {};
@@ -101,6 +103,24 @@ NAN_METHOD(FunctionWrapper::addBasicBlock) {
     auto* block = BasicBlockWrapper::FromValue(info[0])->getBasicBlock();
     auto* wrapper = FunctionWrapper::FromValue(info.Holder());
     wrapper->getFunction()->getBasicBlockList().push_back(block);
+}
+
+NAN_METHOD(FunctionWrapper::addFnAttr) {
+    if (info.Length() < 1 || !info[0]->IsString() ||
+        (info.Length() == 2 && !info[1]->IsString()) ||
+        info.Length() > 2) {
+        return Nan::ThrowTypeError("addFnAttr needs to be called with: attribute: string, value?: string");
+    }
+
+    std::string attribute = ToString(info[0]);
+    std::string value {};
+
+    if (info.Length() == 2) {
+        value = ToString(info[1]);
+    }
+
+    auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
+    function->addFnAttr(attribute, value);
 }
 
 NAN_METHOD(FunctionWrapper::getArguments) {
@@ -136,6 +156,10 @@ NAN_SETTER(FunctionWrapper::setCallingConv) {
     uint32_t callingConvention = Nan::To<uint32_t>(value).ToChecked();
 
     FunctionWrapper::FromValue(info.Holder())->getFunction()->setCallingConv(callingConvention);
+}
+
+NAN_METHOD(FunctionWrapper::viewCFG) {
+    FunctionWrapper::FromValue(info.Holder())->getFunction()->viewCFG();
 }
 
 llvm::Function *FunctionWrapper::getFunction() {

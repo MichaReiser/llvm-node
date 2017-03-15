@@ -32,10 +32,14 @@ private:
     static NAN_METHOD(ConvertOperation);
 
     static NAN_METHOD(CreateAlloca);
+    static NAN_METHOD(CreateAlignedLoad);
+    static NAN_METHOD(CreateAlignedStore);
     static NAN_METHOD(CreateBr);
     static NAN_METHOD(CreateCall);
     static NAN_METHOD(CreateCondBr);
     static NAN_METHOD(CreateInBoundsGEP);
+    static Nan::NAN_METHOD_RETURN_TYPE CreateInBoundsGEPWithoutType(Nan::NAN_METHOD_ARGS_TYPE info);
+    static Nan::NAN_METHOD_RETURN_TYPE CreateInBoundsGEPWithType(Nan::NAN_METHOD_ARGS_TYPE info);
     static NAN_METHOD(CreateIntCast);
     static NAN_METHOD(CreateLoad);
     static NAN_METHOD(CreatePHI);

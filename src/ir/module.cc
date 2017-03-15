@@ -17,7 +17,7 @@ NAN_MODULE_INIT(ModuleWrapper::Init) {
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("empty").ToLocalChecked(), empty);
     Nan::SetPrototypeMethod(functionTemplate, "getFunction", getFunction);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), getName);
-    Nan::SetPrototypeMethod(functionTemplate, "setDataLayout", setDataLayout);
+    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("dataLayout").ToLocalChecked(), getDataLayout, setDataLayout);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("moduleIdentifier").ToLocalChecked(), getModuleIdentifier, setModuleIdentifier);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("sourceFileName").ToLocalChecked(), getSourceFileName, setSourceFileName);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("targetTriple").ToLocalChecked(), getTargetTriple, setTargetTriple);
@@ -77,12 +77,17 @@ NAN_GETTER(ModuleWrapper::getName) {
     info.GetReturnValue().Set(name);
 }
 
-NAN_METHOD(ModuleWrapper::setDataLayout) {
-    if (info.Length() < 1 || !DataLayoutWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("setDataLayout needs to be called with a single argument, the data layout");
+NAN_GETTER(ModuleWrapper::getDataLayout) {
+    auto dataLayout = ModuleWrapper::FromValue(info.Holder())->getModule()->getDataLayout();
+    info.GetReturnValue().Set(DataLayoutWrapper::of(dataLayout));
+}
+
+NAN_SETTER(ModuleWrapper::setDataLayout) {
+    if (!DataLayoutWrapper::isInstance(value)) {
+        return Nan::ThrowTypeError("dataLayout needs to an instance of DataLayout");
     }
 
-    DataLayoutWrapper* dataLayoutWrapper = DataLayoutWrapper::FromValue(info[0]);
+    DataLayoutWrapper* dataLayoutWrapper = DataLayoutWrapper::FromValue(value);
     auto wrapper = ModuleWrapper::FromValue(info.Holder());
     wrapper->module->setDataLayout(dataLayoutWrapper->getDataLayout());
 }

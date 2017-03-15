@@ -2,10 +2,12 @@
 // Created by Micha Reiser on 28.02.17.
 //
 
+#include <llvm/IR/DerivedTypes.h>
 #include "type.h"
 #include "function-type.h"
 #include "pointer-type.h"
 #include "array-type.h"
+#include "struct-type.h"
 
 NAN_MODULE_INIT(TypeWrapper::Init) {
     auto typeObj = Nan::New<v8::Object>(getObjectWithStaticMethods());
@@ -32,8 +34,6 @@ NAN_MODULE_INIT(TypeWrapper::Init) {
     Nan::Set(typeObj, Nan::New("TypeID").ToLocalChecked(), typeIds);
 
     Nan::Set(target, Nan::New("Type").ToLocalChecked(), typeObj);
-
-
 }
 
 NAN_METHOD(TypeWrapper::New) {
@@ -115,22 +115,25 @@ NAN_METHOD(getPointerType) {
 }
 
 v8::Local<v8::Object> TypeWrapper::of(llvm::Type *type) {
+    v8::Local<v8::Object> result {};
+
     if (type->isFunctionTy()) {
-        return FunctionTypeWrapper::Create(static_cast<llvm::FunctionType*>(type));
+        result = FunctionTypeWrapper::Create(static_cast<llvm::FunctionType*>(type));
     } else if (type->isPointerTy()) {
-        return PointerTypeWrapper::of(static_cast<llvm::PointerType*>(type));
+        result = PointerTypeWrapper::of(static_cast<llvm::PointerType*>(type));
     } else if (type->isArrayTy()) {
-        return ArrayTypeWrapper::of(static_cast<llvm::ArrayType*>(type));
+        result = ArrayTypeWrapper::of(static_cast<llvm::ArrayType*>(type));
+    } else if (type->isStructTy()) {
+        result = StructTypeWrapper::of(static_cast<llvm::StructType*>(type));
+    } else {
+        v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New(typeTemplate());
+        auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
+        v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(type) };
+        result = Nan::NewInstance(constructorFunction, 1, argv).ToLocalChecked();
     }
 
     Nan::EscapableHandleScope escapeScope {};
-
-    v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New(typeTemplate());
-    auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
-    v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(type) };
-    v8::Local<v8::Object> object = Nan::NewInstance(constructorFunction, 1, argv).ToLocalChecked();
-
-    return escapeScope.Escape(object);
+    return escapeScope.Escape(result);
 }
 
 typedef bool (llvm::Type::*isTy)() const;
@@ -145,6 +148,18 @@ NAN_GETTER(TypeWrapper::getTypeID) {
     auto* wrapper = TypeWrapper::FromValue(info.Holder());
     auto result = Nan::New(wrapper->type->getTypeID());
     info.GetReturnValue().Set(result);
+}
+
+NAN_METHOD(TypeWrapper::getIntNTy) {
+    if (info.Length() != 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsUint32()) {
+        return Nan::ThrowTypeError("getIntNTy needs to be called with: context: LLVMContext, N: uint32");
+    }
+
+    auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
+    auto N = Nan::To<uint32_t>(info[1]).FromJust();
+    auto* type = llvm::Type::getIntNTy(context, N);
+
+    info.GetReturnValue().Set(TypeWrapper::of(type));
 }
 
 Nan::Persistent<v8::FunctionTemplate>& TypeWrapper::typeTemplate() {
@@ -189,6 +204,7 @@ Nan::Persistent<v8::Object>& TypeWrapper::getObjectWithStaticMethods() {
         Nan::SetMethod(localObject, "getInt32Ty", &getIntType<&llvm::Type::getInt32Ty>);
         Nan::SetMethod(localObject, "getInt64Ty", &getIntType<&llvm::Type::getInt64Ty>);
         Nan::SetMethod(localObject, "getInt128Ty", &getIntType<&llvm::Type::getInt128Ty>);
+        Nan::SetMethod(localObject, "getIntNTy", getIntNTy);
 
         Nan::SetMethod(localObject, "getInt1PtrTy", &getPointerType<&llvm::Type::getInt1PtrTy>);
         Nan::SetMethod(localObject, "getInt8PtrTy", &getPointerType<&llvm::Type::getInt8PtrTy>);
