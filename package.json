@@ -2,19 +2,19 @@
   "name": "llvm-node",
   "version": "0.0.1",
   "description": "Node Bindings for LLVM >=4.0",
+  "author": "Micha Reiser <micha@famreiser.ch>",
+  "repository": "https://github.com/MichaReiser/llvm-node.git",
+  "license": "MIT",
   "main": "index.js",
   "typings": "./llvm-node.d.ts",
-  "author": "Micha Reiser <micha@famreiser.ch>",
-  "license": "MIT",
-
-  "engines" : {
-    "node" : ">=4.0"
+  "engines": {
+    "node": ">=4.0"
   },
   "engineStrict": true,
-
   "devDependencies": {
     "@types/jest": "^18.1.1",
     "@types/requirejs": "^2.1.28",
+    "generate-changelog": "^1.1.0",
     "jest": "^19.0.2",
     "nan": "^2.5.1",
     "node-cmake": "^2.2.1",
@@ -29,8 +29,11 @@
     "configure": "node-gyp configure",
     "build": "node-gyp build",
     "test": "jest --coverage",
-    "test:watch": "jest --watchAll --runInBand",
-    "rebuild": "node-gyp rebuild"
+    "test:watch": "jest --watchAll",
+    "rebuild": "node-gyp rebuild",
+    "release:major": "changelog -M && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version major && git push origin && git push origin --tags",
+    "release:minor": "changelog -m && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version minor && git push origin && git push origin --tags",
+    "release:patch": "changelog -p && git add CHANGELOG.md && git commit -m 'updated CHANGELOG.md' && npm version patch && git push origin && git push origin --tags"
   },
   "jest": {
     "transform": {
