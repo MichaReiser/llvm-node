@@ -1,10 +1,17 @@
 {
   "name": "llvm-node",
   "version": "0.0.1",
+  "description": "Node Bindings for LLVM >=4.0",
   "main": "index.js",
   "typings": "./llvm-node.d.ts",
   "author": "Micha Reiser <micha@famreiser.ch>",
   "license": "MIT",
+
+  "engines" : {
+    "node" : ">=4.0"
+  },
+  "engineStrict": true,
+
   "devDependencies": {
     "@types/jest": "^18.1.1",
     "@types/requirejs": "^2.1.28",
