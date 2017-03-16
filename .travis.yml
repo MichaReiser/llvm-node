@@ -6,6 +6,7 @@ node_js:
 - '6'
 - '5'
 - '4'
+
 cache: yarn
 
 before_install:
@@ -16,8 +17,6 @@ before_install:
 - sudo apt-get install clang-4.0 clang++-4.0 llvm-4.0 llvm-4.0-dev
 - export CC=clang-4.0
 - export CXX=clang++-4.0
-- llvm-config-4.0 --includedir
-- llvm-config-4.0 --cppflags
 
 install:
 - npm install --LLVM_CONFIG=llvm-config-4.0
