@@ -69,7 +69,7 @@ NAN_METHOD(StructTypeWrapper::get) {
 
     bool isPacked = false;
     if (info.Length() == 3) {
-        isPacked = Nan::To<bool>(info[2]).ToChecked();
+        isPacked = Nan::To<bool>(info[2]).FromJust();
     }
 
     auto* result = llvm::StructType::get(context, elements, isPacked);

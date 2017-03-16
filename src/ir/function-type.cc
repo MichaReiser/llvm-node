@@ -62,7 +62,7 @@ NAN_METHOD(FunctionTypeWrapper::get) {
     llvm::FunctionType* functionType {};
 
     if (info.Length() == 2) {
-        auto varArg = Nan::To<bool>(info[1]).ToChecked();
+        auto varArg = Nan::To<bool>(info[1]).FromJust();
 
         functionType = llvm::FunctionType::get(returnType, varArg);
     } else {
@@ -78,7 +78,7 @@ NAN_METHOD(FunctionTypeWrapper::get) {
             argumentTypes[i] = TypeWrapper::FromValue(argumentTypeObject)->getType();
         }
 
-        auto varArg = Nan::To<bool>(info[2]).ToChecked();
+        auto varArg = Nan::To<bool>(info[2]).FromJust();
 
         functionType = llvm::FunctionType::get(returnType, argumentTypes, varArg);
     }

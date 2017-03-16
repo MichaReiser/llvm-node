@@ -302,7 +302,7 @@ NAN_METHOD(IRBuilderWrapper::CreateIntCast) {
 
     auto* value = ValueWrapper::FromValue(info[0])->getValue();
     auto* type = TypeWrapper::FromValue(info[1])->getType();
-    auto isSigned = Nan::To<bool>(info[2]).ToChecked();
+    auto isSigned = Nan::To<bool>(info[2]).FromJust();
     std::string name {};
 
     if (info.Length() == 4) {
@@ -386,7 +386,7 @@ NAN_METHOD(IRBuilderWrapper::CreatePHI) {
     }
 
     auto* type = TypeWrapper::FromValue(info[0])->getType();
-    auto numReservedValues = Nan::To<uint32_t>(info[1]).ToChecked();
+    auto numReservedValues = Nan::To<uint32_t>(info[1]).FromJust();
     std::string name {};
 
     if (info.Length() == 3) {
