@@ -53,7 +53,7 @@ NAN_SETTER(CallInstWrapper::setCallingConv) {
         return Nan::ThrowTypeError("The Calling Convention needs to be a value from llvm.CallingConv");
     }
 
-    auto callingConv = Nan::To<uint32_t>(value).ToChecked();
+    auto callingConv = Nan::To<uint32_t>(value).FromJust();
     CallInstWrapper::FromValue(info.Holder())->getCallInst()->setCallingConv(callingConv);
 }
 

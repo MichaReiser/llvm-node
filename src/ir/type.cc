@@ -59,7 +59,7 @@ NAN_METHOD(TypeWrapper::getPointerTo) {
 
     uint32_t addressSpace {};
     if (info.Length() == 1) {
-        addressSpace = Nan::To<uint32_t>(info[0]).ToChecked();
+        addressSpace = Nan::To<uint32_t>(info[0]).FromJust();
     }
 
     auto* pointerType = TypeWrapper::FromValue(info.Holder())->getType()->getPointerTo(addressSpace);
@@ -106,7 +106,7 @@ NAN_METHOD(getPointerType) {
     unsigned AS = 0;
 
     if (info.Length() == 2) {
-        AS = Nan::To<unsigned>(info[1]).ToChecked();
+        AS = Nan::To<unsigned>(info[1]).FromJust();
     }
 
     auto* type = method(context->getContext(), AS);

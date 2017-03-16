@@ -34,7 +34,7 @@ NAN_METHOD(PointerTypeWrapper::get) {
     }
 
     auto* type = TypeWrapper::FromValue(info[0])->getType();
-    uint32_t as = Nan::To<uint32_t>(info[1]).ToChecked();
+    uint32_t as = Nan::To<uint32_t>(info[1]).FromJust();
 
     auto* pointerType = llvm::PointerType::get(type, as);
 

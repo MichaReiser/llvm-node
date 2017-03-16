@@ -153,7 +153,7 @@ NAN_SETTER(FunctionWrapper::setCallingConv) {
         return Nan::ThrowTypeError("callingConv needs to be a value of llvm.CallingConv");
     }
 
-    uint32_t callingConvention = Nan::To<uint32_t>(value).ToChecked();
+    uint32_t callingConvention = Nan::To<uint32_t>(value).FromJust();
 
     FunctionWrapper::FromValue(info.Holder())->getFunction()->setCallingConv(callingConvention);
 }

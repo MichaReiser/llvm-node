@@ -1,10 +1,11 @@
 {
     "variables": {
-        "llvm_config": "llvm-config",
+        "LLVM_CONFIG%": "llvm-config",
     },
     "targets": [
         {
             "target_name": "llvm",
+            "default_configuration": "Debug",
             "sources": [
                 "src/llvm-node.cc",
                 "src/bitcode/bitcode.cc",
@@ -39,28 +40,38 @@
                 "src/util/from-value-mixin.h"
             ],
             "include_dirs" : [
-               "<!(node -e \"require('nan')\")",
-                "<!@(<(llvm_config) --includedir)"
+                "<!(node -e \"require('nan')\")",
+                "<!@(<(LLVM_CONFIG) --includedir)"
             ],
             "libraries": [
-                "<!@(<(llvm_config) --ldflags)",
-                "<!@(<(llvm_config) --libs all)"
+                "<!@(<(LLVM_CONFIG) --ldflags)",
+                "<!@(<(LLVM_CONFIG) --libs all)"
             ],
             "cflags": [
-                "-O3",
                 "-Wall",
                 "-Werror",
-                "-std=c++14",
+                "-std=c++11",
+                "-c <!@(<(LLVM_CONFIG) --cppflags)"
             ],
-            'conditions': [
+            "conditions": [
                 [ 'OS=="mac"', {
-                      'xcode_settings': {
-                        'OTHER_CPLUSPLUSFLAGS' : ['-stdlib=libc++'],
-                        'MACOSX_DEPLOYMENT_TARGET': '10.12'
-                      },
+                      "xcode_settings": {
+                        "OTHER_CPLUSPLUSFLAGS" : ["-stdlib=libc++"],
+                        "MACOSX_DEPLOYMENT_TARGET": "10.12"
+                      }
 
                 }],
-            ]
+            ],
+            "configurations": {
+                "Debug": {
+                    "defines": [ "DEBUG", "_DEBUG" ]
+                },
+                "Release": {
+                    "cflags": [
+                        "-O3"
+                    ]
+                }
+            }
         }
     ]
 }

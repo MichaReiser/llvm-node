@@ -52,7 +52,7 @@ NAN_METHOD(ArrayTypeWrapper::get) {
     }
 
     auto* elementType = TypeWrapper::FromValue(info[0])->getType();
-    auto numElements = Nan::To<uint32_t>(info[1]).ToChecked();
+    auto numElements = Nan::To<uint32_t>(info[1]).FromJust();
 
     auto* arrayType = llvm::ArrayType::get(elementType, numElements);
 

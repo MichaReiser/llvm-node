@@ -149,7 +149,7 @@ NAN_METHOD(ConstantFPWrapper::get) {
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
-    double number = Nan::To<double>(info[1]).ToChecked();
+    double number = Nan::To<double>(info[1]).FromJust();
 
     auto* constant = llvm::ConstantFP::get(context, llvm::APFloat { number } );
 
@@ -229,7 +229,7 @@ NAN_METHOD(ConstantIntWrapper::get) {
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
-    int64_t number = Nan::To<int64_t >(info[1]).ToChecked();
+    int64_t number = Nan::To<int64_t >(info[1]).FromJust();
 
     auto* constant = llvm::ConstantInt::get(context, llvm::APInt { 32, static_cast<uint64_t>(number), true } );
 
