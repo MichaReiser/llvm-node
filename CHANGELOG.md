@@ -1,3 +1,9 @@
+#### 0.1.1 (2017-3-16)
+
+##### Bug Fixes
+
+* **undefined:** Make nan a normal dependency (3c2d4742)
+
 ### 0.1.0 (2017-3-16)
 
 ##### Documentation Changes
