@@ -2,10 +2,12 @@
   "name": "llvm-node",
   "version": "0.0.1",
   "description": "Node Bindings for LLVM >=4.0",
+  "author": "Micha Reiser <micha@famreiser.ch>",
+  "repository": "https://github.com/MichaReiser/llvm-node.git",
+  "license": "MIT",
+
   "main": "index.js",
   "typings": "./llvm-node.d.ts",
-  "author": "Micha Reiser <micha@famreiser.ch>",
-  "license": "MIT",
 
   "engines" : {
     "node" : ">=4.0"
@@ -25,13 +27,15 @@
   "dependencies": {
     "bindings": "^1.2.1"
   },
+
   "scripts": {
     "configure": "node-gyp configure",
     "build": "node-gyp build",
     "test": "jest --coverage",
-    "test:watch": "jest --watchAll --runInBand",
+    "test:watch": "jest --watchAll",
     "rebuild": "node-gyp rebuild"
   },
+
   "jest": {
     "transform": {
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"

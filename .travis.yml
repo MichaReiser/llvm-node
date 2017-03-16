@@ -1,35 +1,32 @@
 language: node_js
 compiler: clang
-node_js:
-  - "node"
-  - "6"
-  - "5"
-  - "4"
 
+node_js:
+- node
+- '6'
+- '5'
+- '4'
 cache: yarn
 
 before_install:
-  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-  - curl http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-  - echo "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-4.0 main" | sudo tee -a /etc/apt/sources.list
-  - sudo apt-get update -qq
-  - sudo apt-get install clang-4.0 clang++-4.0 llvm-4.0 llvm-4.0-dev
-  - export CC=clang-4.0
-  - export CXX=clang++-4.0
-  - llvm-config-4.0 --includedir
-  - llvm-config-4.0 --cppflags
-
-# https://github.com/travis-ci/apt-source-whitelist/pull/361
-#addons:
-#  apt:
-#    sources:
-#      - ubuntu-toolchain-r-test
-#      - llvm-toolchain-precise-4.0
-#    packages:
-#      - clang-4.0
-#      - llvm-4.0
-#      - llvm-4.0-dev
-#      - build-essential
+- sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+- curl http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+- echo "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-4.0 main" | sudo tee -a /etc/apt/sources.list
+- sudo apt-get update -qq
+- sudo apt-get install clang-4.0 clang++-4.0 llvm-4.0 llvm-4.0-dev
+- export CC=clang-4.0
+- export CXX=clang++-4.0
+- llvm-config-4.0 --includedir
+- llvm-config-4.0 --cppflags
 
 install:
-  - npm install --LLVM_CONFIG=llvm-config-4.0
+- npm install --LLVM_CONFIG=llvm-config-4.0
+
+deploy:
+  provider: npm
+  email: micha@famreiser.ch
+  api_key:
+    secure: dl43E9+9IYRIfqrGrOVTP+5YN6T2DPhpja+GFjpui2oQsTJ2uzcWs/nVms0jvfwd34Le1ZDCRq37fAnEtHsxcspl4mUduqDnjdAzfqH76REJRbBCJj1eQ+v/JjDAZ2p3aOSEM0larP7DojjaapNV+NNkFLYw0vlkww1wEPhmmftdMtLJY+TVvvn6vkthwwL5TwXznSTTQB0IpYp+d3XK4PPhXbNcWmBcBtC/NxJ0NrZrOheM2jJxNWDQbkeZttpl5nLP8WZ332DZ/YeBWlV5Uv0bTtB24HIS7ZwZwpkzAZks5I7wn8pBVnW/vdjJ+TRmNkFo35dTV+2lKvjlo1TooE8ZnaY0We9czxMpmocV0+8wBAa+e/UqLRmDbrQyP/kSwlrN1EiK2jQkg/wlZ77hCA0JuEg5SDw0M2fym4jx6gQFLrIM3w55rtce+fQ3jdnGBYz3RzYxfpYGsdnIAv7y/myYKZ8Ekm5Pd6b3WMX/LhtcPmvirKKN/lRXwJiY3gpuX4ELJ+kIlQI3y63Z0nrf+4ADJsIC0rTDbCcXY7TWUWKzq7vSr55A2ckDRciVWlr4VI6u1YeFoI6bA777Ddh63oY1iq7vUqUZyL13xOjn2aAhlHTFDbFturRFQvBNeN42IHYItZBSZk4AI2AG2Zro04BozbRjiF4uepPynkniizk=
+  on:
+    tags: true
+    repo: MichaReiser/llvm-node
