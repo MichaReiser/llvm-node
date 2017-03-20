@@ -54,11 +54,11 @@ declare namespace llvm {
         useEmpty(): boolean;
     }
 
-    interface Argument extends Value {
+    class Argument extends Value {
         argumentNumber: number;
         parent?: Function;
 
-        constructor(type: Type, name?: string, func?: Function);
+        constructor(type: Type, name?: string, fn?: Function, argNo?: number);
     }
 
     interface AllocaInst extends Value {

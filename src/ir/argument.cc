@@ -37,24 +37,34 @@ NAN_METHOD(ArgumentWrapper::New) {
 
     if (info.Length() < 1 || !TypeWrapper::isInstance(info[0])
         || (info.Length() > 1 && !info[1]->IsString())
-        || (info.Length() == 3 && !FunctionWrapper::isInstance(info[2]))
+        || (info.Length() > 2 && !FunctionWrapper::isInstance(info[2]))
+        || (info.Length() == 4 && !info[3]->IsUint32())
         || info.Length() > 3) {
-        return Nan::ThrowTypeError("Argument constructor requires: type: Type, name: string?, function: Function?");
+        return Nan::ThrowTypeError("Argument constructor requires: type: Type, name: string?, function: Function?, argNo: uint32");
     }
 
     auto* type = TypeWrapper::FromValue(info[0])->getType();
     llvm::Function* function = nullptr;
     std::string name {};
+    uint32_t argNo = 0;
 
     if (info.Length() > 1) {
         name = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
     }
 
-    if (info.Length() == 3) {
+    if (info.Length() > 2) {
         function = FunctionWrapper::FromValue(info[2])->getFunction();
     }
 
+    if (info.Length() == 3) {
+        argNo = Nan::To<uint32_t>(info[3]).FromJust();
+    }
+
+#if __clang_major__ == 4
     auto* argument = new llvm::Argument { type, name, function };
+#else
+    auto* argument = new llvm::Argument { type, name, function, argNo };
+#endif
     auto* wrapper = new ArgumentWrapper { argument };
     wrapper->Wrap(info.This());
 
