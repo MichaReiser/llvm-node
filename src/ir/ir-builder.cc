@@ -87,6 +87,8 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createFDiv", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFDiv>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFRem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFRem>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFSub", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFSub>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createGlobalString", IRBuilderWrapper::CreateGlobalString);
+    Nan::SetPrototypeMethod(functionTemplate, "createGlobalStringPtr", IRBuilderWrapper::CreateGlobalStringPtr);
     Nan::SetPrototypeMethod(functionTemplate, "createInBoundsGEP", IRBuilderWrapper::CreateInBoundsGEP);
     Nan::SetPrototypeMethod(functionTemplate, "createIntCast", IRBuilderWrapper::CreateIntCast);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSGT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSGT>>);
@@ -376,6 +378,54 @@ NAN_METHOD(IRBuilderWrapper::CreateCall) {
 
     auto* callInstr = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateCall(callee, args, name);
     info.GetReturnValue().Set(CallInstWrapper::of(callInstr));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateGlobalString) {
+    if (info.Length() < 1 || !info[0]->IsString() ||
+        (info.Length() > 1 && !info[1]->IsString()) ||
+        (info.Length() == 3 && !info[2]->IsUint32()) ||
+        info.Length() > 3) {
+        return Nan::ThrowTypeError("createGlobalString needs to be called with: str: string, name?: string, addressSpace: uint32");
+    }
+
+    auto str = ToString(info[0]);
+    std::string name {};
+    uint32_t as = 0;
+
+    if (info.Length() > 1) {
+        name = ToString(info[1]);
+    }
+
+    if (info.Length() > 2) {
+        as = Nan::To<uint32_t>(info[2]).FromJust();
+    }
+
+    auto* value = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateGlobalString(str, name, as);
+    info.GetReturnValue().Set(ValueWrapper::of(value));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateGlobalStringPtr) {
+    if (info.Length() < 1 || !info[0]->IsString() ||
+            (info.Length() > 1 && !info[1]->IsString()) ||
+            (info.Length() == 3 && !info[2]->IsUint32()) ||
+            info.Length() > 3) {
+        return Nan::ThrowTypeError("createGlobalStringPtr needs to be called with: str: string, name?: string, addressSpace: uint32");
+    }
+
+    auto str = ToString(info[0]);
+    std::string name {};
+    uint32_t as = 0;
+
+    if (info.Length() > 1) {
+        name = ToString(info[1]);
+    }
+
+    if (info.Length() > 2) {
+        as = Nan::To<uint32_t>(info[2]).FromJust();
+    }
+
+    auto* value = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateGlobalStringPtr(str, name, as);
+    info.GetReturnValue().Set(ValueWrapper::of(value));
 }
 
 NAN_METHOD(IRBuilderWrapper::CreatePHI) {
