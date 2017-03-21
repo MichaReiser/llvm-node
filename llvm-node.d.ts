@@ -113,6 +113,11 @@ declare namespace llvm {
         private constructor();
     }
 
+    class ConstantDataArray extends Constant {
+        static get(llvmContext: LLVMContext, values: number[]);
+        static getString(llvmContext: LLVMContext, value: string);
+    }
+
     interface PhiNode extends Value {
         addIncoming(value: Value, basicBlock: BasicBlock): void;
     }
@@ -298,6 +303,8 @@ declare namespace llvm {
         createFRem(lhs: Value, rhs: Value, name?: string): Value;
         createFSub(lhs: Value, rhs: Value, name?: string): Value;
         createFPToSI(value: Value, type: Type, name?: string): Value;
+        createGlobalString(str: string, name?: string, addressSpace?: number): Value;
+        createGlobalStringPtr(str: string, name?: string, addressSpace?: number): Value;
         createInBoundsGEP(ptr: Value, idxList: Value[], name?: string): Value;
         createInBoundsGEP(type: Type, ptr: Value, idxList: Value[], name?: string): Value;
         createIntCast(vlaue: Value, type: Type, isSigned: boolean, name?: string): Value;

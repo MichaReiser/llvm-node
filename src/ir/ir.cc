@@ -31,6 +31,7 @@ NAN_MODULE_INIT(InitIR) {
     InitCallingConv(target);
     CallInstWrapper::Init(target);
     ConstantWrapper::Init(target);
+    ConstantDataArrayWrapper::Init(target);
     ConstantFPWrapper::Init(target);
     ConstantIntWrapper::Init(target);
     ConstantPointerNullWrapper::Init(target);
