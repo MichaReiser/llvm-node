@@ -90,4 +90,15 @@ describe("ir/module", () => {
             expect(mod.getFunction("fib")).toBeUndefined();
         })
     });
+
+    describe("print", () => {
+        test("returns the llvm assembly code for the module", () => {
+            const mod = new llvm.Module("test", context);
+            const fun = llvm.Function.create(llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false), llvm.LinkageTypes.ExternalLinkage, "sin", mod);
+
+            const entry = llvm.BasicBlock.create(context, "entry", fun);
+
+            expect(mod.print()).toMatchSnapshot();
+        });
+    });
 });

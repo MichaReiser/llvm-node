@@ -135,8 +135,6 @@ declare namespace llvm {
         viewCFG(): void;
     }
 
-
-
     class CallInst extends Value {
         callingConv: CallingConv;
 
@@ -339,7 +337,7 @@ declare namespace llvm {
         constructor(moduleId: string, context: LLVMContext);
 
         dump(): void;
-
+        print(): string;
         getFunction(name: string): Function;
     }
 

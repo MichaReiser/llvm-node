@@ -2,6 +2,7 @@
 // Created by Micha Reiser on 28.02.17.
 //
 
+#include <llvm/Support/raw_ostream.h>
 #include "module.h"
 #include "../util/string.h"
 #include "./llvm-context.h"
@@ -21,6 +22,7 @@ NAN_MODULE_INIT(ModuleWrapper::Init) {
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("moduleIdentifier").ToLocalChecked(), getModuleIdentifier, setModuleIdentifier);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("sourceFileName").ToLocalChecked(), getSourceFileName, setSourceFileName);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("targetTriple").ToLocalChecked(), getTargetTriple, setTargetTriple);
+    Nan::SetPrototypeMethod(functionTemplate, "print", ModuleWrapper::print);
     moduleTemplate().Reset(functionTemplate);
 
     auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
@@ -140,6 +142,17 @@ NAN_SETTER(ModuleWrapper::setTargetTriple) {
     Nan::Utf8String triple { Nan::To<v8::String>(value).ToLocalChecked() };
     auto wrapper = ModuleWrapper::FromValue(info.Holder());
     wrapper->module->setTargetTriple(llvm::StringRef(*triple));
+}
+
+NAN_METHOD(ModuleWrapper::print) {
+    auto* module = ModuleWrapper::FromValue(info.Holder())->getModule();
+    std::string str {};
+    llvm::raw_string_ostream output { str };
+
+    module->print(output, nullptr);
+    output.flush();
+
+    info.GetReturnValue().Set(Nan::New(str).ToLocalChecked());
 }
 
 llvm::Module *ModuleWrapper::getModule() {
