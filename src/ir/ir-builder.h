@@ -40,10 +40,11 @@ private:
     static NAN_METHOD(CreateGlobalStringPtr);
     static NAN_METHOD(CreateGlobalString);
     static NAN_METHOD(CreateInBoundsGEP);
-    static Nan::NAN_METHOD_RETURN_TYPE CreateInBoundsGEPWithoutType(Nan::NAN_METHOD_ARGS_TYPE info);
-    static Nan::NAN_METHOD_RETURN_TYPE CreateInBoundsGEPWithType(Nan::NAN_METHOD_ARGS_TYPE info);
+    static NAN_METHOD(CreateInBoundsGEPWithoutType);
+    static NAN_METHOD(CreateInBoundsGEPWithType);
     static NAN_METHOD(CreateIntCast);
     static NAN_METHOD(CreateLoad);
+    static NAN_METHOD(CreateNeg);
     static NAN_METHOD(CreatePHI);
     static NAN_METHOD(CreateRet);
     static NAN_METHOD(CreateRetVoid);

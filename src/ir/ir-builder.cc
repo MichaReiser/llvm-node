@@ -96,7 +96,8 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSLE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSLE>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpEQ", &NANBinaryOperation<ToBinaryOp<&llvm::IRBuilder<>::CreateICmpEQ>>);
     Nan::SetPrototypeMethod(functionTemplate, "createLoad", IRBuilderWrapper::CreateLoad);
-    Nan::SetPrototypeMethod(functionTemplate, "createMul", &NANBinaryOperation<ToBinaryOp<&llvm::IRBuilder<>::CreateMul>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createMul", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateMul>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createNeg", IRBuilderWrapper::CreateNeg);
     Nan::SetPrototypeMethod(functionTemplate, "createPhi", IRBuilderWrapper::CreatePHI);
     Nan::SetPrototypeMethod(functionTemplate, "createRet", IRBuilderWrapper::CreateRet);
     Nan::SetPrototypeMethod(functionTemplate, "createRetVoid", IRBuilderWrapper::CreateRetVoid);
@@ -331,6 +332,37 @@ NAN_METHOD(IRBuilderWrapper::CreateLoad) {
 
     auto& irBuilder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
     auto* inst = irBuilder.CreateLoad(value, name);
+    info.GetReturnValue().Set(ValueWrapper::of(inst));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateNeg) {
+    if (info.Length() < 1 || !ValueWrapper::isInstance(info[0])
+        || (info.Length() > 1 && !info[1]->IsString())
+        || (info.Length() > 2 && !info[2]->IsBoolean())
+        || (info.Length() > 3 && !info[3]->IsBoolean())
+        || info.Length() > 4) {
+        return Nan::ThrowTypeError("createNeg needs to be called with: value: Value, name?: string, hasNuw: boolean, hasNSW: boolean");
+    }
+
+    auto* value = ValueWrapper::FromValue(info[0])->getValue();
+    std::string name {};
+    bool hasNUW {};
+    bool hasNSW {};
+
+    if (info.Length() > 1) {
+        name = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
+    }
+
+    if (info.Length() > 2) {
+        hasNUW = Nan::To<bool>(info[2]).FromJust();
+    }
+
+    if (info.Length() > 3) {
+        hasNSW = Nan::To<bool>(info[3]).FromJust();
+    }
+
+    auto& irBuilder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
+    auto* inst = irBuilder.CreateNeg(value, name, hasNUW, hasNSW);
     info.GetReturnValue().Set(ValueWrapper::of(inst));
 }
 

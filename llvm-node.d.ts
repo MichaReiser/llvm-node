@@ -312,6 +312,7 @@ declare namespace llvm {
         createICmpSLT(lhs: Value, rhs: Value, name?: string): Value;
         createLoad(ptr: Value, name?: string): Value;
         createMul(lhs: Value, rhs: Value, name?: string): Value;
+        createNeg(value: Value, name?: string, hasNUW?: boolean, hasNSW?: boolean): Value;
         createPhi(type: Type, numReservedValues: number, name?: string): PhiNode;
         createRet(value: Value): Value;
         createRetVoid(): Value;

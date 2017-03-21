@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ir/module print returns the llvm assembly code for the module 1`] = `
+"; ModuleID = 'test'
+source_filename = \\"test\\"
+
+define double @sin() {
+entry:
+}
+"
+`;
