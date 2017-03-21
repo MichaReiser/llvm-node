@@ -2,11 +2,13 @@ import * as llvm from "../../";
 
 describe("Argument", () => {
     let context: llvm.LLVMContext;
+    let module: llvm.Module;
     let sin: llvm.Function;
 
     beforeEach(() => {
+        debugger;
         context = new llvm.LLVMContext();
-        const module = new llvm.Module("test", context);
+        module = new llvm.Module("test", context);
         sin = llvm.Function.create(llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [llvm.Type.getDoubleTy(context)], false), llvm.LinkageTypes.ExternalLinkage, "sin", module);
     });
 
@@ -26,28 +28,28 @@ describe("Argument", () => {
     });
 
     it("inherits from value", () => {
-        const arg = new llvm.Argument(llvm.Type.getDoubleTy(context), "arg", sin);
+        const arg = new llvm.Argument(llvm.Type.getDoubleTy(context), "valueArg");
 
         expect(arg.name).toBeDefined();
+
+        arg.release();
     });
 
     it("has an argument number", () => {
-        const arg = new llvm.Argument(llvm.Type.getDoubleTy(context), "arg", sin);
-
-        expect(arg.argumentNumber).toBe(1);
+        expect(sin.getArguments()[0].argumentNumber).toBe(0);
     });
 
     describe("parent", () => {
         it("returns the parent function", () => {
-            const arg = new llvm.Argument(llvm.Type.getDoubleTy(context), "arg", sin);
-
-            expect(arg.parent).toEqual(sin);
+            expect(sin.getArguments()[0].parent).toEqual(sin);
         });
 
         it("is undefined if the argument has no parent", () => {
-            const arg = new llvm.Argument(llvm.Type.getDoubleTy(context), "arg");
+            const arg = new llvm.Argument(llvm.Type.getDoubleTy(context), "orphan");
 
             expect(arg.parent).not.toBeDefined();
+
+            arg.release();
         });
     });
 });

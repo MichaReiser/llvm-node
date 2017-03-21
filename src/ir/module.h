@@ -41,6 +41,7 @@ private:
     static NAN_GETTER(getSourceFileName);
     static NAN_GETTER(getTargetTriple);
     static NAN_SETTER(setTargetTriple);
+    static NAN_METHOD(print);
 
     static inline Nan::Persistent<v8::FunctionTemplate>& moduleTemplate() {
         static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};

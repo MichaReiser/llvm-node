@@ -2,6 +2,7 @@
 // Created by Micha Reiser on 01.03.17.
 //
 
+#include <iostream>
 #include "argument.h"
 #include "type.h"
 #include "../util/string.h"
@@ -39,7 +40,7 @@ NAN_METHOD(ArgumentWrapper::New) {
         || (info.Length() > 1 && !info[1]->IsString())
         || (info.Length() > 2 && !FunctionWrapper::isInstance(info[2]))
         || (info.Length() == 4 && !info[3]->IsUint32())
-        || info.Length() > 3) {
+        || info.Length() > 4) {
         return Nan::ThrowTypeError("Argument constructor requires: type: Type, name: string?, function: Function?, argNo: uint32");
     }
 
@@ -49,14 +50,14 @@ NAN_METHOD(ArgumentWrapper::New) {
     uint32_t argNo = 0;
 
     if (info.Length() > 1) {
-        name = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
+        name = ToString(info[1]);
     }
 
     if (info.Length() > 2) {
         function = FunctionWrapper::FromValue(info[2])->getFunction();
     }
 
-    if (info.Length() == 3) {
+    if (info.Length() == 4) {
         argNo = Nan::To<uint32_t>(info[3]).FromJust();
     }
 
