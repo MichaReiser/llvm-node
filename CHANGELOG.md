@@ -6,17 +6,17 @@
 
 ##### Bug Fixes
 
-* **undefined:** Make nan a normal dependency (3c2d4742)
+* **dependencies:** Make nan a normal dependency (3c2d4742)
 
 ### 0.1.0 (2017-3-16)
 
 ##### Documentation Changes
 
-* **README:** Add batch displaying build status (2acd119b)
+* **readme:** Add batch displaying build status (2acd119b)
 
 ##### Other Changes
 
-* **Dependencies:**
+* **dependencies:**
   * Use npm install (50357386)
   * Update Dependencies (00587638)
 
