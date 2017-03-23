@@ -37,6 +37,7 @@ private:
     static NAN_SETTER(setDataLayout);
     static NAN_GETTER(getModuleIdentifier);
     static NAN_SETTER(setModuleIdentifier);
+    static NAN_METHOD(getOrInsertFunction);
     static NAN_SETTER(setSourceFileName);
     static NAN_GETTER(getSourceFileName);
     static NAN_GETTER(getTargetTriple);

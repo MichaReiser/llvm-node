@@ -91,6 +91,25 @@ describe("ir/module", () => {
         })
     });
 
+    describe("getOrInsertFunction", () => {
+        test("returns a new function if not yet existing in the module", () => {
+            const mod = new llvm.Module("test", context);
+
+            const fun = mod.getOrInsertFunction("fib", llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [llvm.Type.getDoubleTy(context)], false));
+
+            expect(fun).toBeDefined();
+            expect(mod.getFunction("fib")).toEqual(fun);
+        });
+
+        test("returns the existing function if a function with the given name already exist", () => {
+            const mod = new llvm.Module("test", context);
+
+            const fun = llvm.Function.create(llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false), llvm.LinkageTypes.ExternalLinkage, "sin", mod);
+            const queriedFn = mod.getOrInsertFunction("sin", llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false));
+            expect(queriedFn).toEqual(fun);
+        });
+    });
+
     describe("print", () => {
         test("returns the llvm assembly code for the module", () => {
             const mod = new llvm.Module("test", context);

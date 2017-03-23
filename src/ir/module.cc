@@ -8,6 +8,7 @@
 #include "./llvm-context.h"
 #include "./data-layout.h"
 #include "function.h"
+#include "function-type.h"
 
 NAN_MODULE_INIT(ModuleWrapper::Init) {
     v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New<v8::FunctionTemplate>(New);
@@ -17,6 +18,7 @@ NAN_MODULE_INIT(ModuleWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "dump", dump);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("empty").ToLocalChecked(), empty);
     Nan::SetPrototypeMethod(functionTemplate, "getFunction", getFunction);
+    Nan::SetPrototypeMethod(functionTemplate, "getOrInsertFunction", getOrInsertFunction);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), getName);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("dataLayout").ToLocalChecked(), getDataLayout, setDataLayout);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("moduleIdentifier").ToLocalChecked(), getModuleIdentifier, setModuleIdentifier);
@@ -71,6 +73,18 @@ NAN_METHOD(ModuleWrapper::getFunction) {
     }
 
     info.GetReturnValue().Set(Nan::Undefined());
+}
+
+NAN_METHOD(ModuleWrapper::getOrInsertFunction) {
+    if (info.Length() != 2 || !info[0]->IsString() || !FunctionTypeWrapper::isInstance(info[1])) {
+        return Nan::ThrowTypeError("getOrInsertFunction needs to be called with: name: string, functionType: FunctionType");
+    }
+
+    auto* module = ModuleWrapper::FromValue(info.Holder())->getModule();
+    std::string name = ToString(info[0]);
+    auto* fnType = FunctionTypeWrapper::FromValue(info[1])->getFunctionType();
+
+    info.GetReturnValue().Set(ConstantWrapper::of(module->getOrInsertFunction(name, fnType)));
 }
 
 NAN_GETTER(ModuleWrapper::getName) {

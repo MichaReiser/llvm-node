@@ -340,6 +340,7 @@ declare namespace llvm {
         dump(): void;
         print(): string;
         getFunction(name: string): Function;
+        getOrInsertFunction(name: string, functionType: FunctionType): Constant;
     }
 
     // support
