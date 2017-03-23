@@ -1,3 +1,9 @@
+#### 0.1.6 (2017-3-23)
+
+##### New Features
+
+* **module:** getOrInsertFunction (c1dece4a)
+
 #### 0.1.5 (2017-3-21)
 
 #### 0.1.3 (2017-3-21)
