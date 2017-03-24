@@ -386,13 +386,13 @@ NAN_METHOD(IRBuilderWrapper::CreateStore) {
 }
 
 NAN_METHOD(IRBuilderWrapper::CreateCall) {
-    if (info.Length() < 2 || !FunctionWrapper::isInstance(info[0]) || !info[1]->IsArray()
+    if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !info[1]->IsArray()
             || (info.Length() > 3 && !info[2]->IsString())
             || info.Length() > 3){
-        return Nan::ThrowTypeError("createCall needs to be called with: callee: Function, args: Value[], name: string?");
+        return Nan::ThrowTypeError("createCall needs to be called with: callee: Value, args: Value[], name: string?");
     }
 
-    auto* callee = FunctionWrapper::FromValue(info[0])->getFunction();
+    auto* callee = ValueWrapper::FromValue(info[0])->getValue();
     auto* argsArray = v8::Array::Cast(*info[1]);
     std::vector<llvm::Value*> args { argsArray->Length() };
     std::string name {};

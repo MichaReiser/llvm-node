@@ -287,7 +287,7 @@ declare namespace llvm {
         createAlignedLoad(ptr: Value, align: number, name?: string): Value;
         createAlignedStore(value: Value, ptr: Value, align: number, isVolatile?: boolean);
         createBr(basicBlock: BasicBlock): Value;
-        createCall(callee: Function, args: Value[], name?: string): CallInst;
+        createCall(callee: Value, args: Value[], name?: string): CallInst;
         createCondBr(condition: Value, then: BasicBlock, elseBlock: BasicBlock): Value;
         createFAdd(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpOGT(lhs: Value, rhs: Value, name?: string): Value;
