@@ -22,6 +22,11 @@
 #include "calling-conv.h"
 #include "call-inst.h"
 #include "struct-type.h"
+#include "constant-data-array.h"
+#include "constant-fp.h"
+#include "constant-int.h"
+#include "constant-pointer-null.h"
+#include "global-variable.h"
 
 NAN_MODULE_INIT(InitIR) {
     AllocaInstWrapper::Init(target);
@@ -38,6 +43,7 @@ NAN_MODULE_INIT(InitIR) {
     DataLayoutWrapper::Init(target);
     FunctionWrapper::Init(target);
     FunctionTypeWrapper::Init(target);
+    GlobalVariableWrapper::Init(target);
     IRBuilderWrapper::Init(target);
     InitLinkageTypes(target);
     ModuleWrapper::Init(target);

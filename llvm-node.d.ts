@@ -123,12 +123,6 @@ declare namespace llvm {
         private constructor();
     }
 
-    class PhiNode extends Value {
-        private constructor();
-
-        addIncoming(value: Value, basicBlock: BasicBlock): void;
-    }
-
     class Function extends Constant {
         static create(functionType: FunctionType, linkageTypes: LinkageTypes, name?: string, module?: Module): Function;
 
@@ -141,6 +135,20 @@ declare namespace llvm {
         getEntryBlock(): BasicBlock;
         viewCFG(): void;
     }
+
+    class GlobalVariable extends Constant {
+        constant: boolean;
+        initializer: Constant | undefined;
+
+        constructor(module: Module, type: Type, constant: boolean, linkageType: LinkageTypes, initializer?: Constant, name?: string);
+    }
+
+    class PhiNode extends Value {
+        private constructor();
+
+        addIncoming(value: Value, basicBlock: BasicBlock): void;
+    }
+
 
     class CallInst extends Value {
         callingConv: CallingConv;

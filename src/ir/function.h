@@ -7,7 +7,7 @@
 
 #include <nan.h>
 #include <llvm/IR/Function.h>
-#include "constants.h"
+#include "constant.h"
 #include "../util/from-value-mixin.h"
 
 class FunctionWrapper: public ConstantWrapper, public FromValueMixin<FunctionWrapper> {
