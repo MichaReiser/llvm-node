@@ -1,3 +1,9 @@
+#### 0.1.7 (2017-3-24)
+
+##### New Features
+
+* **irbuilder:** createCall (7b402cfa)
+
 #### 0.1.6 (2017-3-23)
 
 ##### New Features
