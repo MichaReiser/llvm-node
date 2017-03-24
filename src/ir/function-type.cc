@@ -6,16 +6,8 @@
 #include "../util/string.h"
 
 NAN_MODULE_INIT(FunctionTypeWrapper::Init) {
-    auto functionTypeObject = Nan::New<v8::Object>();
-    auto typeObj = Nan::New<v8::Object>(getObjectWithStaticMethods());
-
-    Nan::SetPrototype(functionTypeObject, typeObj);
-
-    Nan::SetMethod(functionTypeObject, "get", FunctionTypeWrapper::get);
-    Nan::SetMethod(functionTypeObject, "isValidReturnType", FunctionTypeWrapper::isValidReturnType);
-    Nan::SetMethod(functionTypeObject, "isValidArgumentType", FunctionTypeWrapper::isValidArgumentType);
-
-    Nan::Set(target, Nan::New("FunctionType").ToLocalChecked(), functionTypeObject);
+    auto functionType = Nan::GetFunction(Nan::New(functionTypeTemplate())).ToLocalChecked();
+    Nan::Set(target, Nan::New("FunctionType").ToLocalChecked(), functionType);
 }
 
 NAN_METHOD(FunctionTypeWrapper::New) {
@@ -165,6 +157,10 @@ Nan::Persistent<v8::FunctionTemplate>& FunctionTypeWrapper::functionTypeTemplate
         v8::Local<v8::FunctionTemplate> localTemplate = Nan::New<v8::FunctionTemplate>(FunctionTypeWrapper::New);
         localTemplate->SetClassName(Nan::New("FunctionType").ToLocalChecked());
         localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+
+        Nan::SetMethod(localTemplate, "get", FunctionTypeWrapper::get);
+        Nan::SetMethod(localTemplate, "isValidReturnType", FunctionTypeWrapper::isValidReturnType);
+        Nan::SetMethod(localTemplate, "isValidArgumentType", FunctionTypeWrapper::isValidArgumentType);
 
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("returnType").ToLocalChecked(), FunctionTypeWrapper::getReturnType);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("isVarArg").ToLocalChecked(), FunctionTypeWrapper::isVarArg);

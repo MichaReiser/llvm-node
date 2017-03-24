@@ -26,7 +26,6 @@ protected:
         assert(type && "No type pointer passed");
     }
 
-    static Nan::Persistent<v8::Object>& getObjectWithStaticMethods();
     static Nan::Persistent<v8::FunctionTemplate>& typeTemplate();
 
     // Static Methods

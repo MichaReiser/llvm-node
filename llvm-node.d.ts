@@ -52,6 +52,7 @@ declare namespace llvm {
 
         replaceAllUsesWith(value: Value): void;
         useEmpty(): boolean;
+
     }
 
     class Argument extends Value {
@@ -61,13 +62,15 @@ declare namespace llvm {
         constructor(type: Type, name?: string, fn?: Function, argNo?: number);
     }
 
-    interface AllocaInst extends Value {
+    class AllocaInst extends Value {
         allocatedType: Type;
+
+        private constructor();
     }
 
     class BasicBlock extends Value {
         static create(context: LLVMContext, name?: string, parent?: Function, insertBefore?: BasicBlock): BasicBlock;
-        protected constructor();
+        private constructor();
 
         parent?: Function;
         empty: boolean;
@@ -116,9 +119,13 @@ declare namespace llvm {
     class ConstantDataArray extends Constant {
         static get(llvmContext: LLVMContext, values: number[]);
         static getString(llvmContext: LLVMContext, value: string);
+
+        private constructor();
     }
 
-    interface PhiNode extends Value {
+    class PhiNode extends Value {
+        private constructor();
+
         addIncoming(value: Value, basicBlock: BasicBlock): void;
     }
 
@@ -178,7 +185,7 @@ declare namespace llvm {
         MaxID,
     }
 
-    interface DataLayout {
+    class DataLayout {
         constructor(layout: string);
         getStringRepresentation(): string;
         getPointerSize(as: number): number;

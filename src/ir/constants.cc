@@ -11,12 +11,8 @@
 #include "../util/string.h"
 
 NAN_MODULE_INIT(ConstantWrapper::Init) {
-    v8::Local<v8::Object> object = Nan::New<v8::Object>();
-
-    Nan::SetMethod(object, "getNullValue", ConstantWrapper::getNullValue);
-    Nan::SetMethod(object, "getAllOnesValue", ConstantWrapper::getAllOnesValue);
-
-    Nan::Set(target, Nan::New("Constant").ToLocalChecked(), object);
+    auto constant = Nan::GetFunction(Nan::New(constantTemplate())).ToLocalChecked();
+    Nan::Set(target, Nan::New("Constant").ToLocalChecked(), constant);
 }
 
 v8::Local<v8::Object> ConstantWrapper::of(llvm::Constant *constant) {
@@ -102,9 +98,10 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantWrapper::constantTemplate() {
         v8::Local<v8::FunctionTemplate> localTemplate = Nan::New<v8::FunctionTemplate>(ConstantWrapper::New);
         localTemplate->SetClassName(Nan::New("Constant").ToLocalChecked());
         localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-
         localTemplate->Inherit(Nan::New(ValueWrapper::valueTemplate()));
 
+        Nan::SetMethod(localTemplate, "getNullValue", ConstantWrapper::getNullValue);
+        Nan::SetMethod(localTemplate, "getAllOnesValue", ConstantWrapper::getAllOnesValue);
         Nan::SetPrototypeMethod(localTemplate, "isNullValue", ConstantWrapper::isNullValue);
         Nan::SetPrototypeMethod(localTemplate, "isOneValue", ConstantWrapper::isOneValue);
         Nan::SetPrototypeMethod(localTemplate, "isAllOnesValue", ConstantWrapper::isAllOnesValue);

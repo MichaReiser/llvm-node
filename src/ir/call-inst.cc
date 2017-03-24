@@ -5,9 +5,9 @@
 #include "call-inst.h"
 
 NAN_MODULE_INIT(CallInstWrapper::Init) {
-    auto object = Nan::New<v8::Object>();
+    auto callInstruction = Nan::GetFunction(Nan::New(callInstTemplate())).ToLocalChecked();
 
-    Nan::Set(target, Nan::New("CallInst").ToLocalChecked(), object);
+    Nan::Set(target, Nan::New("CallInst").ToLocalChecked(), callInstruction);
 }
 
 v8::Local<v8::Object> CallInstWrapper::of(llvm::CallInst* inst) {
