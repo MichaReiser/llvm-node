@@ -9,11 +9,8 @@
 #include "../util/string.h"
 
 NAN_MODULE_INIT(BasicBlockWrapper::Init) {
-    auto object = Nan::New<v8::Object>();
-
-    Nan::SetMethod(object, "create", BasicBlockWrapper::Create);
-
-    Nan::Set(target, Nan::New("BasicBlock").ToLocalChecked(), object);
+    auto basicBlock = Nan::GetFunction(Nan::New(basicBlockTemplate())).ToLocalChecked();
+    Nan::Set(target, Nan::New("BasicBlock").ToLocalChecked(), basicBlock);
 }
 
 v8::Local<v8::Object> BasicBlockWrapper::of(llvm::BasicBlock *basicBlock) {
@@ -111,6 +108,7 @@ Nan::Persistent<v8::FunctionTemplate>& BasicBlockWrapper::basicBlockTemplate() {
         localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
         localTemplate->Inherit(Nan::New(ValueWrapper::valueTemplate()));
 
+        Nan::SetMethod(localTemplate, "create", BasicBlockWrapper::Create);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("empty").ToLocalChecked(), BasicBlockWrapper::empty);
         Nan::SetPrototypeMethod(localTemplate, "eraseFromParent", BasicBlockWrapper::eraseFromParent);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("parent").ToLocalChecked(), BasicBlockWrapper::getParent);

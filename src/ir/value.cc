@@ -14,12 +14,8 @@
 #include "call-inst.h"
 
 NAN_MODULE_INIT(ValueWrapper::Init) {
-    auto object = Nan::New<v8::Object>();
-
-    Nan::Set(object, Nan::New("MaxAlignmentExponent").ToLocalChecked(), Nan::New(llvm::Value::MaxAlignmentExponent));
-    Nan::Set(object, Nan::New("MaximumAlignment").ToLocalChecked(), Nan::New(llvm::Value::MaximumAlignment));
-
-    Nan::Set(target, Nan::New("Value").ToLocalChecked(), object);
+    auto value = Nan::GetFunction(Nan::New(valueTemplate())).ToLocalChecked();
+    Nan::Set(target, Nan::New("Value").ToLocalChecked(), value);
 }
 
 Nan::Persistent<v8::FunctionTemplate>& ValueWrapper::valueTemplate() {
@@ -38,6 +34,10 @@ Nan::Persistent<v8::FunctionTemplate>& ValueWrapper::valueTemplate() {
         Nan::SetPrototypeMethod(localTemplate, "release", BasicBlockWrapper::release);
         Nan::SetPrototypeMethod(localTemplate, "replaceAllUsesWith", BasicBlockWrapper::replaceAllUsesWith);
         Nan::SetPrototypeMethod(localTemplate, "useEmpty", BasicBlockWrapper::useEmpty);
+
+        auto function = Nan::GetFunction(localTemplate).ToLocalChecked();
+        Nan::Set(function, Nan::New("MaxAlignmentExponent").ToLocalChecked(), Nan::New(llvm::Value::MaxAlignmentExponent));
+        Nan::Set(function, Nan::New("MaximumAlignment").ToLocalChecked(), Nan::New(llvm::Value::MaximumAlignment));
 
         functionTemplate.Reset(localTemplate);
     }

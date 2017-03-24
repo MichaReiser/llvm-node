@@ -5,10 +5,7 @@
 #include "pointer-type.h"
 
 NAN_MODULE_INIT(PointerTypeWrapper::Init) {
-    auto pointerType = Nan::New<v8::Object>(getObjectWithStaticMethods());
-
-    Nan::SetMethod(pointerType, "get", PointerTypeWrapper::get);
-
+    auto pointerType = Nan::GetFunction(Nan::New(pointerTypeTemplate())).ToLocalChecked();
     Nan::Set(target, Nan::New("PointerType").ToLocalChecked(), pointerType);
 }
 
@@ -58,6 +55,7 @@ Nan::Persistent<v8::FunctionTemplate>& PointerTypeWrapper::pointerTypeTemplate()
     if (persistentTemplate.IsEmpty()) {
         v8::Local<v8::FunctionTemplate> pointerTypeTemplate = Nan::New<v8::FunctionTemplate>(PointerTypeWrapper::New);
 
+        Nan::SetMethod(pointerTypeTemplate, "get", PointerTypeWrapper::get);
         pointerTypeTemplate->SetClassName(Nan::New("PointerType").ToLocalChecked());
         pointerTypeTemplate->InstanceTemplate()->SetInternalFieldCount(1);
         pointerTypeTemplate->Inherit(Nan::New(typeTemplate()));

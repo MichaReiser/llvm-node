@@ -5,10 +5,7 @@
 #include "array-type.h"
 
 NAN_MODULE_INIT(ArrayTypeWrapper::Init) {
-    auto arrayType = Nan::New<v8::Object>();
-
-    Nan::SetMethod(arrayType, "get", ArrayTypeWrapper::get);
-
+    auto arrayType = Nan::GetFunction(Nan::New(arrayTypeTemplate())).ToLocalChecked();
     Nan::Set(target, Nan::New("ArrayType").ToLocalChecked(), arrayType);
 }
 
@@ -75,6 +72,7 @@ v8::Persistent<v8::FunctionTemplate>& ArrayTypeWrapper::arrayTypeTemplate() {
         arrayTypeWrapperTemplate->InstanceTemplate()->SetInternalFieldCount(1);
         arrayTypeWrapperTemplate->Inherit(Nan::New(typeTemplate()));
 
+        Nan::SetMethod(arrayTypeWrapperTemplate, "get", ArrayTypeWrapper::get);
         Nan::SetAccessor(arrayTypeWrapperTemplate->InstanceTemplate(), Nan::New("numElements").ToLocalChecked(), ArrayTypeWrapper::getNumElements);
 
         tmpl.Reset(arrayTypeWrapperTemplate);

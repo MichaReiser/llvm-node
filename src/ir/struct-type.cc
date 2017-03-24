@@ -6,11 +6,8 @@
 #include "../util/string.h"
 
 NAN_MODULE_INIT(StructTypeWrapper::Init) {
-    auto object = Nan::New<v8::Object>();
-
-    Nan::SetMethod(object, "get", StructTypeWrapper::get);
-
-    Nan::Set(target, Nan::New("StructType").ToLocalChecked(), object);
+    auto structType = Nan::GetFunction(Nan::New(structTypeTemplate())).ToLocalChecked();
+    Nan::Set(target, Nan::New("StructType").ToLocalChecked(), structType);
 }
 
 v8::Local<v8::Object> StructTypeWrapper::of(llvm::StructType *type) {
@@ -121,6 +118,7 @@ Nan::Persistent<v8::FunctionTemplate>& StructTypeWrapper::structTypeTemplate() {
         localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
         localTemplate->Inherit(Nan::New(typeTemplate()));
 
+        Nan::SetMethod(localTemplate, "get", StructTypeWrapper::get);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), StructTypeWrapper::getName, StructTypeWrapper::setName);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("numElements").ToLocalChecked(), StructTypeWrapper::getNumElements);
         Nan::SetPrototypeMethod(localTemplate, "getElementType", StructTypeWrapper::getElementType);
