@@ -1,3 +1,13 @@
+#### 0.1.8 (2017-3-25)
+
+##### New Features
+
+* **GlobalVariable:** Implement Binding for GlobalVariable (40775bf5)
+
+##### Other Changes
+
+* **all:** Expose objects as Classes (af08b311)
+
 #### 0.1.7 (2017-3-24)
 
 ##### New Features
