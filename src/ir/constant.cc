@@ -14,6 +14,7 @@
 #include "constant-data-array.h"
 #include "constant-pointer-null.h"
 #include "global-variable.h"
+#include "constant-struct.h"
 
 NAN_MODULE_INIT(ConstantWrapper::Init) {
     auto constant = Nan::GetFunction(Nan::New(constantTemplate())).ToLocalChecked();
@@ -35,6 +36,8 @@ v8::Local<v8::Object> ConstantWrapper::of(llvm::Constant *constant) {
         result = ConstantDataArrayWrapper::of(static_cast<llvm::ConstantDataArray*>(constant));
     } else if (llvm::GlobalVariable::classof(constant)) {
         result = GlobalVariableWrapper::of(static_cast<llvm::GlobalVariable*>(constant));
+    } else if (llvm::ConstantStruct::classof(constant)) {
+        result = ConstantStructWrapper::of(static_cast<llvm::ConstantStruct*>(constant));
     } else {
         auto constructorFunction = Nan::GetFunction(Nan::New(constantTemplate())).ToLocalChecked();
         v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(constant) };

@@ -28,12 +28,14 @@
 #include "constant-pointer-null.h"
 #include "global-variable.h"
 #include "unnamed-addr.h"
+#include "constant-struct.h"
 
 NAN_MODULE_INIT(InitIR) {
     AllocaInstWrapper::Init(target);
     ArgumentWrapper::Init(target);
     ArrayTypeWrapper::Init(target);
     BasicBlockWrapper::Init(target);
+    ConstantStructWrapper::Init(target);
     InitCallingConv(target);
     InitUnnamedAddr(target);
     CallInstWrapper::Init(target);

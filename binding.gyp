@@ -23,6 +23,7 @@
                 "src/ir/constant-fp.cc",
                 "src/ir/constant-int.cc",
                 "src/ir/constant-pointer-null.cc",
+                "src/ir/constant-struct.cc",
                 "src/ir/data-layout.cc",
                 "src/ir/function.cc",
                 "src/ir/function-type.cc",

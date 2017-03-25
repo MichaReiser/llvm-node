@@ -123,6 +123,11 @@ declare namespace llvm {
         private constructor();
     }
 
+    class ConstantStruct extends Constant {
+        static get(structType: StructType, values: Constant[]);
+        private constructor();
+    }
+
     class Function extends Constant {
         static create(functionType: FunctionType, linkageTypes: LinkageTypes, name?: string, module?: Module): Function;
 
