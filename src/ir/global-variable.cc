@@ -9,7 +9,6 @@
 
 NAN_MODULE_INIT(GlobalVariableWrapper::Init) {
     auto globalVariable = Nan::GetFunction(Nan::New(globalVariableTemplate())).ToLocalChecked();
-
     Nan::Set(target, Nan::New("GlobalVariable").ToLocalChecked(), globalVariable);
 }
 
@@ -34,7 +33,7 @@ NAN_METHOD(GlobalVariableWrapper::New) {
     if (info.Length() == 1 && info[0]->IsExternal()) {
         NewFromExternal(info);
     } else if (info.Length() >= 4 && ModuleWrapper::isInstance(info[0]) && TypeWrapper::isInstance(info[1]) && info[2]->IsBoolean() && info[3]->IsUint32()
-               && (info.Length() < 5 || ConstantWrapper::isInstance(info[4]))
+               && (info.Length() < 5 || ConstantWrapper::isInstance(info[4]) || info[4]->IsUndefined())
                && (info.Length() < 6 || info[5]->IsString())) {
         NewFromArguments(info);
     } else {
@@ -58,7 +57,7 @@ NAN_METHOD(GlobalVariableWrapper::NewFromArguments) {
     llvm::Constant* initializer = nullptr;
     std::string name {};
 
-    if (info.Length() > 4) {
+    if (info.Length() > 4 && !info[4]->IsUndefined()) {
         initializer = ConstantWrapper::FromValue(info[4])->getConstant();
     }
 
@@ -73,13 +72,28 @@ NAN_METHOD(GlobalVariableWrapper::NewFromArguments) {
     info.GetReturnValue().Set(info.This());
 }
 
+NAN_METHOD(GlobalVariableWrapper::hasGlobalUnnamedAddr) {
+    auto* globalVariable = GlobalVariableWrapper::FromValue(info.Holder())->getGlobalVariable();
+    info.GetReturnValue().Set(Nan::New(globalVariable->hasGlobalUnnamedAddr()));
+}
+
+NAN_METHOD(GlobalVariableWrapper::setUnnamedAddr) {
+    if (!info[0]->IsUint32()) {
+        return Nan::ThrowTypeError("setUnnamedAddr needs to be called with: addr: GlobalValue.UnnamedAddr");
+    }
+
+    auto* globalVariable = GlobalVariableWrapper::FromValue(info.Holder())->getGlobalVariable();
+    auto value = Nan::To<uint32_t>(info[0]).FromJust();
+    globalVariable->setUnnamedAddr(static_cast<llvm::GlobalValue::UnnamedAddr>(value));
+}
+
 NAN_GETTER(GlobalVariableWrapper::getConstant) {
     auto* globalVariable = GlobalVariableWrapper::FromValue(info.Holder())->getGlobalVariable();
     info.GetReturnValue().Set(Nan::New(globalVariable->isConstant()));
 }
 
 NAN_SETTER(GlobalVariableWrapper::setConstant) {
-    if (value->IsBoolean()) {
+    if (!value->IsBoolean()) {
         return Nan::ThrowTypeError("GlobalVariable.constant is of type boolean");
     }
 
@@ -124,6 +138,9 @@ Nan::Persistent<v8::FunctionTemplate>& GlobalVariableWrapper::globalVariableTemp
 
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("constant").ToLocalChecked(), GlobalVariableWrapper::getConstant, GlobalVariableWrapper::setConstant);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("initializer").ToLocalChecked(), GlobalVariableWrapper::getInitializer, GlobalVariableWrapper::setInitializer);
+
+        Nan::SetPrototypeMethod(localTemplate, "hasGlobalUnnamedAddr", GlobalVariableWrapper::hasGlobalUnnamedAddr);
+        Nan::SetPrototypeMethod(localTemplate, "setUnnamedAddr", GlobalVariableWrapper::setUnnamedAddr);
 
         functionTemplate.Reset(localTemplate);
     }

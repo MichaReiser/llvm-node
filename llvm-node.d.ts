@@ -140,7 +140,16 @@ declare namespace llvm {
         constant: boolean;
         initializer: Constant | undefined;
 
+        setUnnamedAddr(unnamedAddr: UnnamedAddr): void;
+        hasGlobalUnnamedAddr(): boolean;
+
         constructor(module: Module, type: Type, constant: boolean, linkageType: LinkageTypes, initializer?: Constant, name?: string);
+    }
+
+    enum UnnamedAddr {
+        None,
+        Local,
+        Global
     }
 
     class PhiNode extends Value {

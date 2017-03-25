@@ -35,6 +35,7 @@
                 "src/ir/pointer-type.cc",
                 "src/ir/struct-type.cc",
                 "src/ir/type.cc",
+                "src/ir/unnamed-addr.cc",
                 "src/ir/value.cc",
                 "src/ir/verifier.cc",
                 "src/support/support.cc",

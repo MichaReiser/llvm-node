@@ -25,6 +25,10 @@ private:
     static NAN_METHOD(New);
     static NAN_METHOD(NewFromExternal);
     static NAN_METHOD(NewFromArguments);
+
+    static NAN_METHOD(hasGlobalUnnamedAddr);
+    static NAN_METHOD(setUnnamedAddr);
+
     static NAN_GETTER(getConstant);
     static NAN_SETTER(setConstant);
 
