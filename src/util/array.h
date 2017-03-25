@@ -9,12 +9,12 @@
 #include<nan.h>
 
 template <typename T>
-std::vector<T> toVector(v8::Array* value) {
+std::vector<T> toVector(v8::Local<v8::Array> value) {
     std::vector<T> result (value->Length());
 
-    for (size_t i = 0; i < value->Length(); ++i) {
-        auto nativeValue = Nan::To<T>(value->Get(i)).FromJust();
-        result[i] = nativeValue;
+    for (uint32_t i = 0; i < value->Length(); ++i) {
+        auto nativeValue = Nan::Get(value, i).ToLocalChecked();
+        result[i] = Nan::To<T>(nativeValue).FromJust();
     }
 
     return result;
@@ -24,7 +24,7 @@ template <typename T>
 std::vector<T> toVector(v8::Local<v8::Value> value) {
     assert(value->IsArray() && "Value needs to be an array");
 
-    return toVector<T>(v8::Array::Cast(*value));
+    return toVector<T>(value.As<v8::Array>());
 }
 
 #endif //LLVM_NODE_ARRAY_H

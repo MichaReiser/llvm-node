@@ -123,10 +123,9 @@ declare namespace llvm {
         private constructor();
     }
 
-    class PhiNode extends Value {
+    class ConstantStruct extends Constant {
+        static get(structType: StructType, values: Constant[]);
         private constructor();
-
-        addIncoming(value: Value, basicBlock: BasicBlock): void;
     }
 
     class Function extends Constant {
@@ -141,6 +140,29 @@ declare namespace llvm {
         getEntryBlock(): BasicBlock;
         viewCFG(): void;
     }
+
+    class GlobalVariable extends Constant {
+        constant: boolean;
+        initializer: Constant | undefined;
+
+        setUnnamedAddr(unnamedAddr: UnnamedAddr): void;
+        hasGlobalUnnamedAddr(): boolean;
+
+        constructor(module: Module, type: Type, constant: boolean, linkageType: LinkageTypes, initializer?: Constant, name?: string);
+    }
+
+    enum UnnamedAddr {
+        None,
+        Local,
+        Global
+    }
+
+    class PhiNode extends Value {
+        private constructor();
+
+        addIncoming(value: Value, basicBlock: BasicBlock): void;
+    }
+
 
     class CallInst extends Value {
         callingConv: CallingConv;
@@ -320,6 +342,8 @@ declare namespace llvm {
         createLoad(ptr: Value, name?: string): Value;
         createMul(lhs: Value, rhs: Value, name?: string): Value;
         createNeg(value: Value, name?: string, hasNUW?: boolean, hasNSW?: boolean): Value;
+        createOr(lhs: Value, rhs: Value, name?: string): Value;
+        createXor(lhs: Value, rhs: Value, name?: string): Value;
         createPhi(type: Type, numReservedValues: number, name?: string): PhiNode;
         createRet(value: Value): Value;
         createRetVoid(): Value;

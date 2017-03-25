@@ -7,7 +7,7 @@
 #include "../util/string.h"
 #include "value.h"
 #include "basic-block.h"
-#include "constants.h"
+#include "constant.h"
 #include "type.h"
 #include "phi-node.h"
 #include "alloca-inst.h"
