@@ -319,14 +319,18 @@ declare namespace llvm {
         createCall(callee: Value, args: Value[], name?: string): CallInst;
         createCondBr(condition: Value, then: BasicBlock, elseBlock: BasicBlock): Value;
         createFAdd(lhs: Value, rhs: Value, name?: string): Value;
+        createFCmpOGE(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpOGT(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpOLE(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpOLT(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpOEQ(lhs: Value, rhs: Value, name?: string): Value;
+        createFCmpONE(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpULE(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpULT(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpUEQ(lhs: Value, rhs: Value, name?: string): Value;
         createFDiv(lhs: Value, rhs: Value, name?: string): Value;
+        createFNeg(value: Value, name?: string): Value;
+        createFMul(lhs: Value, rhs: Value, name?: string): Value;
         createFRem(lhs: Value, rhs: Value, name?: string): Value;
         createFSub(lhs: Value, rhs: Value, name?: string): Value;
         createFPToSI(value: Value, type: Type, name?: string): Value;
@@ -336,6 +340,8 @@ declare namespace llvm {
         createInBoundsGEP(type: Type, ptr: Value, idxList: Value[], name?: string): Value;
         createIntCast(vlaue: Value, type: Type, isSigned: boolean, name?: string): Value;
         createICmpEQ(lhs: Value, rhs: Value, name?: string): Value;
+        createICmpNE(lhs: Value, rhs: Value, name?: string): Value;
+        createICmpSGE(lhs: Value, rhs: Value, name?: string): Value;
         createICmpSGT(lhs: Value, rhs: Value, name?: string): Value;
         createICmpSLE(lhs: Value, rhs: Value, name?: string): Value;
         createICmpSLT(lhs: Value, rhs: Value, name?: string): Value;
