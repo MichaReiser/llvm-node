@@ -77,24 +77,30 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createCondBr", IRBuilderWrapper::CreateCondBr);
     Nan::SetPrototypeMethod(functionTemplate, "createFAdd", &NANBinaryOperation<ToBinaryOp<&llvm::IRBuilder<>::CreateFAdd>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpOGT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpOGT>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpOGE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpOGE>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpOLE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpOLE>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpOLT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpOLT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpOEQ", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpOEQ>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpONE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpONE>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpULE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpULE>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpULT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpULT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpUEQ", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpUEQ>>);
-    Nan::SetPrototypeMethod(functionTemplate, "createFPToSI", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateFPToSI>);
     Nan::SetPrototypeMethod(functionTemplate, "createFDiv", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFDiv>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFMul", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFMul>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFNeg", IRBuilderWrapper::CreateFNeg);
+    Nan::SetPrototypeMethod(functionTemplate, "createFPToSI", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateFPToSI>);
     Nan::SetPrototypeMethod(functionTemplate, "createFRem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFRem>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFSub", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFSub>>);
     Nan::SetPrototypeMethod(functionTemplate, "createGlobalString", IRBuilderWrapper::CreateGlobalString);
     Nan::SetPrototypeMethod(functionTemplate, "createGlobalStringPtr", IRBuilderWrapper::CreateGlobalStringPtr);
     Nan::SetPrototypeMethod(functionTemplate, "createInBoundsGEP", IRBuilderWrapper::CreateInBoundsGEP);
     Nan::SetPrototypeMethod(functionTemplate, "createIntCast", IRBuilderWrapper::CreateIntCast);
+    Nan::SetPrototypeMethod(functionTemplate, "createICmpEQ", &NANBinaryOperation<ToBinaryOp<&llvm::IRBuilder<>::CreateICmpEQ>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createICmpNE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpNE>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createICmpSGE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSGE>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSGT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSGT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSLT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSLT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSLE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSLE>>);
-    Nan::SetPrototypeMethod(functionTemplate, "createICmpEQ", &NANBinaryOperation<ToBinaryOp<&llvm::IRBuilder<>::CreateICmpEQ>>);
     Nan::SetPrototypeMethod(functionTemplate, "createLoad", IRBuilderWrapper::CreateLoad);
     Nan::SetPrototypeMethod(functionTemplate, "createMul", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateMul>>);
     Nan::SetPrototypeMethod(functionTemplate, "createNeg", IRBuilderWrapper::CreateNeg);
@@ -539,6 +545,23 @@ NAN_METHOD(IRBuilderWrapper::CreateCondBr) {
 
     auto* branchInst = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateCondBr(value, thenBlock, elseBlock);
     info.GetReturnValue().Set(ValueWrapper::of(branchInst));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateFNeg) {
+    if (info.Length() < 1 || !ValueWrapper::isInstance(info[0]) ||
+            (info.Length() == 2 && !info[1]->IsString())) {
+        return Nan::ThrowTypeError("createFNeg needs to be called with: value: Value, name?: string");
+    }
+
+    auto* value = ValueWrapper::FromValue(info[0])->getValue();
+    std::string name {};
+
+    if (info.Length() == 2) {
+        name = ToString(info[1]);
+    }
+
+    auto* neg = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateFNeg(value, name);
+    info.GetReturnValue().Set(ValueWrapper::of(neg));
 }
 
 llvm::IRBuilder<> &IRBuilderWrapper::getIRBuilder() {

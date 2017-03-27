@@ -37,6 +37,7 @@ private:
     static NAN_METHOD(CreateBr);
     static NAN_METHOD(CreateCall);
     static NAN_METHOD(CreateCondBr);
+    static NAN_METHOD(CreateFNeg);
     static NAN_METHOD(CreateGlobalStringPtr);
     static NAN_METHOD(CreateGlobalString);
     static NAN_METHOD(CreateInBoundsGEP);
