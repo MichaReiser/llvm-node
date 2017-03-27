@@ -1,3 +1,9 @@
+#### 0.1.9 (2017-3-27)
+
+##### New Features
+
+* **IRBuilder:** FCompOGE, FMul, FNeg, FPToSi, ICmpEQ, ICmpNE, ICmpSGE (eeb5b3dd)
+
 #### 0.1.8 (2017-3-25)
 
 ##### New Features
