@@ -117,14 +117,14 @@ declare namespace llvm {
     }
 
     class ConstantDataArray extends Constant {
-        static get(llvmContext: LLVMContext, values: number[]);
-        static getString(llvmContext: LLVMContext, value: string);
+        static get(llvmContext: LLVMContext, values: number[]): Constant;
+        static getString(llvmContext: LLVMContext, value: string): Constant;
 
         private constructor();
     }
 
     class ConstantStruct extends Constant {
-        static get(structType: StructType, values: Constant[]);
+        static get(structType: StructType, values: Constant[]): Constant;
         private constructor();
     }
 
@@ -134,8 +134,8 @@ declare namespace llvm {
         callingConv: CallingConv;
 
         private constructor();
-        addBasicBlock(basicBlock: BasicBlock);
-        addFnAttr(attribute: string, value?: string);
+        addBasicBlock(basicBlock: BasicBlock): void;
+        addFnAttr(attribute: string, value?: string): void;
         getArguments(): Argument[];
         getEntryBlock(): BasicBlock;
         viewCFG(): void;
@@ -296,7 +296,7 @@ declare namespace llvm {
     }
 
     class StructType extends Type {
-        static get(context: LLVMContext, elements: Type[], isPacked?: boolean);
+        static get(context: LLVMContext, elements: Type[], isPacked?: boolean): StructType;
 
         name: string;
         readonly numElements: number;
@@ -314,7 +314,7 @@ declare namespace llvm {
         createAdd(lhs: Value, rhs: Value, name?: string): Value;
         createAlloca(type: Type, arraySize?: Value, name?: string): AllocaInst;
         createAlignedLoad(ptr: Value, align: number, name?: string): Value;
-        createAlignedStore(value: Value, ptr: Value, align: number, isVolatile?: boolean);
+        createAlignedStore(value: Value, ptr: Value, align: number, isVolatile?: boolean): Value;
         createBr(basicBlock: BasicBlock): Value;
         createCall(callee: Value, args: Value[], name?: string): CallInst;
         createCondBr(condition: Value, then: BasicBlock, elseBlock: BasicBlock): Value;
