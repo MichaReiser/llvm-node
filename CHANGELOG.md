@@ -1,3 +1,13 @@
+#### 0.1.10 (2017-3-30)
+
+##### New Features
+
+* **IRBuilder:** Expose createNot and createZExt (ac4056f6)
+
+##### Other Changes
+
+* **typings.d.ts:** Fix missing return values (eae7585d)
+
 #### 0.1.9 (2017-3-27)
 
 ##### New Features
