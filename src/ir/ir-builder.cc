@@ -104,6 +104,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createLoad", IRBuilderWrapper::CreateLoad);
     Nan::SetPrototypeMethod(functionTemplate, "createMul", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateMul>>);
     Nan::SetPrototypeMethod(functionTemplate, "createNeg", IRBuilderWrapper::CreateNeg);
+    Nan::SetPrototypeMethod(functionTemplate, "createNot", IRBuilderWrapper::CreateNot);
     Nan::SetPrototypeMethod(functionTemplate, "createOr", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateOr>>);
     Nan::SetPrototypeMethod(functionTemplate, "createXor", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateXor>>);
     Nan::SetPrototypeMethod(functionTemplate, "createPhi", IRBuilderWrapper::CreatePHI);
@@ -114,6 +115,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createSRem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSRem>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateSIToFP>);
     Nan::SetPrototypeMethod(functionTemplate, "createStore", IRBuilderWrapper::CreateStore);
+    Nan::SetPrototypeMethod(functionTemplate, "createZExt", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateZExt>);
     Nan::SetPrototypeMethod(functionTemplate, "getInsertBlock", IRBuilderWrapper::GetInsertBlock);
 
     auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
@@ -371,6 +373,25 @@ NAN_METHOD(IRBuilderWrapper::CreateNeg) {
 
     auto& irBuilder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
     auto* inst = irBuilder.CreateNeg(value, name, hasNUW, hasNSW);
+    info.GetReturnValue().Set(ValueWrapper::of(inst));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateNot) {
+    if (info.Length() < 1 || !ValueWrapper::isInstance(info[0])
+        || (info.Length() == 2 && !info[1]->IsString())
+        || info.Length() > 2) {
+        return Nan::ThrowTypeError("createNot needs to be called with: value: Value, name?: string");
+    }
+
+    auto* value = ValueWrapper::FromValue(info[0])->getValue();
+    std::string name {};
+
+    if (info.Length() == 2) {
+        name = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
+    }
+
+    auto& irBuilder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
+    auto* inst = irBuilder.CreateNot(value, name);
     info.GetReturnValue().Set(ValueWrapper::of(inst));
 }
 

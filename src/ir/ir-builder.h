@@ -46,6 +46,7 @@ private:
     static NAN_METHOD(CreateIntCast);
     static NAN_METHOD(CreateLoad);
     static NAN_METHOD(CreateNeg);
+    static NAN_METHOD(CreateNot);
     static NAN_METHOD(CreatePHI);
     static NAN_METHOD(CreateRet);
     static NAN_METHOD(CreateRetVoid);

@@ -27,14 +27,21 @@ NAN_METHOD(ConstantIntWrapper::New) {
 }
 
 NAN_METHOD(ConstantIntWrapper::get) {
-    if (info.Length() != 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsNumber()) {
-        return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number");
+    if (info.Length() < 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsNumber() ||
+            (info.Length() > 2 && !info[2]->IsNumber()) ||
+            info.Length() > 3) {
+        return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number, numBits? = 32");
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
     int64_t number = Nan::To<int64_t >(info[1]).FromJust();
+    uint32_t numBits = 32;
 
-    auto* constant = llvm::ConstantInt::get(context, llvm::APInt { 32, static_cast<uint64_t>(number), true } );
+    if (info.Length() == 3) {
+        numBits = Nan::To<uint32_t>(info[2]).FromJust();
+    }
+
+    auto* constant = llvm::ConstantInt::get(context, llvm::APInt { numBits, static_cast<uint64_t>(number), true } );
 
     info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
 }

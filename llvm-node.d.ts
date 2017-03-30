@@ -101,7 +101,7 @@ declare namespace llvm {
     }
 
     class ConstantInt extends Constant {
-        static get(context: LLVMContext, value: number): ConstantInt;
+        static get(context: LLVMContext, value: number, numBits?: number): ConstantInt;
         static getFalse(context: LLVMContext): ConstantInt;
         static getTrue(context: LLVMContext): ConstantInt;
 
@@ -348,6 +348,7 @@ declare namespace llvm {
         createLoad(ptr: Value, name?: string): Value;
         createMul(lhs: Value, rhs: Value, name?: string): Value;
         createNeg(value: Value, name?: string, hasNUW?: boolean, hasNSW?: boolean): Value;
+        createNot(value: Value, name?: string): Value;
         createOr(lhs: Value, rhs: Value, name?: string): Value;
         createXor(lhs: Value, rhs: Value, name?: string): Value;
         createPhi(type: Type, numReservedValues: number, name?: string): PhiNode;
@@ -358,6 +359,7 @@ declare namespace llvm {
         createSub(lhs: Value, rhs: Value, name?: string): Value;
         createStore(value: Value, ptr: Value, isVolatile?: boolean): Value;
         createSRem(lhs: Value, rhs: Value, name?: string): Value;
+        createZExt(value: Value, destType: Type, name?: string): Value;
         getInsertBlock(): BasicBlock;
     }
 
