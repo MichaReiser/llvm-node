@@ -416,7 +416,7 @@ NAN_METHOD(IRBuilderWrapper::CreateStore) {
 
 NAN_METHOD(IRBuilderWrapper::CreateCall) {
     if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !info[1]->IsArray()
-            || (info.Length() > 3 && !info[2]->IsString())
+            || (info.Length() > 3 && (!info[2]->IsUndefined() || !info[2]->IsString()))
             || info.Length() > 3){
         return Nan::ThrowTypeError("createCall needs to be called with: callee: Value, args: Value[], name: string?");
     }
@@ -433,7 +433,7 @@ NAN_METHOD(IRBuilderWrapper::CreateCall) {
         args[i] = ValueWrapper::FromValue(argsArray->Get(i))->getValue();
     }
 
-    if (info.Length() == 3) {
+    if (info.Length() == 3  && !info[2]->IsUndefined()) {
         name = ToString(Nan::To<v8::String>(info[2]).ToLocalChecked());
     }
 
