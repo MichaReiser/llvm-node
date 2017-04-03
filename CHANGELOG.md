@@ -1,3 +1,9 @@
+#### 0.1.11 (2017-4-3)
+
+##### Other Changes
+
+* **IRBuilder:** CreateCall converts undefined to name (d33aeb7d)
+
 #### 0.1.10 (2017-3-30)
 
 ##### New Features
