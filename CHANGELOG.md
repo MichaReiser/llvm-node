@@ -1,3 +1,12 @@
+#### 0.1.12 (2017-4-5)
+
+##### New Features
+
+* **IRBuilder:**
+  * createPtrToInt (854f86cd)
+  * createBitCast (767a628c)
+* **ConstantArray:** Expose ConstantArray (fe2e9ba2)
+
 #### 0.1.11 (2017-4-3)
 
 ##### Other Changes
