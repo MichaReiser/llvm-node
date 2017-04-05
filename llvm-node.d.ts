@@ -330,9 +330,12 @@ declare namespace llvm {
         createFCmpOLT(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpOEQ(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpONE(lhs: Value, rhs: Value, name?: string): Value;
+        createFCmpUGE(lhs: Value, rhs: Value, name?: string): Value;
+        createFCmpUGT(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpULE(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpULT(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpUEQ(lhs: Value, rhs: Value, name?: string): Value;
+        createFCmpUNE(lhs: Value, rhs: Value, name?: string): Value;
         createFDiv(lhs: Value, rhs: Value, name?: string): Value;
         createFNeg(value: Value, name?: string): Value;
         createFMul(lhs: Value, rhs: Value, name?: string): Value;
@@ -357,6 +360,7 @@ declare namespace llvm {
         createOr(lhs: Value, rhs: Value, name?: string): Value;
         createXor(lhs: Value, rhs: Value, name?: string): Value;
         createPhi(type: Type, numReservedValues: number, name?: string): PhiNode;
+        createPtrToInt(value: Value, destType: Type, name?: string): Value;
         createRet(value: Value): Value;
         createRetVoid(): Value;
         createSDiv(lhs: Value, rhs: Value, name?: string): Value;
