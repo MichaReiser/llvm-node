@@ -116,6 +116,10 @@ declare namespace llvm {
         private constructor();
     }
 
+    class ConstantArray extends Constant {
+        static get(arrayType: ArrayType, elements: Constant[]): Constant;
+    }
+
     class ConstantDataArray extends Constant {
         static get(llvmContext: LLVMContext, values: number[]): Constant;
         static getString(llvmContext: LLVMContext, value: string): Constant;
@@ -315,6 +319,7 @@ declare namespace llvm {
         createAlloca(type: Type, arraySize?: Value, name?: string): AllocaInst;
         createAlignedLoad(ptr: Value, align: number, name?: string): Value;
         createAlignedStore(value: Value, ptr: Value, align: number, isVolatile?: boolean): Value;
+        createBitCast(value: Value, destType: Type, name?: string): Value;
         createBr(basicBlock: BasicBlock): Value;
         createCall(callee: Value, args: Value[], name?: string): CallInst;
         createCondBr(condition: Value, then: BasicBlock, elseBlock: BasicBlock): Value;

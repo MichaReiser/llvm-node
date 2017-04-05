@@ -29,6 +29,7 @@
 #include "global-variable.h"
 #include "unnamed-addr.h"
 #include "constant-struct.h"
+#include "constant-array.h"
 
 NAN_MODULE_INIT(InitIR) {
     AllocaInstWrapper::Init(target);
@@ -40,6 +41,7 @@ NAN_MODULE_INIT(InitIR) {
     InitUnnamedAddr(target);
     CallInstWrapper::Init(target);
     ConstantWrapper::Init(target);
+    ConstantArrayWrapper::Init(target);
     ConstantDataArrayWrapper::Init(target);
     ConstantFPWrapper::Init(target);
     ConstantIntWrapper::Init(target);

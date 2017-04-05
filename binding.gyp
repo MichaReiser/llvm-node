@@ -19,6 +19,7 @@
                 "src/ir/call-inst.cc",
                 "src/ir/calling-conv.cc",
                 "src/ir/constant.cc",
+                "src/ir/constant-array.cc",
                 "src/ir/constant-data-array.cc",
                 "src/ir/constant-fp.cc",
                 "src/ir/constant-int.cc",
