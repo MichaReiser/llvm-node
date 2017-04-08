@@ -141,7 +141,7 @@ declare namespace llvm {
         addBasicBlock(basicBlock: BasicBlock): void;
         addFnAttr(attribute: string, value?: string): void;
         getArguments(): Argument[];
-        getEntryBlock(): BasicBlock;
+        getEntryBlock(): BasicBlock | null;
         viewCFG(): void;
     }
 
@@ -393,6 +393,7 @@ declare namespace llvm {
         print(): string;
         getFunction(name: string): Function;
         getOrInsertFunction(name: string, functionType: FunctionType): Constant;
+        getGlobalVariable(name: string, allowInternal?: boolean): GlobalVariable;
     }
 
     // support

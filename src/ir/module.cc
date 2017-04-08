@@ -9,6 +9,7 @@
 #include "./data-layout.h"
 #include "function.h"
 #include "function-type.h"
+#include "global-variable.h"
 
 NAN_MODULE_INIT(ModuleWrapper::Init) {
     v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New<v8::FunctionTemplate>(New);
@@ -19,6 +20,7 @@ NAN_MODULE_INIT(ModuleWrapper::Init) {
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("empty").ToLocalChecked(), empty);
     Nan::SetPrototypeMethod(functionTemplate, "getFunction", getFunction);
     Nan::SetPrototypeMethod(functionTemplate, "getOrInsertFunction", getOrInsertFunction);
+    Nan::SetPrototypeMethod(functionTemplate, "getGlobalVariable", getGlobalVariable);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), getName);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("dataLayout").ToLocalChecked(), getDataLayout, setDataLayout);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("moduleIdentifier").ToLocalChecked(), getModuleIdentifier, setModuleIdentifier);
@@ -85,6 +87,27 @@ NAN_METHOD(ModuleWrapper::getOrInsertFunction) {
     auto* fnType = FunctionTypeWrapper::FromValue(info[1])->getFunctionType();
 
     info.GetReturnValue().Set(ConstantWrapper::of(module->getOrInsertFunction(name, fnType)));
+}
+
+NAN_METHOD(ModuleWrapper::getGlobalVariable) {
+    if (info.Length() < 1 || !info[0]->IsString() ||
+            (info.Length() == 2 && !info[1]->IsBoolean()) ||
+            info.Length() > 2) {
+        return Nan::ThrowTypeError("getGlobalVariable needs to be called with: name: string, allowInternal?: boolean");
+    }
+
+    const auto name = ToString(info[0]);
+    const auto* module = ModuleWrapper::FromValue(info.Holder())->getModule();
+    bool allowInternal = false;
+
+    if (info.Length() == 2) {
+        allowInternal = Nan::To<bool>(info[1]).FromJust();
+    }
+
+    auto* global = module->getGlobalVariable(name, allowInternal);
+    if (global != nullptr) {
+        info.GetReturnValue().Set(GlobalVariableWrapper::of(global));
+    }
 }
 
 NAN_GETTER(ModuleWrapper::getName) {
