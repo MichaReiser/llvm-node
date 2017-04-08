@@ -38,6 +38,13 @@ NAN_METHOD(PointerTypeWrapper::get) {
     info.GetReturnValue().Set(PointerTypeWrapper::of(pointerType));
 }
 
+NAN_GETTER(PointerTypeWrapper::getElementType) {
+    auto* pointerType = PointerTypeWrapper::FromValue(info.Holder())->getPointerType();
+    auto* elementType = pointerType->getElementType();
+
+    info.GetReturnValue().Set(TypeWrapper::of(elementType));
+}
+
 v8::Local<v8::Object> PointerTypeWrapper::of(llvm::PointerType *type) {
     Nan::EscapableHandleScope escapeScope {};
 
@@ -59,6 +66,8 @@ Nan::Persistent<v8::FunctionTemplate>& PointerTypeWrapper::pointerTypeTemplate()
         pointerTypeTemplate->SetClassName(Nan::New("PointerType").ToLocalChecked());
         pointerTypeTemplate->InstanceTemplate()->SetInternalFieldCount(1);
         pointerTypeTemplate->Inherit(Nan::New(typeTemplate()));
+
+        Nan::SetAccessor(pointerTypeTemplate->InstanceTemplate(), Nan::New("elementType").ToLocalChecked(), PointerTypeWrapper::getElementType);
 
         persistentTemplate.Reset(pointerTypeTemplate);
     }
