@@ -1,3 +1,9 @@
+#### 0.1.13 (2017-4-8)
+
+##### New Features
+
+* **Module:** Implement getGlobalVariable (42f20706)
+
 #### 0.1.12 (2017-4-5)
 
 ##### New Features
