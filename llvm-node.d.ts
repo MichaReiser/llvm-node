@@ -216,6 +216,8 @@ declare namespace llvm {
         getStringRepresentation(): string;
         getPointerSize(as: number): number;
         getPrefTypeAlignment(type: Type): number;
+        getTypeStoreSize(type: Type): number;
+        getIntPtrType(context: LLVMContext, as: number): Type;
     }
 
     class Type {

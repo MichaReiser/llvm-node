@@ -27,6 +27,8 @@ private:
     static NAN_METHOD(getStringRepresentation);
     static NAN_METHOD(getPointerSize);
     static NAN_METHOD(getPrefTypeAlignment);
+    static NAN_METHOD(getTypeStoreSize);
+    static NAN_METHOD(getIntPtrType);
 };
 
 #endif //LLVM_NODE_DATA_LAYOUT_H

@@ -26,7 +26,9 @@ NAN_MODULE_INIT(DataLayoutWrapper::Init) {
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
     Nan::SetPrototypeMethod(tpl, "getStringRepresentation", DataLayoutWrapper::getStringRepresentation);
     Nan::SetPrototypeMethod(tpl, "getPrefTypeAlignment", DataLayoutWrapper::getPrefTypeAlignment);
+    Nan::SetPrototypeMethod(tpl, "getTypeStoreSize", DataLayoutWrapper::getTypeStoreSize);
     Nan::SetPrototypeMethod(tpl, "getPointerSize", DataLayoutWrapper::getPointerSize);
+    Nan::SetPrototypeMethod(tpl, "getIntPtrType", DataLayoutWrapper::getIntPtrType);
 
     functionTemplate.Reset(tpl);
 
@@ -74,6 +76,39 @@ NAN_METHOD(DataLayoutWrapper::getPrefTypeAlignment) {
     auto dataLayout = DataLayoutWrapper::FromValue(info.Holder())->getDataLayout();
 
     info.GetReturnValue().Set(Nan::New(dataLayout.getPrefTypeAlignment(type)));
+}
+
+NAN_METHOD(DataLayoutWrapper::getTypeStoreSize) {
+    if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
+        return Nan::ThrowTypeError("getTypeStoreSize needs to be called with: type: Type");
+    }
+
+    auto* type = TypeWrapper::FromValue(info[0])->getType();
+    auto dataLayout = DataLayoutWrapper::FromValue(info.Holder())->getDataLayout();
+
+    auto size = dataLayout.getTypeStoreSize(type);
+     assert (size < UINT32_MAX && "V8 does not support uint64 but size overflows uint32"); // v8 does not support uint64_t :(
+
+    info.GetReturnValue().Set(Nan::New(static_cast<uint32_t>(size)));
+}
+
+NAN_METHOD(DataLayoutWrapper::getIntPtrType) {
+    if (info.Length() < 1 || !LLVMContextWrapper::isInstance(info[0]) ||
+            (info.Length() == 2 && !info[1]->IsUint32()) ||
+            info.Length() > 2) {
+        return Nan::ThrowTypeError("getIntPtrType needs to be called with: context: LLVMContext, addressSpace?: uint32");
+    }
+
+    auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
+    const auto dataLayout = DataLayoutWrapper::FromValue(info.Holder())->getDataLayout();
+    uint32_t addressSpace {};
+
+    if (info.Length() == 2) {
+        addressSpace = Nan::To<uint32_t>(info[1]).FromJust();
+    }
+
+    auto* type = dataLayout.getIntPtrType(context, addressSpace);
+    info.GetReturnValue().Set(TypeWrapper::of(type));
 }
 
 llvm::DataLayout DataLayoutWrapper::getDataLayout() {
