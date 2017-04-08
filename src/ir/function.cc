@@ -137,9 +137,13 @@ NAN_METHOD(FunctionWrapper::getArguments) {
 }
 
 NAN_METHOD(FunctionWrapper::getEntryBlock) {
-    auto* wrapper = FunctionWrapper::FromValue(info.Holder());
-    auto& entryBlock = wrapper->getFunction()->getEntryBlock();
+    auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
 
+    if (function->empty()) {
+        return info.GetReturnValue().Set(Nan::Null());
+    }
+
+    auto& entryBlock = function->getEntryBlock();
     info.GetReturnValue().Set(BasicBlockWrapper::of(&entryBlock));
 }
 
