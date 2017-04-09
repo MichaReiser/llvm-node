@@ -72,6 +72,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createAlloca", IRBuilderWrapper::CreateAlloca);
     Nan::SetPrototypeMethod(functionTemplate, "createAlignedLoad", IRBuilderWrapper::CreateAlignedLoad);
     Nan::SetPrototypeMethod(functionTemplate, "createAlignedStore", IRBuilderWrapper::CreateAlignedStore);
+    Nan::SetPrototypeMethod(functionTemplate, "createAnd", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateAnd>>);
     Nan::SetPrototypeMethod(functionTemplate, "createBitCast", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateBitCast>);
     Nan::SetPrototypeMethod(functionTemplate, "createBr", IRBuilderWrapper::CreateBr);
     Nan::SetPrototypeMethod(functionTemplate, "createCall", IRBuilderWrapper::CreateCall);
@@ -106,6 +107,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSLT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSLT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSLE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSLE>>);
     Nan::SetPrototypeMethod(functionTemplate, "createLoad", IRBuilderWrapper::CreateLoad);
+    Nan::SetPrototypeMethod(functionTemplate, "createLShr", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateLShr>>);
     Nan::SetPrototypeMethod(functionTemplate, "createMul", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateMul>>);
     Nan::SetPrototypeMethod(functionTemplate, "createNeg", IRBuilderWrapper::CreateNeg);
     Nan::SetPrototypeMethod(functionTemplate, "createNot", IRBuilderWrapper::CreateNot);
@@ -116,6 +118,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createRet", IRBuilderWrapper::CreateRet);
     Nan::SetPrototypeMethod(functionTemplate, "createRetVoid", IRBuilderWrapper::CreateRetVoid);
     Nan::SetPrototypeMethod(functionTemplate, "createSDiv", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSDiv>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createShl", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateShl>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSub", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSub>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSRem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSRem>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateSIToFP>);

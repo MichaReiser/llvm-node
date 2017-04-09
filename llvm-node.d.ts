@@ -94,6 +94,7 @@ declare namespace llvm {
 
     class ConstantFP extends Constant {
         static get(context: LLVMContext, value: number): ConstantFP;
+        static getNaN(type: Type): Constant;
 
         private constructor();
 
@@ -323,6 +324,7 @@ declare namespace llvm {
         createAlloca(type: Type, arraySize?: Value, name?: string): AllocaInst;
         createAlignedLoad(ptr: Value, align: number, name?: string): Value;
         createAlignedStore(value: Value, ptr: Value, align: number, isVolatile?: boolean): Value;
+        createAnd(lhs: Value, rhs: Value, name?: string): Value;
         createBitCast(value: Value, destType: Type, name?: string): Value;
         createBr(basicBlock: BasicBlock): Value;
         createCall(callee: Value, args: Value[], name?: string): CallInst;
@@ -358,6 +360,7 @@ declare namespace llvm {
         createICmpSLE(lhs: Value, rhs: Value, name?: string): Value;
         createICmpSLT(lhs: Value, rhs: Value, name?: string): Value;
         createLoad(ptr: Value, name?: string): Value;
+        createLShr(lhs: Value, rhs: Value, name?: string): Value;
         createMul(lhs: Value, rhs: Value, name?: string): Value;
         createNeg(value: Value, name?: string, hasNUW?: boolean, hasNSW?: boolean): Value;
         createNot(value: Value, name?: string): Value;
@@ -368,6 +371,7 @@ declare namespace llvm {
         createRet(value: Value): Value;
         createRetVoid(): Value;
         createSDiv(lhs: Value, rhs: Value, name?: string): Value;
+        createShl(lhs: Value, rhs: Value, name?: string): Value;
         createSIToFP(value: Value, type: Type, name?: string): Value;
         createSub(lhs: Value, rhs: Value, name?: string): Value;
         createStore(value: Value, ptr: Value, isVolatile?: boolean): Value;

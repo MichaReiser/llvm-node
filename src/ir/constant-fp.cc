@@ -4,6 +4,7 @@
 
 #include "constant-fp.h"
 #include "llvm-context.h"
+#include "type.h"
 
 NAN_MODULE_INIT(ConstantFPWrapper::Init) {
         auto constantFp = Nan::GetFunction(Nan::New(constantFpTemplate())).ToLocalChecked();
@@ -39,6 +40,17 @@ NAN_METHOD(ConstantFPWrapper::get) {
         info.GetReturnValue().Set(ConstantFPWrapper::of(constant));
 }
 
+NAN_METHOD(ConstantFPWrapper::getNaN) {
+    if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
+        return Nan::ThrowTypeError("getNaN needs to be called with: type: Type");
+    }
+
+    auto* type = TypeWrapper::FromValue(info[0])->getType();
+    llvm::Constant* nan = llvm::ConstantFP::getNaN(type);
+
+    info.GetReturnValue().Set(ConstantWrapper::of(nan));
+}
+
 NAN_GETTER(ConstantFPWrapper::getValueAPF) {
         auto* wrapper = ConstantFPWrapper::FromValue(info.Holder());
         auto value = wrapper->getConstantFP()->getValueAPF();
@@ -69,6 +81,7 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantFPWrapper::constantFpTemplate() {
         localTemplate->Inherit(Nan::New(constantTemplate()));
 
         Nan::SetMethod(localTemplate, "get", ConstantFPWrapper::get);
+        Nan::SetMethod(localTemplate, "getNaN", ConstantFPWrapper::getNaN);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("value").ToLocalChecked(), ConstantFPWrapper::getValueAPF);
 
         functionTemplate.Reset(localTemplate);
