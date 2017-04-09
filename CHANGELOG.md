@@ -1,3 +1,9 @@
+#### 0.1.14 (2017-4-9)
+
+##### New Features
+
+* **IRBuilder:** Bitwise Operations (3c5821f9)
+
 #### 0.1.13 (2017-4-8)
 
 ##### New Features
