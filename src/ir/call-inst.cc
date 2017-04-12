@@ -57,6 +57,23 @@ NAN_SETTER(CallInstWrapper::setCallingConv) {
     CallInstWrapper::FromValue(info.Holder())->getCallInst()->setCallingConv(callingConv);
 }
 
+NAN_METHOD(CallInstWrapper::addDereferenceableAttr) {
+    if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32()) {
+        return Nan::ThrowTypeError("addDereferenceableAttr needs to be called with: argumentIndex: uint32, bytes: uint32");
+    }
+
+    auto* call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
+    auto index = Nan::To<uint32_t>(info[0]).FromJust();
+    auto bytes = Nan::To<uint32_t>(info[1]).FromJust();
+
+    call->addDereferenceableAttr(index, bytes);
+}
+
+NAN_METHOD(CallInstWrapper::getNumArgOperands) {
+    auto* call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
+    info.GetReturnValue().Set(Nan::New(call->getNumArgOperands()));
+}
+
 Nan::Persistent<v8::FunctionTemplate>& CallInstWrapper::callInstTemplate() {
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
 
@@ -67,6 +84,8 @@ Nan::Persistent<v8::FunctionTemplate>& CallInstWrapper::callInstTemplate() {
         localTemplate->Inherit(Nan::New(valueTemplate()));
 
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("callingConv").ToLocalChecked(), CallInstWrapper::getCallingConv, CallInstWrapper::setCallingConv);
+        Nan::SetPrototypeMethod(localTemplate, "addDereferenceableAttr", CallInstWrapper::addDereferenceableAttr);
+        Nan::SetPrototypeMethod(localTemplate, "getNumArgOperands", CallInstWrapper::getNumArgOperands);
 
         functionTemplate.Reset(localTemplate);
     }
