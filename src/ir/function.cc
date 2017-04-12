@@ -50,6 +50,7 @@ Nan::Persistent<v8::FunctionTemplate> &FunctionWrapper::functionTemplate() {
         Nan::SetPrototypeMethod(localTemplate, "getEntryBlock", FunctionWrapper::getEntryBlock);
         Nan::SetPrototypeMethod(localTemplate, "viewCFG", FunctionWrapper::viewCFG);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("callingConv").ToLocalChecked(), FunctionWrapper::getCallingConv, FunctionWrapper::setCallingConv);
+        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("visibility").ToLocalChecked(), FunctionWrapper::getVisibility, FunctionWrapper::setVisibility);
 
         tmpl.Reset(localTemplate);
     }
@@ -106,21 +107,15 @@ NAN_METHOD(FunctionWrapper::addBasicBlock) {
 }
 
 NAN_METHOD(FunctionWrapper::addFnAttr) {
-    if (info.Length() < 1 || !info[0]->IsString() ||
-        (info.Length() == 2 && !info[1]->IsString()) ||
-        info.Length() > 2) {
-        return Nan::ThrowTypeError("addFnAttr needs to be called with: attribute: string, value?: string");
+    if (info.Length() != 1 || !info[0]->IsUint32()) {
+        return Nan::ThrowTypeError("addFnAttr needs to be called with: attribute: Attribute.AttrKind");
     }
 
-    std::string attribute = ToString(info[0]);
-    std::string value {};
-
-    if (info.Length() == 2) {
-        value = ToString(info[1]);
-    }
 
     auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
-    function->addFnAttr(attribute, value);
+    auto attribute = static_cast<llvm::Attribute::AttrKind>(Nan::To<uint32_t>(info[0]).FromJust());
+
+    function->addFnAttr(attribute);
 }
 
 NAN_METHOD(FunctionWrapper::getArguments) {
@@ -160,6 +155,24 @@ NAN_SETTER(FunctionWrapper::setCallingConv) {
     uint32_t callingConvention = Nan::To<uint32_t>(value).FromJust();
 
     FunctionWrapper::FromValue(info.Holder())->getFunction()->setCallingConv(callingConvention);
+}
+
+NAN_GETTER(FunctionWrapper::getVisibility) {
+    auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
+    auto visibility = function->getVisibility();
+
+    info.GetReturnValue().Set(Nan::New(visibility));
+}
+
+NAN_SETTER(FunctionWrapper::setVisibility) {
+    if (!value->IsUint32()) {
+        return Nan::ThrowTypeError("visibility needs to be an uint32");
+    }
+
+    auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
+    auto visibility = static_cast<llvm::GlobalValue::VisibilityTypes>(Nan::To<uint32_t>(value).FromJust());
+
+    function->setVisibility(visibility);
 }
 
 NAN_METHOD(FunctionWrapper::viewCFG) {

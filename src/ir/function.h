@@ -34,6 +34,8 @@ private:
     static NAN_METHOD(getEntryBlock);
     static NAN_GETTER(getCallingConv);
     static NAN_SETTER(setCallingConv);
+    static NAN_GETTER(getVisibility);
+    static NAN_SETTER(setVisibility);
     static NAN_METHOD(viewCFG);
 
     static Nan::Persistent<v8::FunctionTemplate>& functionTemplate();

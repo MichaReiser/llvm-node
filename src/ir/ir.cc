@@ -30,11 +30,14 @@
 #include "unnamed-addr.h"
 #include "constant-struct.h"
 #include "constant-array.h"
+#include "visibility-types.h"
+#include "attribute.h"
 
 NAN_MODULE_INIT(InitIR) {
     AllocaInstWrapper::Init(target);
     ArgumentWrapper::Init(target);
     ArrayTypeWrapper::Init(target);
+    InitAttribute(target);
     BasicBlockWrapper::Init(target);
     ConstantStructWrapper::Init(target);
     InitCallingConv(target);
@@ -60,4 +63,5 @@ NAN_MODULE_INIT(InitIR) {
     TypeWrapper::Init(target);
     ValueWrapper::Init(target);
     InitVerifier(target);
+    InitVisibilityTypes(target);
 }
