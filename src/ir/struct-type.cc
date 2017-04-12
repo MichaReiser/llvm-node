@@ -74,6 +74,43 @@ NAN_METHOD(StructTypeWrapper::get) {
     info.GetReturnValue().Set(StructTypeWrapper::of(result));
 }
 
+NAN_METHOD(StructTypeWrapper::create) {
+    if (info.Length() < 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsArray() ||
+        (info.Length() > 2 && !info[2]->IsString() && !info[2]->IsUndefined()) ||
+        (info.Length() == 4 && !info[3]->IsBoolean()) ||
+        info.Length() > 4) {
+        return Nan::ThrowTypeError("create needs to be called with: context: LLVMContext, elements: Type[], name?: string, isPacked?: boolean");
+    }
+
+    auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
+    auto array = v8::Array::Cast(*info[1]);
+    std::vector<llvm::Type*> elements { array->Length() };
+
+    for (size_t i = 0; i < array->Length(); ++i) {
+        auto element = array->Get(i);
+
+        if (!TypeWrapper::isInstance(element)) {
+            return Nan::ThrowTypeError("expected Type");
+        }
+
+        elements[i] = TypeWrapper::FromValue(element)->getType();
+    }
+
+    std::string name {};
+    if (info.Length() > 2) {
+        name = ToString(info[2]);
+    }
+
+    bool isPacked = false;
+    if (info.Length() == 4) {
+        isPacked = Nan::To<bool>(info[3]).FromJust();
+    }
+
+    auto* result = llvm::StructType::create(context, elements, name, isPacked);
+
+    info.GetReturnValue().Set(StructTypeWrapper::of(result));
+}
+
 NAN_GETTER(StructTypeWrapper::getName) {
     auto* structType = StructTypeWrapper::FromValue(info.Holder())->getStructType();
     if (structType->isLiteral()) {
@@ -118,6 +155,7 @@ Nan::Persistent<v8::FunctionTemplate>& StructTypeWrapper::structTypeTemplate() {
         localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
         localTemplate->Inherit(Nan::New(typeTemplate()));
 
+        Nan::SetMethod(localTemplate, "create", StructTypeWrapper::create);
         Nan::SetMethod(localTemplate, "get", StructTypeWrapper::get);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), StructTypeWrapper::getName, StructTypeWrapper::setName);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("numElements").ToLocalChecked(), StructTypeWrapper::getNumElements);

@@ -24,6 +24,7 @@ private:
     // static
     static NAN_METHOD(New);
     static NAN_METHOD(get);
+    static NAN_METHOD(create);
 
     // instance
     static NAN_GETTER(getName);
