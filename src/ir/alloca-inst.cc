@@ -55,6 +55,21 @@ NAN_SETTER(AllocaInstWrapper::setAllocatedType) {
     wrapper->getAllocaInst()->setAllocatedType(type);
 }
 
+NAN_GETTER(AllocaInstWrapper::getAlignment) {
+    auto* wrapper = AllocaInstWrapper::FromValue(info.Holder());
+
+    info.GetReturnValue().Set(Nan::New(wrapper->getAllocaInst()->getAlignment()));
+}
+
+NAN_SETTER(AllocaInstWrapper::setAlignment) {
+    if (!value->IsUint32()) {
+        return Nan::ThrowTypeError("alignment needs to be an uint32");
+    }
+
+    auto* wrapper = AllocaInstWrapper::FromValue(info.Holder());
+    wrapper->getAllocaInst()->setAlignment(Nan::To<uint32_t>(value).FromJust());
+}
+
 Nan::Persistent<v8::FunctionTemplate>& AllocaInstWrapper::allocaInstTemplate() {
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
 
@@ -65,6 +80,7 @@ Nan::Persistent<v8::FunctionTemplate>& AllocaInstWrapper::allocaInstTemplate() {
         localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("allocatedType").ToLocalChecked(), AllocaInstWrapper::getAllocatedType, AllocaInstWrapper::setAllocatedType);
+        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("alignment").ToLocalChecked(), AllocaInstWrapper::getAlignment, AllocaInstWrapper::setAlignment);
 
         functionTemplate.Reset(localTemplate);
     }

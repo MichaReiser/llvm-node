@@ -24,6 +24,8 @@ private:
     static NAN_METHOD(New);
     static NAN_GETTER(getAllocatedType);
     static NAN_SETTER(setAllocatedType);
+    static NAN_GETTER(getAlignment);
+    static NAN_SETTER(setAlignment);
     static Nan::Persistent<v8::FunctionTemplate>& allocaInstTemplate();
 };
 
