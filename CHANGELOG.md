@@ -1,3 +1,14 @@
+## 1.0.0 (2017-4-12)
+
+##### New Features
+
+* **IRBuilder:** Add 'createSelect' method (52a2efc0)
+* **StructType:** Add 'create' method for named structs (4ea9a983)
+* **Function:** Add 'visibility' property (14386e2f)
+* **CallInst:** Add 'getNumArgOperands' and 'AddDereferenceableAttr' (621457fd)
+* **Argument:** Add 'AddAttr' and 'AddDereferenceableAttr' (daddc430)
+* **AllocaInst:** Add alignment property (ced1f40a)
+
 #### 0.1.14 (2017-4-9)
 
 ##### New Features
