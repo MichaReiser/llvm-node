@@ -50,6 +50,7 @@ private:
     static NAN_METHOD(CreatePHI);
     static NAN_METHOD(CreateRet);
     static NAN_METHOD(CreateRetVoid);
+    static NAN_METHOD(CreateSelect);
     static NAN_METHOD(CreateStore);
     static NAN_METHOD(GetInsertBlock);
     static NAN_METHOD(SetInsertionPoint);

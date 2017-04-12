@@ -118,6 +118,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createRet", IRBuilderWrapper::CreateRet);
     Nan::SetPrototypeMethod(functionTemplate, "createRetVoid", IRBuilderWrapper::CreateRetVoid);
     Nan::SetPrototypeMethod(functionTemplate, "createSDiv", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSDiv>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createSelect", IRBuilderWrapper::CreateSelect);
     Nan::SetPrototypeMethod(functionTemplate, "createShl", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateShl>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSub", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSub>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSRem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSRem>>);
@@ -532,6 +533,26 @@ NAN_METHOD(IRBuilderWrapper::CreateRetVoid) {
     auto& builder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
     auto* returnInstruction = builder.CreateRetVoid();
     info.GetReturnValue().Set(ValueWrapper::of(returnInstruction));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateSelect) {
+    if (info.Length() < 3 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1]) || !ValueWrapper::isInstance(info[2]) ||
+            (info.Length() == 4 && !info[3]->IsString()) ||
+            info.Length() > 4) {
+        return Nan::ThrowTypeError("createSelect needs to be called with: condition: Value, true: Value, false: Value, name?: string");
+    }
+
+    auto& builder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
+    auto* condition = ValueWrapper::FromValue(info[0])->getValue();
+    auto* trueValue = ValueWrapper::FromValue(info[1])->getValue();
+    auto* falseValue = ValueWrapper::FromValue(info[2])->getValue();
+    std::string name {};
+
+    if (info.Length() == 4) {
+        name = ToString(info[3]);
+    }
+
+    info.GetReturnValue().Set(ValueWrapper::of(builder.CreateSelect(condition, trueValue, falseValue, name)));
 }
 
 NAN_METHOD(IRBuilderWrapper::GetInsertBlock) {
