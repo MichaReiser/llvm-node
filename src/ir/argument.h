@@ -26,6 +26,8 @@ private:
     static NAN_METHOD(New);
     static NAN_GETTER(getArgNo);
     static NAN_GETTER(getParent);
+    static NAN_METHOD(addAttr);
+    static NAN_METHOD(addDereferenceableAttr);
 
     static inline Nan::Persistent<v8::FunctionTemplate>& argumentTemplate() {
         static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};

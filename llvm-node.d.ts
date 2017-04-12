@@ -19,6 +19,63 @@ declare namespace llvm {
 
     function initializeAllAsmPrinters(): void;
 
+    module Attribute {
+        enum AttrKind {
+            Alignment,
+            AllocSize,
+            AlwaysInline,
+            ArgMemOnly,
+            Builtin,
+            ByVal,
+            Cold,
+            Convergent,
+            Dereferenceable,
+            DereferenceableOrNull,
+            InAlloca,
+            InReg,
+            InaccessibleMemOnly,
+            InaccessibleMemOrArgMemOnly,
+            InlineHint,
+            JumpTable,
+            MinSize,
+            Naked,
+            Nest,
+            NoAlias,
+            NoBuiltin,
+            NoCapture,
+            NoDuplicate,
+            NoImplicitFloat,
+            NoInline,
+            NoRecurse,
+            NoRedZone,
+            NoReturn,
+            NoUnwind,
+            NonLazyBind,
+            NonNull,
+            OptimizeForSize,
+            OptimizeNone,
+            ReadNone,
+            ReadOnly,
+            Returned,
+            ReturnsTwice,
+            SExt,
+            SafeStack,
+            SanitizeAddress,
+            SanitizeMemory,
+            SanitizeThread,
+            StackAlignment,
+            StackProtect,
+            StackProtectReq,
+            StackProtectStrong,
+            StructRet,
+            SwiftError,
+            SwiftSelf,
+            UWTable,
+            WriteOnly,
+            ZExt
+        }
+    }
+
     //ir
     enum LinkageTypes {
         ExternalLinkage,
@@ -32,6 +89,12 @@ declare namespace llvm {
         PrivateLinkage,
         ExternalWeakLinkage,
         CommonLinkage
+    }
+
+    enum VisibilityTypes {
+        Hidden,
+        Default,
+        Protected
     }
 
     class Value {
@@ -60,9 +123,13 @@ declare namespace llvm {
         parent?: Function;
 
         constructor(type: Type, name?: string, fn?: Function, argNo?: number);
+
+        addAttr(kind: Attribute.AttrKind): void;
+        addDereferenceableAttr(bytes: number): void;
     }
 
     class AllocaInst extends Value {
+        alignment: number;
         allocatedType: Type;
 
         private constructor();
@@ -137,10 +204,11 @@ declare namespace llvm {
         static create(functionType: FunctionType, linkageTypes: LinkageTypes, name?: string, module?: Module): Function;
 
         callingConv: CallingConv;
+        visibility: VisibilityTypes;
 
         private constructor();
         addBasicBlock(basicBlock: BasicBlock): void;
-        addFnAttr(attribute: string, value?: string): void;
+        addFnAttr(attribute: Attribute.AttrKind): void;
         getArguments(): Argument[];
         getEntryBlock(): BasicBlock | null;
         viewCFG(): void;
@@ -173,6 +241,9 @@ declare namespace llvm {
         callingConv: CallingConv;
 
         private constructor();
+
+        addDereferenceableAttr(index: number, size: number): void;
+        getNumArgOperands(): number;
     }
 
     enum CallingConv {
@@ -305,6 +376,7 @@ declare namespace llvm {
     }
 
     class StructType extends Type {
+        static create(context: LLVMContext, elements: Type[], name?: string, isPacked?: boolean): StructType;
         static get(context: LLVMContext, elements: Type[], isPacked?: boolean): StructType;
 
         name: string;
@@ -370,6 +442,7 @@ declare namespace llvm {
         createPtrToInt(value: Value, destType: Type, name?: string): Value;
         createRet(value: Value): Value;
         createRetVoid(): Value;
+        createSelect(condition: Value, trueValue: Value, falseValue: Value, name?: string): Value;
         createSDiv(lhs: Value, rhs: Value, name?: string): Value;
         createShl(lhs: Value, rhs: Value, name?: string): Value;
         createSIToFP(value: Value, type: Type, name?: string): Value;
