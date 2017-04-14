@@ -1,3 +1,9 @@
+#### 1.0.1 (2017-4-14)
+
+##### New Features
+
+* **Function:** Add 'addDereferenceableAttr' method (f2aceb93)
+
 ## 1.0.0 (2017-4-12)
 
 ##### New Features
