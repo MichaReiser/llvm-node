@@ -208,6 +208,8 @@ declare namespace llvm {
 
         private constructor();
         addBasicBlock(basicBlock: BasicBlock): void;
+        addDereferenceableAttr(attributeIndex: number, bytes: number): void;
+        addDereferenceableOrNullAttr(attributeIndex: number, bytes: number): void;
         addFnAttr(attribute: Attribute.AttrKind): void;
         getArguments(): Argument[];
         getEntryBlock(): BasicBlock | null;
@@ -256,7 +258,6 @@ declare namespace llvm {
         AnyReg,
         PreserveMost,
         PreserveAll,
-        Swift,
         CXX_FAST_TLS,
         FirstTargetCC,
         X86_StdCall,

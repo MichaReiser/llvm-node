@@ -45,6 +45,8 @@ Nan::Persistent<v8::FunctionTemplate> &FunctionWrapper::functionTemplate() {
 
         Nan::SetMethod(localTemplate, "create", FunctionWrapper::Create);
         Nan::SetPrototypeMethod(localTemplate, "addBasicBlock", FunctionWrapper::addBasicBlock);
+        Nan::SetPrototypeMethod(localTemplate, "addDereferenceableAttr", FunctionWrapper::addDereferenceableAttr);
+        Nan::SetPrototypeMethod(localTemplate, "addDereferenceableOrNullAttr", FunctionWrapper::addDereferenceableOrNullAttr);
         Nan::SetPrototypeMethod(localTemplate, "addFnAttr", FunctionWrapper::addFnAttr);
         Nan::SetPrototypeMethod(localTemplate, "getArguments", FunctionWrapper::getArguments);
         Nan::SetPrototypeMethod(localTemplate, "getEntryBlock", FunctionWrapper::getEntryBlock);
@@ -116,6 +118,30 @@ NAN_METHOD(FunctionWrapper::addFnAttr) {
     auto attribute = static_cast<llvm::Attribute::AttrKind>(Nan::To<uint32_t>(info[0]).FromJust());
 
     function->addFnAttr(attribute);
+}
+
+NAN_METHOD(FunctionWrapper::addDereferenceableAttr) {
+    if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32()) {
+        return Nan::ThrowTypeError("addDereferenceableAttr needs to be called with: argumentIndex: uint32, bytes: uint32");
+    }
+
+    auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
+    auto index = Nan::To<uint32_t>(info[0]).FromJust();
+    auto bytes = Nan::To<uint32_t>(info[1]).FromJust();
+
+    function->addDereferenceableAttr(index, bytes);
+}
+
+NAN_METHOD(FunctionWrapper::addDereferenceableOrNullAttr) {
+    if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32()) {
+        return Nan::ThrowTypeError("addDereferenceableOrNullAttr needs to be called with: argumentIndex: uint32, bytes: uint32");
+    }
+
+    auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
+    auto index = Nan::To<uint32_t>(info[0]).FromJust();
+    auto bytes = Nan::To<uint32_t>(info[1]).FromJust();
+
+    function->addDereferenceableOrNullAttr(index, bytes);
 }
 
 NAN_METHOD(FunctionWrapper::getArguments) {

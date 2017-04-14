@@ -29,6 +29,8 @@ private:
 
     // instance
     static NAN_METHOD(addBasicBlock);
+    static NAN_METHOD(addDereferenceableAttr);
+    static NAN_METHOD(addDereferenceableOrNullAttr);
     static NAN_METHOD(addFnAttr);
     static NAN_METHOD(getArguments);
     static NAN_METHOD(getEntryBlock);
