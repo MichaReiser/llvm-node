@@ -1,3 +1,9 @@
+#### 1.0.2 (2017-4-19)
+
+##### Other Changes
+
+* **VisibilityTypes:** Fix Default visibility type constant (2709ed6b)
+
 #### 1.0.1 (2017-4-14)
 
 ##### New Features
