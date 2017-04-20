@@ -162,6 +162,11 @@ NAN_METHOD(TypeWrapper::getIntNTy) {
     info.GetReturnValue().Set(TypeWrapper::of(type));
 }
 
+NAN_METHOD(TypeWrapper::getPrimitiveSizeInBits) {
+    auto* type = TypeWrapper::FromValue(info.Holder())->getType();
+    info.GetReturnValue().Set(Nan::New(type->getPrimitiveSizeInBits()));
+}
+
 Nan::Persistent<v8::FunctionTemplate>& TypeWrapper::typeTemplate() {
     static Nan::Persistent<v8::FunctionTemplate> persistentTemplate {};
 
@@ -197,6 +202,7 @@ Nan::Persistent<v8::FunctionTemplate>& TypeWrapper::typeTemplate() {
         Nan::SetPrototypeMethod(typeTemplate, "isPointerTy", &isOfType<&llvm::Type::isPointerTy>);
         Nan::SetAccessor(typeTemplate->InstanceTemplate(), Nan::New("typeID").ToLocalChecked(), TypeWrapper::getTypeID);
         Nan::SetPrototypeMethod(typeTemplate, "getPointerTo", TypeWrapper::getPointerTo);
+        Nan::SetPrototypeMethod(typeTemplate, "getPrimitiveSizeInBits", TypeWrapper::getPrimitiveSizeInBits);
 
         persistentTemplate.Reset(typeTemplate);
     }
