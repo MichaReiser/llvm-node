@@ -1,3 +1,14 @@
+#### 1.0.3 (2017-4-20)
+
+##### New Features
+
+* **ConstantInt:** Allow defining unsigned ints (38ddf1ca)
+* **Type:** Add getPrimitiveSizeInBits (36332e57)
+
+##### Other Changes
+
+* **Argument:** Adopt addAttr to new llvm signature (a9e140e8)
+
 #### 1.0.2 (2017-4-19)
 
 ##### Other Changes
