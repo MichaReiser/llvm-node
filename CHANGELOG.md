@@ -1,3 +1,9 @@
+#### 1.0.4 (2017-4-20)
+
+##### Bug Fixes
+
+* **Argument:** Fix Compile error with llvm 5 (bab99ae4)
+
 #### 1.0.3 (2017-4-20)
 
 ##### New Features
