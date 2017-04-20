@@ -28,20 +28,26 @@ NAN_METHOD(ConstantIntWrapper::New) {
 
 NAN_METHOD(ConstantIntWrapper::get) {
     if (info.Length() < 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsNumber() ||
-            (info.Length() > 2 && !info[2]->IsNumber()) ||
-            info.Length() > 3) {
-        return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number, numBits? = 32");
+            (info.Length() > 2 && !info[2]->IsNumber() && !info[2]->IsUndefined()) ||
+            (info.Length() > 3 && !info[3]->IsBoolean()) ||
+            info.Length() > 4) {
+        return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number, numBits = 32, signed= true");
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
     int64_t number = Nan::To<int64_t >(info[1]).FromJust();
     uint32_t numBits = 32;
+    bool isSigned = true;
 
-    if (info.Length() == 3) {
+    if (info.Length() > 2 && !info[2]->IsUndefined()) {
         numBits = Nan::To<uint32_t>(info[2]).FromJust();
     }
 
-    auto* constant = llvm::ConstantInt::get(context, llvm::APInt { numBits, static_cast<uint64_t>(number), true } );
+    if (info.Length() == 3) {
+        isSigned = Nan::To<bool>(info[3]).FromJust();
+    }
+
+    auto* constant = llvm::ConstantInt::get(context, llvm::APInt { numBits, static_cast<uint64_t>(number), isSigned } );
 
     info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
 }

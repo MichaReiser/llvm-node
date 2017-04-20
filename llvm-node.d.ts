@@ -169,7 +169,7 @@ declare namespace llvm {
     }
 
     class ConstantInt extends Constant {
-        static get(context: LLVMContext, value: number, numBits?: number): ConstantInt;
+        static get(context: LLVMContext, value: number, numBits?: number, signed?: boolean): ConstantInt;
         static getFalse(context: LLVMContext): ConstantInt;
         static getTrue(context: LLVMContext): ConstantInt;
 
@@ -343,6 +343,7 @@ declare namespace llvm {
         isDoubleTy(): boolean;
         isVoidTy(): boolean;
         getPointerTo(addressSpace?: number): PointerType;
+        getPrimitiveSizeInBits(): number;
     }
 
     class FunctionType extends Type {
@@ -398,6 +399,7 @@ declare namespace llvm {
         createAlignedLoad(ptr: Value, align: number, name?: string): Value;
         createAlignedStore(value: Value, ptr: Value, align: number, isVolatile?: boolean): Value;
         createAnd(lhs: Value, rhs: Value, name?: string): Value;
+        createAShr(lhs: Value, rhs: Value, name?: string): Value;
         createBitCast(value: Value, destType: Type, name?: string): Value;
         createBr(basicBlock: BasicBlock): Value;
         createCall(callee: Value, args: Value[], name?: string): CallInst;
@@ -432,6 +434,7 @@ declare namespace llvm {
         createICmpSGT(lhs: Value, rhs: Value, name?: string): Value;
         createICmpSLE(lhs: Value, rhs: Value, name?: string): Value;
         createICmpSLT(lhs: Value, rhs: Value, name?: string): Value;
+        createICmpULT(lhs: Value, rhs: Value, name?: string): Value;
         createLoad(ptr: Value, name?: string): Value;
         createLShr(lhs: Value, rhs: Value, name?: string): Value;
         createMul(lhs: Value, rhs: Value, name?: string): Value;
