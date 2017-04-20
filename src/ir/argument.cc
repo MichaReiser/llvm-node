@@ -117,7 +117,7 @@ NAN_METHOD(ArgumentWrapper::addDereferenceableAttr) {
     auto attributes = llvm::AttributeSet::get(argument->getContext(), argument->getArgNo() + 1, builder);
     argument->addAttr(attributes);
 #else
-    auto attributes = argument->addAttrs(builder);
+    argument->addAttrs(builder);
 #endif
 
 }
