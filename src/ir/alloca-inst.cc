@@ -6,7 +6,8 @@
 #include "type.h"
 
 NAN_MODULE_INIT(AllocaInstWrapper::Init) {
-    // nothing to do?
+    auto allocaInst = Nan::GetFunction(Nan::New(allocaInstTemplate())).ToLocalChecked();
+    Nan::Set(target, Nan::New("AllocaInst").ToLocalChecked(), allocaInst);
 }
 
 v8::Local<v8::Object> AllocaInstWrapper::of(llvm::AllocaInst* inst) {
