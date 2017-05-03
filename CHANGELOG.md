@@ -1,3 +1,9 @@
+#### 1.0.5 (2017-5-3)
+
+##### New Features
+
+* **IRBuilder:** Add Constructor for inserting before value (4e505a5f)
+
 #### 1.0.4 (2017-4-20)
 
 ##### Bug Fixes
