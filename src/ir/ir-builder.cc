@@ -57,10 +57,9 @@ llvm::Value* ToBinaryOp(llvm::IRBuilder<>& builder, llvm::Value* lhs, llvm::Valu
 typedef llvm::Value* (llvm::IRBuilder<>::*BinaryIntOp)(llvm::Value*, llvm::Value*, const llvm::Twine&, bool HasNUW, bool HasNSW);
 template<BinaryIntOp method>
 llvm::Value* ToBinaryOp(llvm::IRBuilder<>& builder, llvm::Value* lhs, llvm::Value* rhs, const llvm::Twine& name) {
-    llvm::Value* value = (builder.*method)(lhs, rhs, name, false, true);
+    llvm::Value* value = (builder.*method)(lhs, rhs, name, false, false);
     return value;
 }
-
 
 NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New<v8::FunctionTemplate>(New);
@@ -140,17 +139,24 @@ NAN_METHOD(IRBuilderWrapper::New) {
         return Nan::ThrowTypeError("IRBuilder constructor needs to be called with new");
     }
 
-    if (info.Length() < 1 || !(LLVMContextWrapper::isInstance(info[0]) || BasicBlockWrapper::isInstance(info[0]))) {
-        return Nan::ThrowTypeError("IRBuilder constructor needs either be called with a context or a basic block");
+    if (info.Length() < 1 || !(LLVMContextWrapper::isInstance(info[0]) || BasicBlockWrapper::isInstance(info[0]))
+            || (info.Length() == 2 && !ValueWrapper::isInstance(info[1])) ||
+            info.Length() > 2) {
+        return Nan::ThrowTypeError("IRBuilder constructor needs either be called with context: LLVMContext or basicBlock: BasicBlock, insertBefore?: Instruction");
     }
 
     IRBuilderWrapper* wrapper = nullptr;
     if (LLVMContextWrapper::isInstance(info[0])) {
         auto& llvmContext = LLVMContextWrapper::FromValue(info[0])->getContext();
         wrapper = new IRBuilderWrapper { llvm::IRBuilder<> { llvmContext } };
-    } else {
+    } else if (info.Length() == 1){
         auto* basicBlock = BasicBlockWrapper::FromValue(info[0])->getBasicBlock();
         wrapper = new IRBuilderWrapper { llvm::IRBuilder<> { basicBlock, basicBlock->begin() } };
+    } else {
+        auto* basicBlock = BasicBlockWrapper::FromValue(info[0])->getBasicBlock();
+        auto builder = llvm::IRBuilder<> { basicBlock };
+        builder.SetInsertPoint(static_cast<llvm::Instruction*>(ValueWrapper::FromValue(info[1])->getValue()));
+        wrapper = new IRBuilderWrapper { builder };
     }
 
     wrapper->Wrap(info.This());

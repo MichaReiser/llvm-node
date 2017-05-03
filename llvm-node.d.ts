@@ -130,6 +130,7 @@ declare namespace llvm {
 
     class AllocaInst extends Value {
         alignment: number;
+        type: PointerType;
         allocatedType: Type;
 
         private constructor();
@@ -391,7 +392,7 @@ declare namespace llvm {
 
     class IRBuilder {
         constructor(context: LLVMContext);
-        constructor(basicBlock: BasicBlock);
+        constructor(basicBlock: BasicBlock, beforeInstruction: Value);
 
         setInsertionPoint(basicBlock: BasicBlock): void;
         createAdd(lhs: Value, rhs: Value, name?: string): Value;
