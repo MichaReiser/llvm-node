@@ -1,3 +1,10 @@
+#### 1.0.6 (2017-5-6)
+
+##### Bug Fixes
+
+* **Argument:** Fix Version switch (b4c0fb57)
+* **AllocaInst:** Expose Class (eda2d184)
+
 #### 1.0.5 (2017-5-3)
 
 ##### New Features
