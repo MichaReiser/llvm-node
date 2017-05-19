@@ -37,6 +37,7 @@ private:
     // Instance Methods
     static NAN_GETTER(getTypeID);
     static NAN_METHOD(getPrimitiveSizeInBits);
+    static NAN_METHOD(toString);
 };
 
 #endif //LLVM_NODE_TYPE_H
