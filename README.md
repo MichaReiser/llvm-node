@@ -33,10 +33,10 @@ llvm.writeBitcodeToFile(module, biteCodeFileName); // Writes file to disk
 
 ## Custom LLVM Installation
 
-To build llvm-node against a custom --- not the systems default --- LLVM installation you can set the `GYP_DEFINES` variable before running `npm install` as follow:
+To build llvm-node against a custom --- not the systems default --- LLVM installation you can set the `GYP_DEFINES` environment variable before running `npm install` as follow (on unix systems):
 
 ```
-GYP_DEFINES="LLVM_CONFIG=/path/to/llvm-config"
+GYP_DEFINES="LLVM_CONFIG=/path/to/llvm-config" npm install llvm-node --save-dev
 ```
 
 The `LLVM_CONFIG` value must point to the `llvm-config` executable. 
