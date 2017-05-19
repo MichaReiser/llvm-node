@@ -1,3 +1,14 @@
+#### 1.0.6 (2017-5-19)
+
+##### New Features
+
+* **Type:** Add toString method (6c6e8f93)
+
+##### Bug Fixes
+
+* **Argument:** Fix Version switch (b4c0fb57)
+* **AllocaInst:** Expose Class (eda2d184)
+
 #### 1.0.5 (2017-5-3)
 
 ##### New Features
