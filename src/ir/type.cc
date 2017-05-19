@@ -3,6 +3,7 @@
 //
 
 #include <llvm/IR/DerivedTypes.h>
+#include <llvm/Support/raw_ostream.h>
 #include "type.h"
 #include "function-type.h"
 #include "pointer-type.h"
@@ -65,6 +66,18 @@ NAN_METHOD(TypeWrapper::getPointerTo) {
     auto* pointerType = TypeWrapper::FromValue(info.Holder())->getType()->getPointerTo(addressSpace);
     info.GetReturnValue().Set(PointerTypeWrapper::of(pointerType));
 }
+
+NAN_METHOD(TypeWrapper::toString) {
+    auto* type = TypeWrapper::FromValue(info.Holder())->getType();
+
+    std::string name {};
+    llvm::raw_string_ostream output { name };
+
+    type->print(output);
+
+    info.GetReturnValue().Set(Nan::New(output.str()).ToLocalChecked());
+}
+
 
 typedef llvm::Type* (getTypeFn)(llvm::LLVMContext&);
 template<getTypeFn method>
@@ -203,6 +216,7 @@ Nan::Persistent<v8::FunctionTemplate>& TypeWrapper::typeTemplate() {
         Nan::SetAccessor(typeTemplate->InstanceTemplate(), Nan::New("typeID").ToLocalChecked(), TypeWrapper::getTypeID);
         Nan::SetPrototypeMethod(typeTemplate, "getPointerTo", TypeWrapper::getPointerTo);
         Nan::SetPrototypeMethod(typeTemplate, "getPrimitiveSizeInBits", TypeWrapper::getPrimitiveSizeInBits);
+        Nan::SetPrototypeMethod(typeTemplate, "toString", TypeWrapper::toString);
 
         persistentTemplate.Reset(typeTemplate);
     }

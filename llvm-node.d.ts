@@ -345,6 +345,8 @@ declare namespace llvm {
         isVoidTy(): boolean;
         getPointerTo(addressSpace?: number): PointerType;
         getPrimitiveSizeInBits(): number;
+
+        toString(): string;
     }
 
     class FunctionType extends Type {
