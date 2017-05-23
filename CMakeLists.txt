@@ -15,7 +15,7 @@ set(SOURCE_FILES ${llvm_node_SRC})
 include(./node_modules/node-cmake/NodeJS.cmake)
 nodejs_init()
 
-find_package(LLVM REQUIRED CONFIG)
+find_package(LLVM 4 REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
