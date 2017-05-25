@@ -1,3 +1,15 @@
+## 2.0.0 (2017-5-25)
+
+##### New Features
+
+* **StructType:** Allow creating opaque structs (1a9c41ee)
+* **IRBuilder:** Add extract and insert value (bdf11d27)
+* **Undef:** Add Undef (69cc4402)
+
+##### Bug Fixes
+
+* **build:** Set required llvm version in Cmake file (886352d1)
+
 #### 1.0.7 (2017-5-19)
 
 ##### New Features
