@@ -75,38 +75,19 @@ NAN_METHOD(StructTypeWrapper::get) {
 }
 
 NAN_METHOD(StructTypeWrapper::create) {
-    if (info.Length() < 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsArray() ||
-        (info.Length() > 2 && !info[2]->IsString() && !info[2]->IsUndefined()) ||
-        (info.Length() == 4 && !info[3]->IsBoolean()) ||
-        info.Length() > 4) {
-        return Nan::ThrowTypeError("create needs to be called with: context: LLVMContext, elements: Type[], name?: string, isPacked?: boolean");
+    if (info.Length() < 1 || !LLVMContextWrapper::isInstance(info[0]) ||
+            (info.Length() > 1 && !info[1]->IsString()) ||
+            info.Length() > 2) {
+        return Nan::ThrowTypeError("create needs to be called with: context: LLVMContext, name?: string");
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
-    auto array = v8::Array::Cast(*info[1]);
-    std::vector<llvm::Type*> elements { array->Length() };
-
-    for (size_t i = 0; i < array->Length(); ++i) {
-        auto element = array->Get(i);
-
-        if (!TypeWrapper::isInstance(element)) {
-            return Nan::ThrowTypeError("expected Type");
-        }
-
-        elements[i] = TypeWrapper::FromValue(element)->getType();
-    }
-
     std::string name {};
-    if (info.Length() > 2) {
-        name = ToString(info[2]);
+    if (info.Length() > 1) {
+        name = ToString(info[1]);
     }
 
-    bool isPacked = false;
-    if (info.Length() == 4) {
-        isPacked = Nan::To<bool>(info[3]).FromJust();
-    }
-
-    auto* result = llvm::StructType::create(context, elements, name, isPacked);
+    auto* result = llvm::StructType::create(context, name);
 
     info.GetReturnValue().Set(StructTypeWrapper::of(result));
 }
@@ -146,6 +127,37 @@ NAN_METHOD(StructTypeWrapper::getElementType) {
     info.GetReturnValue().Set(TypeWrapper::of(type));
 }
 
+NAN_METHOD(StructTypeWrapper::setBody) {
+    if (info.Length() < 1 || !info[0]->IsArray() ||
+            (info.Length() > 1 && !info[1]->IsBoolean()) ||
+            info.Length() > 2) {
+        return Nan::ThrowTypeError("setBody needs to be called with: elements: Type[], packed?: boolean");
+    }
+
+    auto* structType = StructTypeWrapper::FromValue(info.This())->getStructType();
+
+    auto array = v8::Array::Cast(*info[0]);
+    std::vector<llvm::Type*> elements { array->Length() };
+
+    for (size_t i = 0; i < array->Length(); ++i) {
+        auto element = array->Get(i);
+
+        if (!TypeWrapper::isInstance(element)) {
+            return Nan::ThrowTypeError("expected Type");
+        }
+
+        elements[i] = TypeWrapper::FromValue(element)->getType();
+    }
+
+    bool packed = false;
+
+    if (info.Length() > 1) {
+        packed = Nan::To<bool>(info[1]).FromJust();
+    }
+
+    structType->setBody(elements, packed);
+}
+
 Nan::Persistent<v8::FunctionTemplate>& StructTypeWrapper::structTypeTemplate() {
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
 
@@ -160,6 +172,7 @@ Nan::Persistent<v8::FunctionTemplate>& StructTypeWrapper::structTypeTemplate() {
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), StructTypeWrapper::getName, StructTypeWrapper::setName);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("numElements").ToLocalChecked(), StructTypeWrapper::getNumElements);
         Nan::SetPrototypeMethod(localTemplate, "getElementType", StructTypeWrapper::getElementType);
+        Nan::SetPrototypeMethod(localTemplate, "setBody", StructTypeWrapper::setBody);
 
         functionTemplate.Reset(localTemplate);
     }

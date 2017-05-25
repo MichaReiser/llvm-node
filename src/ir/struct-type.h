@@ -32,6 +32,8 @@ private:
     static NAN_GETTER(getNumElements);
     static NAN_METHOD(getElementType);
 
+    static NAN_METHOD(setBody);
+
     static Nan::Persistent<v8::FunctionTemplate>& structTypeTemplate();
 };
 
