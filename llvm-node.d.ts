@@ -285,6 +285,12 @@ declare namespace llvm {
         MaxID,
     }
 
+    class UndefValue {
+        private constructor();
+
+        static get(type: Type): UndefValue;
+    }
+
     class DataLayout {
         constructor(layout: string);
         getStringRepresentation(): string;
@@ -381,7 +387,7 @@ declare namespace llvm {
     }
 
     class StructType extends Type {
-        static create(context: LLVMContext, elements: Type[], name?: string, isPacked?: boolean): StructType;
+        static create(context: LLVMContext, name?: string): StructType;
         static get(context: LLVMContext, elements: Type[], isPacked?: boolean): StructType;
 
         name: string;
@@ -390,6 +396,7 @@ declare namespace llvm {
         private constructor();
 
         getElementType(index: number): Type;
+        setBody(elements: Type[], packed?: boolean): void;
     }
 
     class IRBuilder {
@@ -407,6 +414,7 @@ declare namespace llvm {
         createBr(basicBlock: BasicBlock): Value;
         createCall(callee: Value, args: Value[], name?: string): CallInst;
         createCondBr(condition: Value, then: BasicBlock, elseBlock: BasicBlock): Value;
+        createExtractValue(agg: Value, idxs: number[], name?: string): Value;
         createFAdd(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpOGE(lhs: Value, rhs: Value, name?: string): Value;
         createFCmpOGT(lhs: Value, rhs: Value, name?: string): Value;
@@ -430,6 +438,7 @@ declare namespace llvm {
         createGlobalStringPtr(str: string, name?: string, addressSpace?: number): Value;
         createInBoundsGEP(ptr: Value, idxList: Value[], name?: string): Value;
         createInBoundsGEP(type: Type, ptr: Value, idxList: Value[], name?: string): Value;
+        createInsertValue(agg: Value, val: Value, idxList: number, name?: string): Value;
         createIntCast(vlaue: Value, type: Type, isSigned: boolean, name?: string): Value;
         createICmpEQ(lhs: Value, rhs: Value, name?: string): Value;
         createICmpNE(lhs: Value, rhs: Value, name?: string): Value;
@@ -453,6 +462,7 @@ declare namespace llvm {
         createSDiv(lhs: Value, rhs: Value, name?: string): Value;
         createShl(lhs: Value, rhs: Value, name?: string): Value;
         createSIToFP(value: Value, type: Type, name?: string): Value;
+        createUIToFP(value: Value, type: Type, name?: string): Value;
         createSub(lhs: Value, rhs: Value, name?: string): Value;
         createStore(value: Value, ptr: Value, isVolatile?: boolean): Value;
         createSRem(lhs: Value, rhs: Value, name?: string): Value;

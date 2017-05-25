@@ -10,6 +10,7 @@
 #include "phi-node.h"
 #include "alloca-inst.h"
 #include "call-inst.h"
+#include "../util/array.h"
 
 typedef llvm::Value* (*BinaryOpFn)(llvm::IRBuilder<>& builder, llvm::Value*, llvm::Value*, const llvm::Twine&);
 template<BinaryOpFn method>
@@ -77,6 +78,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createBr", IRBuilderWrapper::CreateBr);
     Nan::SetPrototypeMethod(functionTemplate, "createCall", IRBuilderWrapper::CreateCall);
     Nan::SetPrototypeMethod(functionTemplate, "createCondBr", IRBuilderWrapper::CreateCondBr);
+    Nan::SetPrototypeMethod(functionTemplate, "createExtractValue", IRBuilderWrapper::CreateExtractValue);
     Nan::SetPrototypeMethod(functionTemplate, "createFAdd", &NANBinaryOperation<ToBinaryOp<&llvm::IRBuilder<>::CreateFAdd>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpOGT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpOGT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpOGE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpOGE>>);
@@ -100,6 +102,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createGlobalStringPtr", IRBuilderWrapper::CreateGlobalStringPtr);
     Nan::SetPrototypeMethod(functionTemplate, "createInBoundsGEP", IRBuilderWrapper::CreateInBoundsGEP);
     Nan::SetPrototypeMethod(functionTemplate, "createIntCast", IRBuilderWrapper::CreateIntCast);
+    Nan::SetPrototypeMethod(functionTemplate, "createInsertValue", IRBuilderWrapper::CreateInsertValue);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpEQ", &NANBinaryOperation<ToBinaryOp<&llvm::IRBuilder<>::CreateICmpEQ>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpNE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpNE>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSGE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSGE>>);
@@ -124,6 +127,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createSub", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSub>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSRem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSRem>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateSIToFP>);
+    Nan::SetPrototypeMethod(functionTemplate, "createUIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateUIToFP>);
     Nan::SetPrototypeMethod(functionTemplate, "createStore", IRBuilderWrapper::CreateStore);
     Nan::SetPrototypeMethod(functionTemplate, "createZExt", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateZExt>);
     Nan::SetPrototypeMethod(functionTemplate, "getInsertBlock", IRBuilderWrapper::GetInsertBlock);
@@ -250,6 +254,28 @@ NAN_METHOD(IRBuilderWrapper::CreateAlloca) {
     info.GetReturnValue().Set(AllocaInstWrapper::of(alloc));
 }
 
+NAN_METHOD(IRBuilderWrapper::CreateExtractValue) {
+    if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !info[1]->IsArray() ||
+        (info.Length() > 2 && !info[2]->IsString()) ||
+        info.Length() > 3) {
+        return Nan::ThrowTypeError(
+                "createExtractValue needs to be called with: agg: Value, idxs: number[], name?: string");
+    }
+
+    auto& irBuilder = IRBuilderWrapper::FromValue(info.This())->getIRBuilder();
+    auto* agg = ValueWrapper::FromValue(info[0])->getValue();
+    auto idxs = toVector<unsigned>(info[1]);
+    std::string name {};
+
+    if (info.Length() > 2) {
+        name = ToString(info[2]);
+    }
+
+    auto* value = irBuilder.CreateExtractValue(agg, idxs, name);
+
+    info.GetReturnValue().Set(ValueWrapper::of(value));
+}
+
 NAN_METHOD(IRBuilderWrapper::CreateInBoundsGEP) {
     if (info.Length() < 1 || !(ValueWrapper::isInstance(info[0]) || TypeWrapper::isInstance(info[0]))) {
         return Nan::ThrowTypeError("createInBoundsGEP needs to be called with: ptr: Value, idxList: Value[], name?: string or type: Type, ptr: Value, idxList: Value[], name?: string");
@@ -321,6 +347,27 @@ Nan::NAN_METHOD_RETURN_TYPE IRBuilderWrapper::CreateInBoundsGEPWithoutType(Nan::
 
     auto* grep = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateInBoundsGEP(ptr, idxList, name);
     info.GetReturnValue().Set(ValueWrapper::of(grep));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateInsertValue) {
+    if (info.Length() < 3 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1]) || !info[2]->IsArray() ||
+            (info.Length() > 3 && !info[3]->IsString())) {
+        return Nan::ThrowTypeError("createInsertValue needs to be called with: agg: Value, val: Value, idx: unsigned[], name?: string");
+    }
+
+    auto& builder = IRBuilderWrapper::FromValue(info.This())->getIRBuilder();
+    auto* agg = ValueWrapper::FromValue(info[0])->getValue();
+    auto* val = ValueWrapper::FromValue(info[1])->getValue();
+    auto idx = toVector<unsigned>(info[2]);
+    std::string name {};
+
+    if (info.Length() > 3) {
+        name = ToString(info[3]);
+    }
+
+    auto* inst = builder.CreateInsertValue(agg, val, idx, name);
+
+    info.GetReturnValue().Set(ValueWrapper::of(inst));
 }
 
 NAN_METHOD(IRBuilderWrapper::CreateIntCast) {

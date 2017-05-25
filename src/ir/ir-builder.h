@@ -37,12 +37,14 @@ private:
     static NAN_METHOD(CreateBr);
     static NAN_METHOD(CreateCall);
     static NAN_METHOD(CreateCondBr);
+    static NAN_METHOD(CreateExtractValue);
     static NAN_METHOD(CreateFNeg);
     static NAN_METHOD(CreateGlobalStringPtr);
     static NAN_METHOD(CreateGlobalString);
     static NAN_METHOD(CreateInBoundsGEP);
     static NAN_METHOD(CreateInBoundsGEPWithoutType);
     static NAN_METHOD(CreateInBoundsGEPWithType);
+    static NAN_METHOD(CreateInsertValue);
     static NAN_METHOD(CreateIntCast);
     static NAN_METHOD(CreateLoad);
     static NAN_METHOD(CreateNeg);
