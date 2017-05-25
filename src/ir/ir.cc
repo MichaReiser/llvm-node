@@ -32,6 +32,7 @@
 #include "constant-array.h"
 #include "visibility-types.h"
 #include "attribute.h"
+#include "undef-value.h"
 
 NAN_MODULE_INIT(InitIR) {
     AllocaInstWrapper::Init(target);
@@ -61,6 +62,7 @@ NAN_MODULE_INIT(InitIR) {
     PointerTypeWrapper::Init(target);
     StructTypeWrapper::Init(target);
     TypeWrapper::Init(target);
+    UndefValueWrapper::Init(target);
     ValueWrapper::Init(target);
     InitVerifier(target);
     InitVisibilityTypes(target);
