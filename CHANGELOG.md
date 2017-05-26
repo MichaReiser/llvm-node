@@ -1,3 +1,9 @@
+#### 2.0.1 (2017-5-26)
+
+##### Bug Fixes
+
+* **Value:** Fix release implementation for LLVM 5 (89ed19dc)
+
 ## 2.0.0 (2017-5-25)
 
 ##### New Features
