@@ -16,7 +16,10 @@ NAN_MODULE_INIT(ModuleWrapper::Init) {
     functionTemplate->SetClassName(Nan::New("Module").ToLocalChecked());
     functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
+#if LLVM_NODE_DEBUG
     Nan::SetPrototypeMethod(functionTemplate, "dump", dump);
+#endif
+
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("empty").ToLocalChecked(), empty);
     Nan::SetPrototypeMethod(functionTemplate, "getFunction", getFunction);
     Nan::SetPrototypeMethod(functionTemplate, "getOrInsertFunction", getOrInsertFunction);
@@ -52,9 +55,11 @@ NAN_METHOD(ModuleWrapper::New) {
     info.GetReturnValue().Set(info.This());
 }
 
+#if LLVM_NODE_DEBUG
 NAN_METHOD(ModuleWrapper::dump) {
     ModuleWrapper::FromValue(info.Holder())->module->dump();
 }
+#endif
 
 NAN_GETTER(ModuleWrapper::empty) {
     bool empty = ModuleWrapper::FromValue(info.Holder())->module->empty();
