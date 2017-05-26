@@ -21,6 +21,7 @@ before_install:
 - echo $LLVM_DEB | sudo tee -a /etc/apt/sources.list
 - sudo apt-get update -qq
 - sudo apt-get install clang-$LLVM_VERSION clang++-$LLVM_VERSION llvm-$LLVM_VERSION llvm-$LLVM_VERSION-dev
+- llvm-config-$LLVM_VERSION --targets-built
 
 install:
 - npm install --LLVM_CONFIG=llvm-config-$LLVM_VERSION
