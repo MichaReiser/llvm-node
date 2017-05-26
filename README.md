@@ -39,5 +39,14 @@ To build llvm-node against a custom --- not the systems default --- LLVM install
 GYP_DEFINES="LLVM_CONFIG=/path/to/llvm-config" npm install llvm-node --save-dev
 ```
 
-The `LLVM_CONFIG` value must point to the `llvm-config` executable. 
+The `LLVM_CONFIG` value must point to the `llvm-config` executable.
 
+The `LLVM_CONFIG` variable can also be set using [`npm config set`](https://docs.npmjs.com/cli/config) or a [`.npmrc`](https://docs.npmjs.com/files/npmrc) file in your project.
+
+## Debug Build
+If you want to use `Value.dump` or `Module.dump` you need to use the debug build of the library (and, as well, of LLVM).
+In this case, run `node-gyp build --debug` or if using `npm install` run `npm_config_DEBUG=true npm install llvm-node`.
+
+There variables can also be set using npm set:
+
+`npm config set [--global] DEBUG True`

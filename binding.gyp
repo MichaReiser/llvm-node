@@ -5,7 +5,7 @@
     "targets": [
         {
             "target_name": "llvm",
-            "default_configuration": "Debug",
+            "default_configuration": "Release",
             "sources": [
                 "src/llvm-node.cc",
                 "src/bitcode/bitcode.cc",
@@ -75,7 +75,7 @@
             ],
             "configurations": {
                 "Debug": {
-                    "defines": [ "DEBUG", "_DEBUG" ]
+                    "defines": [ "LLVM_NODE_DEBUG", "_DEBUG" ]
                 },
                 "Release": {
                     "cflags": [

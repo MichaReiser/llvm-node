@@ -69,12 +69,14 @@ describe("ir/module", () => {
         });
     });
 
-    describe("dump", () => {
-        test("dumps the module", () => {
-            const mod = new llvm.Module("test", context);
-            mod.dump();
+    if (llvm.Module.prototype.dump) {
+        describe("dump", () => {
+            test("dumps the module", () => {
+                const mod = new llvm.Module("test", context);
+                mod.dump!();
+            });
         });
-    });
+    }
 
     describe("getFunction", () => {
         test("returns the function with the given name", () => {

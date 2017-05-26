@@ -26,7 +26,10 @@ Nan::Persistent<v8::FunctionTemplate>& ValueWrapper::valueTemplate() {
         localTemplate->SetClassName(Nan::New("Value").ToLocalChecked());
         localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
+#if defined(LLVM_NODE_DEBUG)
         Nan::SetPrototypeMethod(localTemplate, "dump", ValueWrapper::dump);
+#endif
+
         Nan::SetPrototypeMethod(localTemplate, "hasName", ValueWrapper::hasName);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("type").ToLocalChecked(), ValueWrapper::getType);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), ValueWrapper::getName,
@@ -62,9 +65,11 @@ NAN_METHOD(ValueWrapper::New) {
     info.GetReturnValue().Set(info.This());
 }
 
+#if defined(LLVM_NODE_DEBUG)
 NAN_METHOD(ValueWrapper::dump) {
     ValueWrapper::FromValue(info.Holder())->value->dump();
 }
+#endif
 
 NAN_GETTER(ValueWrapper::getType) {
     auto* type = ValueWrapper::FromValue(info.Holder())->value->getType();

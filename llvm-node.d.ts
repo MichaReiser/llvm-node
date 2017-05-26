@@ -105,7 +105,7 @@ declare namespace llvm {
         type: Type;
         name: string;
 
-        dump(): void;
+        dump?: () => void;
         hasName(): boolean;
 
         /**
@@ -484,7 +484,7 @@ declare namespace llvm {
 
         constructor(moduleId: string, context: LLVMContext);
 
-        dump(): void;
+        dump?: () => void;
         print(): string;
         getFunction(name: string): Function;
         getOrInsertFunction(name: string, functionType: FunctionType): Constant;

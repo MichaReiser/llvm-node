@@ -45,10 +45,12 @@ describe("Value", () => {
         });
     });
 
-    describe("dump", () => {
-        it("dumps the value", () => {
-            const value = new llvm.Argument(llvm.Type.getDoubleTy(context));
-            value.dump();
+    if (llvm.Value.prototype.dump) {
+        describe("dump", () => {
+            it("dumps the value", () => {
+                const value = new llvm.Argument(llvm.Type.getDoubleTy(context));
+                value.dump();
+            });
         });
-    });
+    }
 });
