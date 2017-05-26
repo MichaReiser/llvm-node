@@ -112,6 +112,7 @@ declare namespace llvm {
          * Deletes the value. It is, therefore, forbidden to use the value any further
          */
         release(): void;
+        deleteValue(): void;
 
         replaceAllUsesWith(value: Value): void;
         useEmpty(): boolean;
