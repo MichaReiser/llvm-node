@@ -31,7 +31,8 @@ Nan::Persistent<v8::FunctionTemplate>& ValueWrapper::valueTemplate() {
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("type").ToLocalChecked(), ValueWrapper::getType);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), ValueWrapper::getName,
                          ValueWrapper::setName);
-        Nan::SetPrototypeMethod(localTemplate, "release", BasicBlockWrapper::release);
+        Nan::SetPrototypeMethod(localTemplate, "release", BasicBlockWrapper::deleteValue);
+        Nan::SetPrototypeMethod(localTemplate, "deleteValue", BasicBlockWrapper::deleteValue);
         Nan::SetPrototypeMethod(localTemplate, "replaceAllUsesWith", BasicBlockWrapper::replaceAllUsesWith);
         Nan::SetPrototypeMethod(localTemplate, "useEmpty", BasicBlockWrapper::useEmpty);
 
@@ -93,9 +94,13 @@ NAN_SETTER(ValueWrapper::setName) {
     ValueWrapper::FromValue(info.Holder())->value->setName(ToString(name));
 }
 
-NAN_METHOD(ValueWrapper::release) {
+NAN_METHOD(ValueWrapper::deleteValue) {
     auto* wrapper = ValueWrapper::FromValue(info.Holder());
+#if LLVM_VERSION_MAJOR == 4
     delete wrapper->getValue();
+#else
+    wrapper->getValue()->deleteValue();
+#endif
 }
 
 NAN_METHOD(ValueWrapper::replaceAllUsesWith) {
