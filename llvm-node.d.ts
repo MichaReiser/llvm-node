@@ -207,6 +207,7 @@ declare namespace llvm {
 
         callingConv: CallingConv;
         visibility: VisibilityTypes;
+        type: PointerType & { elementType: FunctionType };
 
         private constructor();
         addBasicBlock(basicBlock: BasicBlock): void;
