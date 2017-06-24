@@ -349,8 +349,6 @@ declare namespace llvm {
         isStructTy(): boolean;
         isArrayTy(): boolean;
         isPointerTy(): boolean;
-        isDoubleTy(): boolean;
-        isVoidTy(): boolean;
         getPointerTo(addressSpace?: number): PointerType;
         getPrimitiveSizeInBits(): number;
 
@@ -448,6 +446,9 @@ declare namespace llvm {
         createICmpSGT(lhs: Value, rhs: Value, name?: string): Value;
         createICmpSLE(lhs: Value, rhs: Value, name?: string): Value;
         createICmpSLT(lhs: Value, rhs: Value, name?: string): Value;
+        createICmpUGE(lhs: Value, rhs: Value, name?: string): Value;
+        createICmpUGT(lhs: Value, rhs: Value, name?: string): Value;
+        createICmpULE(lhs: Value, rhs: Value, name?: string): Value;
         createICmpULT(lhs: Value, rhs: Value, name?: string): Value;
         createLoad(ptr: Value, name?: string): Value;
         createLShr(lhs: Value, rhs: Value, name?: string): Value;

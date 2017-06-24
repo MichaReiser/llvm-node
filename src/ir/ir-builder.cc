@@ -109,7 +109,10 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSGT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSGT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSLT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSLT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpSLE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpSLE>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createICmpUGE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpUGE>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createICmpUGT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpUGT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpULT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpULT>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createICmpULE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpULE>>);
     Nan::SetPrototypeMethod(functionTemplate, "createLoad", IRBuilderWrapper::CreateLoad);
     Nan::SetPrototypeMethod(functionTemplate, "createLShr", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateLShr>>);
     Nan::SetPrototypeMethod(functionTemplate, "createMul", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateMul>>);
