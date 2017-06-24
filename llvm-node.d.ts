@@ -344,7 +344,7 @@ declare namespace llvm {
         isFloatTy(): boolean;
         isDoubleTy(): boolean;
         isLabelTy(): boolean;
-        isIntegerTy(): boolean;
+        isIntegerTy(bitWidth?: number): boolean;
         isFunctionTy(): boolean;
         isStructTy(): boolean;
         isArrayTy(): boolean;
