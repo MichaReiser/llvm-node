@@ -157,6 +157,16 @@ NAN_METHOD(isOfType) {
     info.GetReturnValue().Set(result);
 }
 
+NAN_METHOD(isIntegerTy) {
+    if (info.Length() > 1 && info[0]->IsUint32()) {
+        return Nan::ThrowTypeError("isIntegerTy needs to be called with: bitwidth?: uint32");
+    }
+
+    llvm::Type* type = TypeWrapper::FromValue(info.Holder())->getType();
+    bool result = info.Length() == 0 ? type->isIntegerTy() : type->isIntegerTy(Nan::To<uint32_t>(info[0]).FromJust());
+    info.GetReturnValue().Set(Nan::New(result));
+}
+
 NAN_GETTER(TypeWrapper::getTypeID) {
     auto* wrapper = TypeWrapper::FromValue(info.Holder());
     auto result = Nan::New(wrapper->type->getTypeID());
@@ -208,7 +218,7 @@ Nan::Persistent<v8::FunctionTemplate>& TypeWrapper::typeTemplate() {
         Nan::SetPrototypeMethod(typeTemplate, "isFloatTy", &isOfType<&llvm::Type::isFloatTy>);
         Nan::SetPrototypeMethod(typeTemplate, "isDoubleTy", &isOfType<&llvm::Type::isDoubleTy>);
         Nan::SetPrototypeMethod(typeTemplate, "isLabelTy", &isOfType<&llvm::Type::isLabelTy>);
-        Nan::SetPrototypeMethod(typeTemplate, "isIntegerTy", &isOfType<&llvm::Type::isIntegerTy>);
+        Nan::SetPrototypeMethod(typeTemplate, "isIntegerTy", &isIntegerTy);
         Nan::SetPrototypeMethod(typeTemplate, "isFunctionTy", &isOfType<&llvm::Type::isFunctionTy>);
         Nan::SetPrototypeMethod(typeTemplate, "isStructTy", &isOfType<&llvm::Type::isStructTy>);
         Nan::SetPrototypeMethod(typeTemplate, "isArrayTy", &isOfType<&llvm::Type::isArrayTy>);
