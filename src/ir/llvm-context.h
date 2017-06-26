@@ -16,6 +16,9 @@ public:
     static bool isInstance(v8::Local<v8::Value> value);
     llvm::LLVMContext& getContext();
 
+    static v8::Local<v8::Object> of(llvm::LLVMContext &llvmContext);
+
+
 private:
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate;
     llvm::LLVMContext context;
