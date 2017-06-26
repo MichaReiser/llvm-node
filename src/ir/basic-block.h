@@ -33,6 +33,7 @@ private:
     static NAN_GETTER(empty);
     static NAN_GETTER(getParent);
     static NAN_METHOD(getTerminator);
+    static NAN_GETTER(getContext);
 
     static Nan::Persistent<v8::FunctionTemplate>& basicBlockTemplate();
 };

@@ -15,6 +15,15 @@ NAN_MODULE_INIT(LLVMContextWrapper::Init) {
     Nan::Set(target, Nan::New("LLVMContext").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
+v8::Local<v8::Object> LLVMContextWrapper::of(llvm::LLVMContext &llvmContext) {
+    auto constructorFunction = Nan::GetFunction(Nan::New(functionTemplate)).ToLocalChecked();
+    v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(&llvmContext) };
+    auto instance = Nan::NewInstance(constructorFunction, 1, argv).ToLocalChecked();
+
+    Nan::EscapableHandleScope escapeScope {};
+    return escapeScope.Escape(instance);
+}
+
 NAN_METHOD(LLVMContextWrapper::New) {
     if (!info.IsConstructCall()) {
         return Nan::ThrowTypeError("LLVMContext functionTemplate needs to be called with new");

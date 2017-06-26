@@ -16,7 +16,7 @@ typedef llvm::Value* (*BinaryOpFn)(llvm::IRBuilder<>& builder, llvm::Value*, llv
 template<BinaryOpFn method>
 NAN_METHOD(NANBinaryOperation) {
     if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1])
-        || (info.Length() == 3 && !info[2]->IsString())
+        || (info.Length() == 3 && !(info[2]->IsString() || info[2]->IsUndefined()))
         || info.Length() > 3) {
         return Nan::ThrowTypeError("Binary operation needs to be called with: lhs: Value, rhs: Value, name: string?");
     }
@@ -25,7 +25,7 @@ NAN_METHOD(NANBinaryOperation) {
     auto* rhs = ValueWrapper::FromValue(info[1])->getValue();
     std::string name {};
 
-    if (info.Length() == 3) {
+    if (info.Length() == 3 && !info[2]->IsUndefined()) {
         name = ToString(info[2]);
     }
 
@@ -147,7 +147,7 @@ NAN_METHOD(IRBuilderWrapper::New) {
     }
 
     if (info.Length() < 1 || !(LLVMContextWrapper::isInstance(info[0]) || BasicBlockWrapper::isInstance(info[0]))
-            || (info.Length() == 2 && !ValueWrapper::isInstance(info[1])) ||
+            || (info.Length() == 2 && !(ValueWrapper::isInstance(info[1]) || info[1]->IsUndefined())) ||
             info.Length() > 2) {
         return Nan::ThrowTypeError("IRBuilder constructor needs either be called with context: LLVMContext or basicBlock: BasicBlock, insertBefore?: Instruction");
     }
@@ -156,7 +156,7 @@ NAN_METHOD(IRBuilderWrapper::New) {
     if (LLVMContextWrapper::isInstance(info[0])) {
         auto& llvmContext = LLVMContextWrapper::FromValue(info[0])->getContext();
         wrapper = new IRBuilderWrapper { llvm::IRBuilder<> { llvmContext } };
-    } else if (info.Length() == 1){
+    } else if (info.Length() == 1 || info[1]->IsUndefined()){
         auto* basicBlock = BasicBlockWrapper::FromValue(info[0])->getBasicBlock();
         wrapper = new IRBuilderWrapper { llvm::IRBuilder<> { basicBlock, basicBlock->begin() } };
     } else {
@@ -174,7 +174,7 @@ typedef llvm::Value* (llvm::IRBuilder<>::*ConvertOperationFn)(llvm::Value*, llvm
 template<ConvertOperationFn method>
 NAN_METHOD(IRBuilderWrapper::ConvertOperation) {
     if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !TypeWrapper::isInstance(info[1])
-        || (info.Length() == 3 && !info[2]->IsString())
+        || (info.Length() == 3 && !(info[2]->IsString() || info[2]->IsUndefined()))
         || info.Length() > 3) {
         return Nan::ThrowTypeError("Convert operation needs to be called with: value: Value, type: Type, name: string?");
     }
@@ -183,7 +183,7 @@ NAN_METHOD(IRBuilderWrapper::ConvertOperation) {
     auto* type = TypeWrapper::FromValue(info[1])->getType();
     std::string name {};
 
-    if (info.Length() == 3) {
+    if (info.Length() == 3 && !info[2]->IsUndefined()) {
         name = ToString(info[2]);
     }
 
@@ -214,7 +214,7 @@ NAN_METHOD(IRBuilderWrapper::CreateAlignedLoad) {
 
 NAN_METHOD(IRBuilderWrapper::CreateAlignedStore) {
     if (info.Length() < 3 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1]) || !info[2]->IsUint32()
-            || (info.Length() == 4 && !info[3]->IsBoolean())) {
+            || (info.Length() == 4 && !(info[3]->IsBoolean() || info[3]->IsUndefined()))) {
         return Nan::ThrowTypeError("createAlignedStore needs to be called with: value: Value, ptr: Value, align: uint32, volatile?: boolean");
     }
 
@@ -223,7 +223,7 @@ NAN_METHOD(IRBuilderWrapper::CreateAlignedStore) {
     auto align = Nan::To<uint32_t>(info[2]).FromJust();
     bool isVolatile = false;
 
-    if (info.Length() == 3) {
+    if (info.Length() == 4 && !info[3]->IsUndefined()) {
         isVolatile = Nan::To<bool>(info[3]).FromJust();
     }
 
@@ -259,7 +259,7 @@ NAN_METHOD(IRBuilderWrapper::CreateAlloca) {
 
 NAN_METHOD(IRBuilderWrapper::CreateExtractValue) {
     if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !info[1]->IsArray() ||
-        (info.Length() > 2 && !info[2]->IsString()) ||
+        (info.Length() > 2 && !(info[2]->IsString() || info[2]->IsUndefined())) ||
         info.Length() > 3) {
         return Nan::ThrowTypeError(
                 "createExtractValue needs to be called with: agg: Value, idxs: number[], name?: string");
@@ -270,7 +270,7 @@ NAN_METHOD(IRBuilderWrapper::CreateExtractValue) {
     auto idxs = toVector<unsigned>(info[1]);
     std::string name {};
 
-    if (info.Length() > 2) {
+    if (info.Length() > 2 && !info[2]->IsUndefined()) {
         name = ToString(info[2]);
     }
 
@@ -354,7 +354,7 @@ Nan::NAN_METHOD_RETURN_TYPE IRBuilderWrapper::CreateInBoundsGEPWithoutType(Nan::
 
 NAN_METHOD(IRBuilderWrapper::CreateInsertValue) {
     if (info.Length() < 3 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1]) || !info[2]->IsArray() ||
-            (info.Length() > 3 && !info[3]->IsString())) {
+            (info.Length() > 3 && !(info[3]->IsString() || info[3]->IsUndefined()))) {
         return Nan::ThrowTypeError("createInsertValue needs to be called with: agg: Value, val: Value, idx: unsigned[], name?: string");
     }
 
@@ -364,7 +364,7 @@ NAN_METHOD(IRBuilderWrapper::CreateInsertValue) {
     auto idx = toVector<unsigned>(info[2]);
     std::string name {};
 
-    if (info.Length() > 3) {
+    if (info.Length() > 3 && !info[3]->IsUndefined()) {
         name = ToString(info[3]);
     }
 
@@ -375,7 +375,7 @@ NAN_METHOD(IRBuilderWrapper::CreateInsertValue) {
 
 NAN_METHOD(IRBuilderWrapper::CreateIntCast) {
     if (info.Length() < 3 || !ValueWrapper::isInstance(info[0]) || !TypeWrapper::isInstance(info[1]) || !info[2]->IsBoolean() ||
-            (info.Length() == 4 && !info[3]->IsString()) ||
+            (info.Length() == 4 && !(info[3]->IsString() || info[3]->IsUndefined())) ||
             info.Length() > 4) {
         return Nan::ThrowTypeError("createIntCast needs to be called with: value: Value, type: Type, isSigned: boolean, name?: string");
     }
@@ -385,7 +385,7 @@ NAN_METHOD(IRBuilderWrapper::CreateIntCast) {
     auto isSigned = Nan::To<bool>(info[2]).FromJust();
     std::string name {};
 
-    if (info.Length() == 4) {
+    if (info.Length() == 4 && !info[3]->IsUndefined()) {
         name = ToString(info[3]);
     }
 
@@ -395,7 +395,7 @@ NAN_METHOD(IRBuilderWrapper::CreateIntCast) {
 
 NAN_METHOD(IRBuilderWrapper::CreateLoad) {
     if (info.Length() < 1 || !ValueWrapper::isInstance(info[0])
-            || (info.Length() > 1 && !info[1]->IsString())
+            || (info.Length() > 1 && !(info[1]->IsString() || info[1]->IsUndefined()))
             || info.Length() > 2) {
         return Nan::ThrowTypeError("createLoad needs to be called with: value: Value, name?: string");
     }
@@ -403,7 +403,7 @@ NAN_METHOD(IRBuilderWrapper::CreateLoad) {
     auto* value = ValueWrapper::FromValue(info[0])->getValue();
     std::string name {};
 
-    if (info.Length() > 1) {
+    if (info.Length() > 1 && !info[1]->IsUndefined()) {
         name = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
     }
 
@@ -414,11 +414,11 @@ NAN_METHOD(IRBuilderWrapper::CreateLoad) {
 
 NAN_METHOD(IRBuilderWrapper::CreateNeg) {
     if (info.Length() < 1 || !ValueWrapper::isInstance(info[0])
-        || (info.Length() > 1 && !info[1]->IsString())
-        || (info.Length() > 2 && !info[2]->IsBoolean())
-        || (info.Length() > 3 && !info[3]->IsBoolean())
+        || (info.Length() > 1 && !(info[1]->IsString() || info[1]->IsUndefined()))
+        || (info.Length() > 2 && !(info[2]->IsBoolean() || info[2]->IsUndefined()))
+        || (info.Length() > 3 && !(info[3]->IsBoolean() || info[3]->IsUndefined()))
         || info.Length() > 4) {
-        return Nan::ThrowTypeError("createNeg needs to be called with: value: Value, name?: string, hasNuw: boolean, hasNSW: boolean");
+        return Nan::ThrowTypeError("createNeg needs to be called with: value: Value, name?: string, hasNuw?: boolean, hasNSW?: boolean");
     }
 
     auto* value = ValueWrapper::FromValue(info[0])->getValue();
@@ -426,15 +426,15 @@ NAN_METHOD(IRBuilderWrapper::CreateNeg) {
     bool hasNUW {};
     bool hasNSW {};
 
-    if (info.Length() > 1) {
+    if (info.Length() > 1 && !info[1]->IsUndefined()) {
         name = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
     }
 
-    if (info.Length() > 2) {
+    if (info.Length() > 2 && !info[2]->IsUndefined()) {
         hasNUW = Nan::To<bool>(info[2]).FromJust();
     }
 
-    if (info.Length() > 3) {
+    if (info.Length() > 3 && !info[3]->IsUndefined()) {
         hasNSW = Nan::To<bool>(info[3]).FromJust();
     }
 
@@ -445,7 +445,7 @@ NAN_METHOD(IRBuilderWrapper::CreateNeg) {
 
 NAN_METHOD(IRBuilderWrapper::CreateNot) {
     if (info.Length() < 1 || !ValueWrapper::isInstance(info[0])
-        || (info.Length() == 2 && !info[1]->IsString())
+        || (info.Length() == 2 && !(info[1]->IsString() || info[2]->IsUndefined()))
         || info.Length() > 2) {
         return Nan::ThrowTypeError("createNot needs to be called with: value: Value, name?: string");
     }
@@ -453,7 +453,7 @@ NAN_METHOD(IRBuilderWrapper::CreateNot) {
     auto* value = ValueWrapper::FromValue(info[0])->getValue();
     std::string name {};
 
-    if (info.Length() == 2) {
+    if (info.Length() == 2 && !info[1]->IsUndefined()) {
         name = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
     }
 
@@ -464,7 +464,7 @@ NAN_METHOD(IRBuilderWrapper::CreateNot) {
 
 NAN_METHOD(IRBuilderWrapper::CreateStore) {
     if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1])
-            || (info.Length() > 2 && !info[2]->IsBoolean())
+            || (info.Length() > 2 && !(info[2]->IsBoolean() || info[2]->IsUndefined()))
             || info.Length() > 3) {
         return Nan::ThrowTypeError("createStore needs to be called with: value: Value, ptr: Value, isVolatile?: boolean");
     }
@@ -473,7 +473,7 @@ NAN_METHOD(IRBuilderWrapper::CreateStore) {
     auto* ptr = ValueWrapper::FromValue(info[1])->getValue();
     bool isVolatile = false;
 
-    if (info.Length() > 2) {
+    if (info.Length() > 2 && !info[2]->IsUndefined()) {
         isVolatile = Nan::To<bool>(info[2]).FromJust();
     }
 
@@ -510,21 +510,21 @@ NAN_METHOD(IRBuilderWrapper::CreateCall) {
 
 NAN_METHOD(IRBuilderWrapper::CreateGlobalString) {
     if (info.Length() < 1 || !info[0]->IsString() ||
-        (info.Length() > 1 && !info[1]->IsString()) ||
-        (info.Length() == 3 && !info[2]->IsUint32()) ||
+        (info.Length() > 1 && !(info[1]->IsString() || info[1]->IsUndefined())) ||
+        (info.Length() == 3 && !(info[2]->IsUint32() || info[2]->IsUndefined())) ||
         info.Length() > 3) {
-        return Nan::ThrowTypeError("createGlobalString needs to be called with: str: string, name?: string, addressSpace: uint32");
+        return Nan::ThrowTypeError("createGlobalString needs to be called with: str: string, name?: string, addressSpace?: uint32");
     }
 
     auto str = ToString(info[0]);
     std::string name {};
     uint32_t as = 0;
 
-    if (info.Length() > 1) {
+    if (info.Length() > 1 && !info[1]->IsUndefined()) {
         name = ToString(info[1]);
     }
 
-    if (info.Length() > 2) {
+    if (info.Length() > 2 && !info[2]->IsUndefined()) {
         as = Nan::To<uint32_t>(info[2]).FromJust();
     }
 
@@ -534,21 +534,21 @@ NAN_METHOD(IRBuilderWrapper::CreateGlobalString) {
 
 NAN_METHOD(IRBuilderWrapper::CreateGlobalStringPtr) {
     if (info.Length() < 1 || !info[0]->IsString() ||
-            (info.Length() > 1 && !info[1]->IsString()) ||
-            (info.Length() == 3 && !info[2]->IsUint32()) ||
+            (info.Length() > 1 && !(info[1]->IsString() || info[1]->IsUndefined())) ||
+            (info.Length() == 3 && !(info[2]->IsUint32() || info[2]->IsUndefined())) ||
             info.Length() > 3) {
-        return Nan::ThrowTypeError("createGlobalStringPtr needs to be called with: str: string, name?: string, addressSpace: uint32");
+        return Nan::ThrowTypeError("createGlobalStringPtr needs to be called with: str: string, name?: string, addressSpace?: uint32");
     }
 
     auto str = ToString(info[0]);
     std::string name {};
     uint32_t as = 0;
 
-    if (info.Length() > 1) {
+    if (info.Length() > 1 && !info[1]->IsUndefined()) {
         name = ToString(info[1]);
     }
 
-    if (info.Length() > 2) {
+    if (info.Length() > 2 && !info[2]->IsUndefined()) {
         as = Nan::To<uint32_t>(info[2]).FromJust();
     }
 
@@ -558,7 +558,7 @@ NAN_METHOD(IRBuilderWrapper::CreateGlobalStringPtr) {
 
 NAN_METHOD(IRBuilderWrapper::CreatePHI) {
     if (info.Length() < 2 || !TypeWrapper::isInstance(info[0]) || !info[1]->IsUint32()
-            || (info.Length() == 3 && !info[2]->IsString())
+            || (info.Length() == 3 && !(info[2]->IsString() || info[2]->IsUndefined()))
             || info.Length() > 3) {
         return Nan::ThrowTypeError("createPhi needs to be called with: type: Type, numReservedValues: uint32, name: string?");
     }
@@ -567,7 +567,7 @@ NAN_METHOD(IRBuilderWrapper::CreatePHI) {
     auto numReservedValues = Nan::To<uint32_t>(info[1]).FromJust();
     std::string name {};
 
-    if (info.Length() == 3) {
+    if (info.Length() == 3 && !info[2]->IsUndefined()) {
         name = ToString(Nan::To<v8::String>(info[2]).ToLocalChecked());
     }
 
@@ -595,7 +595,7 @@ NAN_METHOD(IRBuilderWrapper::CreateRetVoid) {
 
 NAN_METHOD(IRBuilderWrapper::CreateSelect) {
     if (info.Length() < 3 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1]) || !ValueWrapper::isInstance(info[2]) ||
-            (info.Length() == 4 && !info[3]->IsString()) ||
+            (info.Length() == 4 && !(info[3]->IsString() || info[3]->IsUndefined())) ||
             info.Length() > 4) {
         return Nan::ThrowTypeError("createSelect needs to be called with: condition: Value, true: Value, false: Value, name?: string");
     }
@@ -606,7 +606,7 @@ NAN_METHOD(IRBuilderWrapper::CreateSelect) {
     auto* falseValue = ValueWrapper::FromValue(info[2])->getValue();
     std::string name {};
 
-    if (info.Length() == 4) {
+    if (info.Length() == 4 && !info[3]->IsUndefined()) {
         name = ToString(info[3]);
     }
 
@@ -657,14 +657,14 @@ NAN_METHOD(IRBuilderWrapper::CreateCondBr) {
 
 NAN_METHOD(IRBuilderWrapper::CreateFNeg) {
     if (info.Length() < 1 || !ValueWrapper::isInstance(info[0]) ||
-            (info.Length() == 2 && !info[1]->IsString())) {
+            (info.Length() == 2 && !(info[1]->IsString() || info[1]->IsUndefined()))) {
         return Nan::ThrowTypeError("createFNeg needs to be called with: value: Value, name?: string");
     }
 
     auto* value = ValueWrapper::FromValue(info[0])->getValue();
     std::string name {};
 
-    if (info.Length() == 2) {
+    if (info.Length() == 2 && !info[1]->IsUndefined()) {
         name = ToString(info[1]);
     }
 

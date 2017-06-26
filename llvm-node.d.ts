@@ -143,6 +143,7 @@ declare namespace llvm {
 
         parent?: Function;
         empty: boolean;
+        context: LLVMContext;
         eraseFromParent(): void;
         getTerminator(): Value | undefined;
     }
@@ -210,6 +211,7 @@ declare namespace llvm {
         type: PointerType & { elementType: FunctionType };
 
         private constructor();
+        addAttribute(index: number, attribute: Attribute.AttrKind): void;
         addBasicBlock(basicBlock: BasicBlock): void;
         addDereferenceableAttr(attributeIndex: number, bytes: number): void;
         addDereferenceableOrNullAttr(attributeIndex: number, bytes: number): void;
@@ -401,7 +403,7 @@ declare namespace llvm {
 
     class IRBuilder {
         constructor(context: LLVMContext);
-        constructor(basicBlock: BasicBlock, beforeInstruction: Value);
+        constructor(basicBlock: BasicBlock, beforeInstruction?: Value);
 
         setInsertionPoint(basicBlock: BasicBlock): void;
         createAdd(lhs: Value, rhs: Value, name?: string): Value;
