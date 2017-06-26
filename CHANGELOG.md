@@ -1,3 +1,14 @@
+#### 2.0.3 (2017-06-26)
+
+##### New Features
+
+* **Function:** Add addAttribute function (a6196dff)
+* **BasicBlock:** Add context property (182ac9cd)
+
+##### Bug Fixes
+
+* **IRBuilder:** Test is optional arguments are not undefined (51d091c0)
+
 #### 2.0.2 (2017-6-23)
 
 #### 2.0.1 (2017-5-26)
