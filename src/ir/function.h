@@ -28,6 +28,7 @@ private:
     static NAN_METHOD(Create);
 
     // instance
+    static NAN_METHOD(addAttribute);
     static NAN_METHOD(addBasicBlock);
     static NAN_METHOD(addDereferenceableAttr);
     static NAN_METHOD(addDereferenceableOrNullAttr);

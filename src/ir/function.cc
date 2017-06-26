@@ -44,6 +44,7 @@ Nan::Persistent<v8::FunctionTemplate> &FunctionWrapper::functionTemplate() {
         localTemplate->Inherit(valueTemplate);
 
         Nan::SetMethod(localTemplate, "create", FunctionWrapper::Create);
+        Nan::SetPrototypeMethod(localTemplate, "addAttribute", FunctionWrapper::addAttribute);
         Nan::SetPrototypeMethod(localTemplate, "addBasicBlock", FunctionWrapper::addBasicBlock);
         Nan::SetPrototypeMethod(localTemplate, "addDereferenceableAttr", FunctionWrapper::addDereferenceableAttr);
         Nan::SetPrototypeMethod(localTemplate, "addDereferenceableOrNullAttr", FunctionWrapper::addDereferenceableOrNullAttr);
@@ -118,6 +119,19 @@ NAN_METHOD(FunctionWrapper::addFnAttr) {
     auto attribute = static_cast<llvm::Attribute::AttrKind>(Nan::To<uint32_t>(info[0]).FromJust());
 
     function->addFnAttr(attribute);
+}
+
+NAN_METHOD(FunctionWrapper::addAttribute) {
+    if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32()) {
+        return Nan::ThrowTypeError("addAttr needs to be called with: i: uint32, attribute: Attribute.AttrKind");
+    }
+
+
+    auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
+    auto i = Nan::To<uint32_t>(info[0]).FromJust();
+    auto attribute = static_cast<llvm::Attribute::AttrKind>(Nan::To<uint32_t>(info[1]).FromJust());
+
+    function->addAttribute(i, attribute);
 }
 
 NAN_METHOD(FunctionWrapper::addDereferenceableAttr) {
