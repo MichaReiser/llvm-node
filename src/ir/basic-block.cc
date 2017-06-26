@@ -88,6 +88,14 @@ NAN_GETTER(BasicBlockWrapper::getParent) {
     }
 }
 
+NAN_GETTER(BasicBlockWrapper::getContext) {
+    auto* wrapper = BasicBlockWrapper::FromValue(info.Holder());
+    auto& context = wrapper->getBasicBlock()->getContext();
+
+    info.GetReturnValue().Set(LLVMContextWrapper::of(context));
+}
+
+
 NAN_METHOD(BasicBlockWrapper::getTerminator) {
     auto* basicBlock = BasicBlockWrapper::FromValue(info.Holder())->getBasicBlock();
     auto* terminator = basicBlock->getTerminator();
@@ -112,6 +120,7 @@ Nan::Persistent<v8::FunctionTemplate>& BasicBlockWrapper::basicBlockTemplate() {
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("empty").ToLocalChecked(), BasicBlockWrapper::empty);
         Nan::SetPrototypeMethod(localTemplate, "eraseFromParent", BasicBlockWrapper::eraseFromParent);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("parent").ToLocalChecked(), BasicBlockWrapper::getParent);
+        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("context").ToLocalChecked(), BasicBlockWrapper::getContext);
         Nan::SetPrototypeMethod(localTemplate, "getTerminator", BasicBlockWrapper::getTerminator);
 
         functionTemplate.Reset(localTemplate);
