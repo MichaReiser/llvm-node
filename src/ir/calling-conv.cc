@@ -3,6 +3,7 @@
 //
 
 #include "calling-conv.h"
+#include <llvm/Config/llvm-config.h>
 #include <llvm/IR/CallingConv.h>
 
 NAN_MODULE_INIT(InitCallingConv) {
@@ -33,7 +34,14 @@ NAN_MODULE_INIT(InitCallingConv) {
     Nan::Set(object, Nan::New("SPIR_KERNEL").ToLocalChecked(), Nan::New(llvm::CallingConv::SPIR_KERNEL));
     Nan::Set(object, Nan::New("Intel_OCL_BI").ToLocalChecked(), Nan::New(llvm::CallingConv::Intel_OCL_BI));
     Nan::Set(object, Nan::New("X86_64_SysV").ToLocalChecked(), Nan::New(llvm::CallingConv::X86_64_SysV));
+
+#if LLVM_VERSION_MAJOR == 4
     Nan::Set(object, Nan::New("X86_64_Win64").ToLocalChecked(), Nan::New(llvm::CallingConv::X86_64_Win64));
+#else
+    Nan::Set(object, Nan::New("X86_64_Win64").ToLocalChecked(), Nan::New(llvm::CallingConv::Win64));
+    Nan::Set(object, Nan::New("Win64").ToLocalChecked(), Nan::New(llvm::CallingConv::Win64));
+#endif
+
     Nan::Set(object, Nan::New("X86_VectorCall").ToLocalChecked(), Nan::New(llvm::CallingConv::X86_VectorCall));
     Nan::Set(object, Nan::New("HHVM").ToLocalChecked(), Nan::New(llvm::CallingConv::HHVM));
     Nan::Set(object, Nan::New("HHVM_C").ToLocalChecked(), Nan::New(llvm::CallingConv::HHVM_C));
@@ -41,6 +49,13 @@ NAN_MODULE_INIT(InitCallingConv) {
     Nan::Set(object, Nan::New("AVR_INTR").ToLocalChecked(), Nan::New(llvm::CallingConv::AVR_INTR));
     Nan::Set(object, Nan::New("AVR_SIGNAL").ToLocalChecked(), Nan::New(llvm::CallingConv::AVR_SIGNAL));
     Nan::Set(object, Nan::New("AVR_BUILTIN").ToLocalChecked(), Nan::New(llvm::CallingConv::AVR_BUILTIN));
+    Nan::Set(object, Nan::New("AMDGPU_VS").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_VS));
+    Nan::Set(object, Nan::New("AMDGPU_GS").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_GS));
+    Nan::Set(object, Nan::New("AMDGPU_PS").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_PS));
+    Nan::Set(object, Nan::New("AMDGPU_CS").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_CS));
+    Nan::Set(object, Nan::New("AMDGPU_KERNEL").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_CS));
+    Nan::Set(object, Nan::New("X86_RegCall").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_CS));
+    Nan::Set(object, Nan::New("MSP430_BUILTIN").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_CS));
     Nan::Set(object, Nan::New("MaxID").ToLocalChecked(), Nan::New(llvm::CallingConv::MaxID));
 
     Nan::Set(target, Nan::New("CallingConv").ToLocalChecked(), object);
