@@ -278,7 +278,11 @@ declare namespace llvm {
         SPIR_KERNEL,
         Intel_OCL_BI,
         X86_64_SysV,
+        /**
+         * @deprecated use Win64 instead
+         */
         X86_64_Win64,
+        Win64,
         X86_VectorCall,
         HHVM,
         HHVM_C,
@@ -286,7 +290,15 @@ declare namespace llvm {
         AVR_INTR,
         AVR_SIGNAL,
         AVR_BUILTIN,
-        MaxID,
+        AMDGPU_VS,
+        AMDGPU_GS,
+        AMDGPU_PS,
+        AMDGPU_CS,
+        AMDGPU_KERNEL,
+        X86_RegCall,
+        AMDGPU_HS,
+        MSP430_BUILTIN,
+        MaxID
     }
 
     class UndefValue {
