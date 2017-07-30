@@ -11,6 +11,7 @@
 #include "alloca-inst.h"
 #include "call-inst.h"
 #include "../util/array.h"
+#include "function-type.h"
 
 typedef llvm::Value* (*BinaryOpFn)(llvm::IRBuilder<>& builder, llvm::Value*, llvm::Value*, const llvm::Twine&);
 template<BinaryOpFn method>
@@ -482,16 +483,33 @@ NAN_METHOD(IRBuilderWrapper::CreateStore) {
 }
 
 NAN_METHOD(IRBuilderWrapper::CreateCall) {
-    if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !info[1]->IsArray()
-            || (info.Length() > 3 && (!info[2]->IsUndefined() || !info[2]->IsString()))
-            || info.Length() > 3){
-        return Nan::ThrowTypeError("createCall needs to be called with: callee: Value, args: Value[], name: string?");
+    llvm::FunctionType* functionType {};
+    llvm::Value* callee {};
+    v8::Array* argsArray {};
+    std::string name {};
+
+    if (info.Length() > 1 && ValueWrapper::isInstance(info[0]) && info[1]->IsArray() &&
+            (info.Length() < 3 || info[2]->IsUndefined() || info[2]->IsString())) {
+        callee = ValueWrapper::FromValue(info[0])->getValue();
+        argsArray = v8::Array::Cast(*info[1]);
+
+        if (info.Length() == 3  && !info[2]->IsUndefined()) {
+            name = ToString(Nan::To<v8::String>(info[2]).ToLocalChecked());
+        }
+    } else if (info.Length() > 1 && FunctionTypeWrapper::isInstance(info[0]) && ValueWrapper::isInstance(info[1]) && info[2]->IsArray() &&
+            (info.Length() < 4 || info[3]->IsUndefined() || info[3]->IsString())) {
+        functionType = FunctionTypeWrapper::FromValue(info[0])->getFunctionType();
+        callee = ValueWrapper::FromValue(info[1])->getValue();
+        argsArray = v8::Array::Cast(*info[2]);
+
+        if (info.Length() == 4 && !info[3]->IsUndefined()) {
+            name = ToString(Nan::To<v8::String>(info[3]).ToLocalChecked());
+        }
+    } else {
+        return Nan::ThrowTypeError("createCall needs to be called with: callee: Value, args: Value[], name: string? or fty: FunctionType, callee: Value, args: ArrayRef, name?: string");
     }
 
-    auto* callee = ValueWrapper::FromValue(info[0])->getValue();
-    auto* argsArray = v8::Array::Cast(*info[1]);
     std::vector<llvm::Value*> args { argsArray->Length() };
-    std::string name {};
 
     for (uint32_t i = 0; i < argsArray->Length(); ++i) {
         if (!ValueWrapper::isInstance(argsArray->Get(i))) {
@@ -500,12 +518,15 @@ NAN_METHOD(IRBuilderWrapper::CreateCall) {
         args[i] = ValueWrapper::FromValue(argsArray->Get(i))->getValue();
     }
 
-    if (info.Length() == 3  && !info[2]->IsUndefined()) {
-        name = ToString(Nan::To<v8::String>(info[2]).ToLocalChecked());
-    }
+    llvm::CallInst* callInst {};
+    llvm::IRBuilder<>& irBuilder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
 
-    auto* callInstr = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateCall(callee, args, name);
-    info.GetReturnValue().Set(CallInstWrapper::of(callInstr));
+    if (functionType == nullptr) {
+        callInst = irBuilder.CreateCall(callee, args, name);
+    } else {
+        callInst = irBuilder.CreateCall(functionType, callee, args, name);
+    }
+    info.GetReturnValue().Set(CallInstWrapper::of(callInst));
 }
 
 NAN_METHOD(IRBuilderWrapper::CreateGlobalString) {
