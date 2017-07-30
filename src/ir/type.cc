@@ -53,6 +53,17 @@ NAN_METHOD(TypeWrapper::New) {
     info.GetReturnValue().Set(info.This());
 }
 
+NAN_METHOD(TypeWrapper::equals) {
+    if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
+        return Nan::ThrowTypeError("equals needs to be called with: other: Type");
+    }
+
+    llvm::Type* that = TypeWrapper::FromValue(info.Holder())->getType();
+    llvm::Type* other = TypeWrapper::FromValue(info[0])->getType();
+
+    info.GetReturnValue().Set(Nan::New(that == other));
+}
+
 NAN_METHOD(TypeWrapper::getPointerTo) {
     if ((info.Length() == 1 && !info[0]->IsUint32()) || info.Length() > 1) {
         return Nan::ThrowTypeError("getPointer needs to called with: addrSpace?: uint32");
@@ -214,6 +225,7 @@ Nan::Persistent<v8::FunctionTemplate>& TypeWrapper::typeTemplate() {
         Nan::SetMethod(typeTemplate, "getInt8PtrTy", &getPointerType<&llvm::Type::getInt8PtrTy>);
         Nan::SetMethod(typeTemplate, "getInt32PtrTy", &getPointerType<&llvm::Type::getInt32PtrTy>);
 
+        Nan::SetPrototypeMethod(typeTemplate, "equals", &equals);
         Nan::SetPrototypeMethod(typeTemplate, "isVoidTy", &isOfType<&llvm::Type::isVoidTy>);
         Nan::SetPrototypeMethod(typeTemplate, "isFloatTy", &isOfType<&llvm::Type::isFloatTy>);
         Nan::SetPrototypeMethod(typeTemplate, "isDoubleTy", &isOfType<&llvm::Type::isDoubleTy>);
