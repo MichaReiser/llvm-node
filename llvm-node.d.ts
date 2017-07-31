@@ -354,15 +354,17 @@ declare namespace llvm {
 
         protected constructor();
 
+        typeID: number;
+        equals(other: Type): boolean;
         isVoidTy(): boolean;
         isFloatTy(): boolean;
         isDoubleTy(): boolean;
         isLabelTy(): boolean;
         isIntegerTy(bitWidth?: number): boolean;
-        isFunctionTy(): boolean;
-        isStructTy(): boolean;
+        isFunctionTy(): this is FunctionType;
+        isStructTy(): this is StructType;
         isArrayTy(): boolean;
-        isPointerTy(): boolean;
+        isPointerTy(): this is PointerType;
         getPointerTo(addressSpace?: number): PointerType;
         getPrimitiveSizeInBits(): number;
 

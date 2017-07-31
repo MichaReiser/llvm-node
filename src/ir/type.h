@@ -35,6 +35,7 @@ protected:
 
 private:
     // Instance Methods
+    static NAN_METHOD(equals);
     static NAN_GETTER(getTypeID);
     static NAN_METHOD(getPrimitiveSizeInBits);
     static NAN_METHOD(toString);
