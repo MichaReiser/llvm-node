@@ -13,6 +13,7 @@ env:
     - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main" LLVM_VERSION=4.0
     - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main" LLVM_VERSION=5.0
     - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main" LLVM_VERSION=6.0
+    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main" LLVM_VERSION=7
 
 before_install:
 - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
