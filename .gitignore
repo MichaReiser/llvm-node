@@ -3,3 +3,4 @@ build
 cmake-build-debug
 node_modules
 coverage
+bitcode-writer-test.bc
