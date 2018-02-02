@@ -18,7 +18,7 @@ public:
     using FromValueMixin<PhiNodeWrapper>::FromValue;
 
 private:
-    PhiNodeWrapper(llvm::PHINode* phiNode)
+    explicit PhiNodeWrapper(llvm::PHINode* phiNode)
             : ValueWrapper { phiNode }
     {}
 

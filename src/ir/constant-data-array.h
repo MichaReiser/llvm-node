@@ -17,7 +17,7 @@ public:
     llvm::ConstantDataArray* getConstantDataArray();
 
 private:
-    ConstantDataArrayWrapper(llvm::ConstantDataArray* constant)
+    explicit ConstantDataArrayWrapper(llvm::ConstantDataArray* constant)
             : ConstantWrapper { constant }
     {}
 

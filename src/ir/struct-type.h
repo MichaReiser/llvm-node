@@ -18,7 +18,7 @@ public:
     llvm::StructType* getStructType();
 
 private:
-    StructTypeWrapper(llvm::StructType *type) : TypeWrapper { type } {
+    explicit StructTypeWrapper(llvm::StructType *type) : TypeWrapper { type } {
     }
 
     // static

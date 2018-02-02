@@ -18,7 +18,7 @@ public:
     llvm::ConstantFP* getConstantFP();
 
 private:
-    ConstantFPWrapper(llvm::ConstantFP* constant)
+    explicit ConstantFPWrapper(llvm::ConstantFP* constant)
             : ConstantWrapper { constant }
     {}
 

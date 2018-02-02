@@ -18,7 +18,7 @@ public:
     llvm::AllocaInst* getAllocaInst();
 
 private:
-    AllocaInstWrapper(llvm::AllocaInst* allocaInst): ValueWrapper { allocaInst } {
+    explicit AllocaInstWrapper(llvm::AllocaInst* allocaInst): ValueWrapper { allocaInst } {
     }
 
     static NAN_METHOD(New);

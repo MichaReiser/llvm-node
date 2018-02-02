@@ -21,7 +21,7 @@ public:
     using FromValueMixin<FunctionWrapper>::FromValue;
 
 private:
-    FunctionWrapper(llvm::Function* function);
+    explicit FunctionWrapper(llvm::Function* function);
 
     // static
     static NAN_METHOD(New);

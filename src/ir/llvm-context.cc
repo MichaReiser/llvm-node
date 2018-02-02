@@ -29,7 +29,7 @@ NAN_METHOD(LLVMContextWrapper::New) {
         return Nan::ThrowTypeError("LLVMContext functionTemplate needs to be called with new");
     }
 
-    LLVMContextWrapper* wrapper = new LLVMContextWrapper {};
+    auto* wrapper = new LLVMContextWrapper {};
     wrapper->Wrap(info.This());
 
     info.GetReturnValue().Set(info.This());

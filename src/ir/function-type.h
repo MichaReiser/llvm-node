@@ -21,7 +21,7 @@ public:
     llvm::FunctionType* getFunctionType();
 
 private:
-    FunctionTypeWrapper(llvm::FunctionType* functionType):
+    explicit FunctionTypeWrapper(llvm::FunctionType* functionType):
             TypeWrapper { functionType }
     {}
 

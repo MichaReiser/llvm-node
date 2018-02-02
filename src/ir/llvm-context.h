@@ -22,7 +22,7 @@ public:
 private:
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate;
     llvm::LLVMContext context;
-    LLVMContextWrapper() {}
+    LLVMContextWrapper() = default;
 
     static NAN_METHOD(New);
 };

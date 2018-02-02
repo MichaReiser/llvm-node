@@ -25,7 +25,7 @@ class TargetWrapper: public Nan::ObjectWrap, public FromValueMixin<TargetWrapper
     private:
     const llvm::Target* target {};
 
-    TargetWrapper(const llvm::Target* target): target { target } {
+    explicit TargetWrapper(const llvm::Target* target): target { target } {
         assert(target && "No target pointer passed");
     }
 

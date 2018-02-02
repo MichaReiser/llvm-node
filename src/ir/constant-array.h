@@ -16,7 +16,7 @@ public:
     using FromValueMixin<ConstantArrayWrapper>::FromValue;
 
 private:
-    ConstantArrayWrapper(llvm::ConstantArray* array)
+    explicit ConstantArrayWrapper(llvm::ConstantArray* array)
             : ConstantWrapper { array }
     {}
 

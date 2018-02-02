@@ -20,7 +20,7 @@ public:
 
 
 private:
-    GlobalVariableWrapper(llvm::GlobalVariable* variable) : ConstantWrapper { variable } {}
+    explicit GlobalVariableWrapper(llvm::GlobalVariable* variable) : ConstantWrapper { variable } {}
 
     static NAN_METHOD(New);
     static NAN_METHOD(NewFromExternal);

@@ -20,7 +20,7 @@ private:
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate;
     llvm::DataLayout layout;
 
-    DataLayoutWrapper(llvm::DataLayout layout): layout { layout } {
+    explicit DataLayoutWrapper(llvm::DataLayout layout): layout { layout } {
     }
 
     static NAN_METHOD(New);

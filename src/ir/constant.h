@@ -19,7 +19,7 @@ public:
 
 protected:
     static Nan::Persistent<v8::FunctionTemplate>& constantTemplate();
-    ConstantWrapper(llvm::Constant *constant)
+    explicit ConstantWrapper(llvm::Constant *constant)
             : ValueWrapper {constant }
     {}
 
