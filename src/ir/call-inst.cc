@@ -77,7 +77,15 @@ NAN_METHOD(CallInstWrapper::hasRetAttr) {
     auto* call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
     auto attrKind = Nan::To<uint32_t>(info[0]).FromJust();
 
-    info.GetReturnValue().Set(call->hasRetAttr(static_cast<llvm::Attribute::AttrKind>(attrKind)));
+    bool hasRetAttr = false;
+
+#if LLVM_VERSION_MAJOR == 4
+    hasRetAttr = call->hasFnAttr(static_cast<llvm::Attribute::AttrKind>(attrKind));
+#else
+    hasRetAttr = call->hasRetAttr(static_cast<llvm::Attribute::AttrKind>(attrKind));
+#endif
+
+    info.GetReturnValue().Set(hasRetAttr);
 }
 
 NAN_METHOD(CallInstWrapper::paramHasAttr) {
