@@ -20,10 +20,10 @@ export function createBuilderWithBlock({moduleId = "test", blockName = "entry", 
     const {builder, module, context} = createBuilder({moduleId});
 
     const fn = llvm.Function.create(llvm.FunctionType.get(llvm.Type.getVoidTy(context), false), llvm.LinkageTypes.ExternalWeakLinkage, fnName, module);
-    const basicBlock = llvm.BasicBlock.create(context, blockName, fn);
-    builder.setInsertionPoint(basicBlock);
+    const block = llvm.BasicBlock.create(context, blockName, fn);
+    builder.setInsertionPoint(block);
 
     return {
-        builder, module, context, basicBlock
+        builder, module, context, basicBlock: block, fn
     };
 }

@@ -1,13 +1,18 @@
 import * as llvm from "../../";
+import {createBuilderWithBlock, createModule} from "../test-utils";
 
 describe("BasicBlock", () => {
     let context: llvm.LLVMContext;
-    let sin: llvm.Function;
+    let module: llvm.Module;
 
     beforeEach(() => {
-        context = new llvm.LLVMContext();
-        const module = new llvm.Module("test", context);
-        sin = llvm.Function.create(llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [llvm.Type.getDoubleTy(context)], false), llvm.LinkageTypes.ExternalLinkage, "sin", module);
+        ({context, module} = createModule());
+    });
+
+    it("inherits from value", () => {
+        const block = llvm.BasicBlock.create(context);
+
+        expect(block.name).toBeDefined();
     });
 
     describe("create", () => {
@@ -29,23 +34,78 @@ describe("BasicBlock", () => {
         });
 
         it("creates a basic block", () => {
-            const insertBefore = llvm.BasicBlock.create(context, "wrapper", sin);
+            const fn = llvm.Function.create(llvm.FunctionType.get(llvm.Type.getVoidTy(context), [], false), llvm.LinkageTypes.ExternalLinkage, "fn", module);
+            const block = llvm.BasicBlock.create(context, "wrapper", fn);
 
-            expect(llvm.BasicBlock.create(context, "test", sin, insertBefore)).toBeDefined();
+            expect(block).toBeInstanceOf(llvm.BasicBlock);
+            expect(fn.getBasicBlocks()).toEqual([block]);
+        });
+
+        it("inserts the basic block before the specified one", () => {
+            const fn = llvm.Function.create(llvm.FunctionType.get(llvm.Type.getVoidTy(context), [], false), llvm.LinkageTypes.ExternalLinkage, "fn", module);
+            const insertBeforeThis = llvm.BasicBlock.create(context, "wrapper", fn);
+
+            const block = llvm.BasicBlock.create(context, "insertBefore", fn, insertBeforeThis);
+
+            expect(fn.getBasicBlocks()).toEqual([block, insertBeforeThis]);
         })
     });
 
-    it("inherits from value", () => {
-        const block = llvm.BasicBlock.create(context);
+    describe("empty", () => {
+        it("returns if the basic block is empty", () => {
+            const block = llvm.BasicBlock.create(context);
 
-        expect(block.name).toBeDefined();
+            expect(block.empty).toBe(true);
+        });
+
+        it("returns false if the basic block is not empty", () => {
+            const {basicBlock, builder} = createBuilderWithBlock();
+
+            builder.createRetVoid();
+
+            expect(basicBlock.empty).toBe(false);
+        });
+    });
+
+    describe("context", () => {
+        it("returns the llvm context", () => {
+            const basicBlock = llvm.BasicBlock.create(context);
+
+            expect(basicBlock.context).toEqual(context);
+        });
+    });
+
+    describe("getTerminator", () => {
+        it("returns undefined if this block has no terminator", () => {
+            const basicBlock = llvm.BasicBlock.create(context);
+
+            expect(basicBlock.getTerminator()).toBeUndefined();
+        });
+
+        it("returns the terminator value", () => {
+            const {basicBlock, builder} = createBuilderWithBlock();
+
+            const retVoid = builder.createRetVoid();
+
+            expect(basicBlock.getTerminator()).toEqual(retVoid);
+        });
+    });
+
+    describe("eraseFromParent", () => {
+        it("erases this block from the parent fn and deletes it", () => {
+            const {basicBlock, fn} = createBuilderWithBlock({blockName: "entry"});
+
+            basicBlock.eraseFromParent();
+
+            expect(fn.getEntryBlock()).toBeNull();
+        });
     });
 
     describe("parent", () => {
         it("returns the parent function", () => {
-            const block = llvm.BasicBlock.create(context, "entry", sin);
+            const {fn, basicBlock} = createBuilderWithBlock();
 
-            expect(block.parent).toEqual(sin);
+            expect(basicBlock.parent).toEqual(fn);
         });
 
         it("is undefined if the block has no parent", () => {

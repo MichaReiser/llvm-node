@@ -219,6 +219,7 @@ declare namespace llvm {
         addFnAttr(attribute: Attribute.AttrKind): void;
         getArguments(): Argument[];
         getEntryBlock(): BasicBlock | null;
+        getBasicBlocks(): BasicBlock[];
         viewCFG(): void;
     }
 
