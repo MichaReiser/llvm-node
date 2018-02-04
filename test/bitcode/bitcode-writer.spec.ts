@@ -1,16 +1,10 @@
 import * as llvm from "../../";
+import {createModule} from "../test-utils";
 const fs = require("fs");
 
 const filename = "./bitcode-writer-test.bc";
 
 describe("BitcodeWriter", () => {
-    function setupModule() {
-        const context = new llvm.LLVMContext();
-        const mod = new llvm.Module("test", context);
-
-        return { mod, context };
-    }
-
     beforeEach(() => {
         if (fs.existsSync(filename)) {
             fs.unlinkSync(filename);
@@ -18,8 +12,8 @@ describe("BitcodeWriter", () => {
     });
 
     test("writeBitcodeToFile", () => {
-        const { mod } = setupModule();
-        llvm.writeBitcodeToFile(mod, filename);
+        const { module } = createModule();
+        llvm.writeBitcodeToFile(module, filename);
 
         expect(fs.existsSync(filename)).toBe(true);
     });

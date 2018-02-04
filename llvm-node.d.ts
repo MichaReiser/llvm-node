@@ -126,6 +126,7 @@ declare namespace llvm {
         constructor(type: Type, name?: string, fn?: Function, argNo?: number);
 
         addAttr(kind: Attribute.AttrKind): void;
+        hasAttribute(kind: Attribute.AttrKind): boolean;
         addDereferenceableAttr(bytes: number): void;
     }
 

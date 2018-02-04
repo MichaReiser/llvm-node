@@ -75,7 +75,7 @@ v8::Local<v8::Object> FunctionWrapper::of(llvm::Function *function) {
 
 NAN_METHOD(FunctionWrapper::Create) {
     if (info.Length() < 2 || !FunctionTypeWrapper::isInstance(info[0]) || !info[1]->IsUint32()
-        || (info.Length() > 2 && !info[2]->IsString())
+        || (info.Length() > 2 && !(info[2]->IsUndefined() || info[2]->IsString()))
         || (info.Length() > 3 && !ModuleWrapper::isInstance(info[3]))) {
         return Nan::ThrowTypeError("Create needs to be called with: functionType: FunctionType, linkageTypes: uint32, name: string?, module?: Module");
     }
@@ -86,7 +86,7 @@ NAN_METHOD(FunctionWrapper::Create) {
     std::string name = {};
     llvm::Module* module = nullptr;
 
-    if (info.Length() > 2) {
+    if (info.Length() > 2 && !info[2]->IsUndefined()) {
         name = ToString(Nan::To<v8::String>(info[2]).ToLocalChecked());
     }
 

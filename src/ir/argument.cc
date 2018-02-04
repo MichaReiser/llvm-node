@@ -18,6 +18,7 @@ NAN_MODULE_INIT(ArgumentWrapper::Init) {
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("argumentNumber").ToLocalChecked(), ArgumentWrapper::getArgNo);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("parent").ToLocalChecked(), ArgumentWrapper::getParent);
     Nan::SetPrototypeMethod(functionTemplate, "addAttr", ArgumentWrapper::addAttr);
+    Nan::SetPrototypeMethod(functionTemplate, "hasAttribute", ArgumentWrapper::hasAttribute);
     Nan::SetPrototypeMethod(functionTemplate, "addDereferenceableAttr", ArgumentWrapper::addDereferenceableAttr);
 
     argumentTemplate().Reset(functionTemplate);
@@ -101,6 +102,17 @@ NAN_METHOD(ArgumentWrapper::addAttr) {
     auto attributeKind = static_cast<llvm::Attribute::AttrKind>(Nan::To<uint32_t>(info[0]).FromJust());
 
     argument->addAttr(attributeKind);
+}
+
+NAN_METHOD(ArgumentWrapper::hasAttribute) {
+    if (info.Length() != 1 || !info[0]->IsUint32()) {
+        return Nan::ThrowTypeError("hasAttr needs to be called with: attributeKind: Attribute.AttrKind");
+    }
+
+    auto* argument = ArgumentWrapper::FromValue(info.Holder())->getArgument();
+    auto attributeKind = static_cast<llvm::Attribute::AttrKind>(Nan::To<uint32_t>(info[0]).FromJust());
+
+    info.GetReturnValue().Set(argument->hasAttribute(attributeKind));
 }
 
 NAN_METHOD(ArgumentWrapper::addDereferenceableAttr) {
