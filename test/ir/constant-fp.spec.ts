@@ -1,13 +1,12 @@
 import * as llvm from "../../";
+import {createModule} from "../test-utils";
 
-describe("ConstantFP", () => {
+describe("ir/constant-fp", () => {
 
     let context: llvm.LLVMContext;
-    let module: llvm.Module;
 
     beforeEach(() => {
-        context = new llvm.LLVMContext();
-        module = new llvm.Module("test", context);
+        ({context} = createModule());
     });
 
     it("inherits from Constant", () => {
@@ -36,6 +35,14 @@ describe("ConstantFP", () => {
 
         it("throws if not called with a number as second argument", () => {
             expect(() => llvm.ConstantFP.get(context, "test")).toThrowError("get needs to be called with: context: LLVMContext, value: number");
+        });
+    });
+
+    describe("getNaN", () => {
+        it("returns the nan value", () => {
+            const nan = llvm.ConstantFP.getNaN(llvm.Type.getDoubleTy(context));
+
+            expect(nan).toBeDefined();
         });
     });
 
