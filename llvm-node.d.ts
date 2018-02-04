@@ -400,6 +400,8 @@ declare namespace llvm {
     class ArrayType extends Type {
         static get(elementType: Type, numElements: number): ArrayType;
 
+        numElements: number;
+
         private constructor();
     }
 
