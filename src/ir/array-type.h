@@ -24,6 +24,7 @@ private:
     static NAN_METHOD(New);
     static NAN_METHOD(get);
     static NAN_GETTER(getNumElements);
+    static NAN_GETTER(getElementType);
 
     static v8::Persistent<v8::FunctionTemplate>& arrayTypeTemplate();
 };

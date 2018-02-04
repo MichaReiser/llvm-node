@@ -13,7 +13,6 @@ describe("ir/array-type", () => {
 
         expect(arrayTy).toBeInstanceOf(llvm.ArrayType);
         expect(arrayTy.isArrayTy()).toBe(true);
-        expect(arrayTy.typeID).toBe(llvm.Type.TypeID.ArrayTyID);
     });
 
     describe("getNumElements", () => {
@@ -21,6 +20,14 @@ describe("ir/array-type", () => {
            const arrayTy = llvm.ArrayType.get(llvm.Type.getInt32Ty(context), 16);
 
            expect(arrayTy.numElements).toBe(16);
+       });
+    });
+
+    describe("elementType", () => {
+       it("returns the type of the array elements", () => {
+           const arrayTy = llvm.ArrayType.get(llvm.Type.getInt32Ty(context), 16);
+
+           expect(arrayTy.elementType).toEqual(llvm.Type.getInt32Ty(context));
        });
     });
 });

@@ -8,8 +8,8 @@
 #include<vector>
 #include<nan.h>
 
-template <typename T>
-std::vector<T> toVector(v8::Local<v8::Array> value) {
+template <typename T, typename TArray=v8::Array>
+std::vector<T> toVector(v8::Local<TArray> value) {
     std::vector<T> result (value->Length());
 
     for (uint32_t i = 0; i < value->Length(); ++i) {
@@ -20,11 +20,9 @@ std::vector<T> toVector(v8::Local<v8::Array> value) {
     return result;
 }
 
-template <typename T>
+template <typename T, typename TArray=v8::Array>
 std::vector<T> toVector(v8::Local<v8::Value> value) {
-    assert(value->IsArray() && "Value needs to be an array");
-
-    return toVector<T>(value.As<v8::Array>());
+    return toVector<T>(value.As<TArray>());
 }
 
 #endif //LLVM_NODE_ARRAY_H

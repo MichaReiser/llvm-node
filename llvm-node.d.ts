@@ -195,7 +195,7 @@ declare namespace llvm {
     }
 
     class ConstantDataArray extends Constant {
-        static get(llvmContext: LLVMContext, values: number[]): Constant;
+        static get(llvmContext: LLVMContext, values: Uint32Array | Float32Array | Float64Array): Constant;
         static getString(llvmContext: LLVMContext, value: string): Constant;
 
         private constructor();
@@ -405,6 +405,7 @@ declare namespace llvm {
     class ArrayType extends Type {
         static get(elementType: Type, numElements: number): ArrayType;
 
+        elementType: Type;
         numElements: number;
 
         private constructor();
@@ -499,6 +500,8 @@ declare namespace llvm {
 
     class LLVMContext {
         constructor();
+        // any property that makes ts emits an error if any other object is passed to a method that is not an llvm context
+        private __marker: number;
     }
 
     class Module {
