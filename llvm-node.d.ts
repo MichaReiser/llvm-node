@@ -1,6 +1,8 @@
 declare namespace llvm {
 
     // bitcode/bitcodewriter
+    import AttrKind = llvm.Attribute.AttrKind;
+
     function writeBitcodeToFile(module: Module, filename: string): void;
 
     // IR/verifier
@@ -252,6 +254,8 @@ declare namespace llvm {
         private constructor();
 
         addDereferenceableAttr(index: number, size: number): void;
+        hasRetAttr(kind: AttrKind): boolean;
+        paramHasAttr(index, kind: AttrKind): boolean;
         getNumArgOperands(): number;
     }
 

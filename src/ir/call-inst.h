@@ -23,6 +23,8 @@ private:
     static NAN_GETTER(getCallingConv);
     static NAN_SETTER(setCallingConv);
     static NAN_METHOD(addDereferenceableAttr);
+    static NAN_METHOD(hasRetAttr);
+    static NAN_METHOD(paramHasAttr);
     static NAN_METHOD(getNumArgOperands);
 
     CallInstWrapper(llvm::CallInst* value) : ValueWrapper(value) {}
