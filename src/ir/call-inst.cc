@@ -74,15 +74,14 @@ NAN_METHOD(CallInstWrapper::hasRetAttr) {
         return Nan::ThrowTypeError("hasRetAttr needs to be called with: attrKind: AttrKind");
     }
 
-    auto* call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
-    auto attrKind = Nan::To<uint32_t>(info[0]).FromJust();
-
+    llvm::CallInst *call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
+    auto kind = static_cast<llvm::Attribute::AttrKind >(Nan::To<uint32_t>(info[0]).FromJust());
     bool hasRetAttr = false;
 
 #if LLVM_VERSION_MAJOR == 4
-    hasRetAttr = call->hasFnAttr(static_cast<llvm::Attribute::AttrKind>(attrKind));
+    hasRetAttr = call->paramHasAttr(llvm::AttributeSet::ReturnIndex, kind);
 #else
-    hasRetAttr = call->hasRetAttr(static_cast<llvm::Attribute::AttrKind>(attrKind));
+    hasRetAttr = call->hasRetAttr(kind);
 #endif
 
     info.GetReturnValue().Set(hasRetAttr);
@@ -93,12 +92,18 @@ NAN_METHOD(CallInstWrapper::paramHasAttr) {
         return Nan::ThrowTypeError("paramHasAttr needs to be called with: argNo: uint32, kind: AttrKind");
     }
 
-    auto* call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
+    llvm::CallInst* call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
 
     const auto index = Nan::To<uint32_t >(info[0]).FromJust();
     const auto kind = static_cast<llvm::Attribute::AttrKind >(Nan::To<uint32_t>(info[1]).FromJust());
+    bool paramHasAttr = false;
 
-    info.GetReturnValue().Set(call->paramHasAttr(index, kind));
+#if LLVM_VERSION_MAJOR == 4
+    paramHasAttr = call->paramHasAttr(index + 1, kind);
+#else
+    paramHasAttr = call->paramHasAttr(index, kind);
+#endif
+    info.GetReturnValue().Set(paramHasAttr);
 }
 
 NAN_METHOD(CallInstWrapper::getNumArgOperands) {
