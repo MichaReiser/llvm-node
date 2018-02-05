@@ -35,6 +35,7 @@ private:
     static NAN_METHOD(addFnAttr);
     static NAN_METHOD(getArguments);
     static NAN_METHOD(getEntryBlock);
+    static NAN_METHOD(getBasicBlocks);
     static NAN_GETTER(getCallingConv);
     static NAN_SETTER(setCallingConv);
     static NAN_GETTER(getVisibility);

@@ -63,6 +63,13 @@ NAN_GETTER(ArrayTypeWrapper::getNumElements) {
     info.GetReturnValue().Set(Nan::New(numElements));
 }
 
+NAN_GETTER(ArrayTypeWrapper::getElementType) {
+    auto* arrayType = ArrayTypeWrapper::FromValue(info.Holder())->getArrayType();
+    auto* elementType = arrayType->getElementType();
+
+    info.GetReturnValue().Set(TypeWrapper::of(elementType));
+}
+
 v8::Persistent<v8::FunctionTemplate>& ArrayTypeWrapper::arrayTypeTemplate() {
     static Nan::Persistent<v8::FunctionTemplate> tmpl {};
 
@@ -74,6 +81,7 @@ v8::Persistent<v8::FunctionTemplate>& ArrayTypeWrapper::arrayTypeTemplate() {
 
         Nan::SetMethod(arrayTypeWrapperTemplate, "get", ArrayTypeWrapper::get);
         Nan::SetAccessor(arrayTypeWrapperTemplate->InstanceTemplate(), Nan::New("numElements").ToLocalChecked(), ArrayTypeWrapper::getNumElements);
+        Nan::SetAccessor(arrayTypeWrapperTemplate->InstanceTemplate(), Nan::New("elementType").ToLocalChecked(), ArrayTypeWrapper::getElementType);
 
         tmpl.Reset(arrayTypeWrapperTemplate);
     }

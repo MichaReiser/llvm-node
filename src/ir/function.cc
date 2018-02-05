@@ -25,7 +25,7 @@ NAN_METHOD(FunctionWrapper::New) {
         return Nan::ThrowTypeError("External Function Pointer required");
     }
 
-    llvm::Function* function = static_cast<llvm::Function*>(v8::External::Cast(*info[0])->Value());
+    auto * function = static_cast<llvm::Function*>(v8::External::Cast(*info[0])->Value());
     auto* wrapper = new FunctionWrapper { function };
     wrapper->Wrap(info.This());
 
@@ -51,6 +51,7 @@ Nan::Persistent<v8::FunctionTemplate> &FunctionWrapper::functionTemplate() {
         Nan::SetPrototypeMethod(localTemplate, "addFnAttr", FunctionWrapper::addFnAttr);
         Nan::SetPrototypeMethod(localTemplate, "getArguments", FunctionWrapper::getArguments);
         Nan::SetPrototypeMethod(localTemplate, "getEntryBlock", FunctionWrapper::getEntryBlock);
+        Nan::SetPrototypeMethod(localTemplate, "getBasicBlocks", FunctionWrapper::getBasicBlocks);
         Nan::SetPrototypeMethod(localTemplate, "viewCFG", FunctionWrapper::viewCFG);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("callingConv").ToLocalChecked(), FunctionWrapper::getCallingConv, FunctionWrapper::setCallingConv);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("visibility").ToLocalChecked(), FunctionWrapper::getVisibility, FunctionWrapper::setVisibility);
@@ -75,7 +76,7 @@ v8::Local<v8::Object> FunctionWrapper::of(llvm::Function *function) {
 
 NAN_METHOD(FunctionWrapper::Create) {
     if (info.Length() < 2 || !FunctionTypeWrapper::isInstance(info[0]) || !info[1]->IsUint32()
-        || (info.Length() > 2 && !info[2]->IsString())
+        || (info.Length() > 2 && !(info[2]->IsUndefined() || info[2]->IsString()))
         || (info.Length() > 3 && !ModuleWrapper::isInstance(info[3]))) {
         return Nan::ThrowTypeError("Create needs to be called with: functionType: FunctionType, linkageTypes: uint32, name: string?, module?: Module");
     }
@@ -86,7 +87,7 @@ NAN_METHOD(FunctionWrapper::Create) {
     std::string name = {};
     llvm::Module* module = nullptr;
 
-    if (info.Length() > 2) {
+    if (info.Length() > 2 && !info[2]->IsUndefined()) {
         name = ToString(Nan::To<v8::String>(info[2]).ToLocalChecked());
     }
 
@@ -180,6 +181,19 @@ NAN_METHOD(FunctionWrapper::getEntryBlock) {
 
     auto& entryBlock = function->getEntryBlock();
     info.GetReturnValue().Set(BasicBlockWrapper::of(&entryBlock));
+}
+
+NAN_METHOD(FunctionWrapper::getBasicBlocks) {
+    auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
+    auto result = Nan::New<v8::Array>(function->size());
+
+    uint32_t i = 0;
+    for (auto &arg : *function) {
+        result->Set(i, BasicBlockWrapper::of(&arg));
+        ++i;
+    }
+
+    info.GetReturnValue().Set(result);
 }
 
 NAN_GETTER(FunctionWrapper::getCallingConv) {

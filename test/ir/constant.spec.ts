@@ -18,7 +18,7 @@ describe("Constant", () => {
             expect(llvm.Constant.getNullValue(llvm.Type.getDoubleTy(context)).value).toBe(0);
         });
 
-        it("throws if not a type is passed", () => {
+        it("throws if type is not passed", () => {
             expect(() => llvm.Constant.getNullValue(12)).toThrowError("getNullValue needs to be called with: type: Type");
         });
     });
@@ -39,7 +39,14 @@ describe("Constant", () => {
         });
     });
 
-    describe("isNullValue", () => {
+    describe("isOneValue", () => {
+       it("returns true for a value with the byte representation 0x01 and false otherwise", () => {
+           expect(llvm.ConstantInt.get(context, 1).isOneValue()).toBe(true);
+           expect(llvm.ConstantInt.get(context, 2).isOneValue()).toBe(false);
+       });
+    });
+
+    describe("isAllOnesValue", () => {
         it("returns true for a all one value", () => {
             const nullValue = llvm.Constant.getAllOnesValue(llvm.Type.getDoubleTy(context));
             expect(nullValue.isAllOnesValue()).toBe(true);

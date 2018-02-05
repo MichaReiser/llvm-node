@@ -1,6 +1,8 @@
 declare namespace llvm {
 
     // bitcode/bitcodewriter
+    import AttrKind = llvm.Attribute.AttrKind;
+
     function writeBitcodeToFile(module: Module, filename: string): void;
 
     // IR/verifier
@@ -126,6 +128,7 @@ declare namespace llvm {
         constructor(type: Type, name?: string, fn?: Function, argNo?: number);
 
         addAttr(kind: Attribute.AttrKind): void;
+        hasAttribute(kind: Attribute.AttrKind): boolean;
         addDereferenceableAttr(bytes: number): void;
     }
 
@@ -192,7 +195,7 @@ declare namespace llvm {
     }
 
     class ConstantDataArray extends Constant {
-        static get(llvmContext: LLVMContext, values: number[]): Constant;
+        static get(llvmContext: LLVMContext, values: Uint32Array | Float32Array | Float64Array): Constant;
         static getString(llvmContext: LLVMContext, value: string): Constant;
 
         private constructor();
@@ -218,6 +221,7 @@ declare namespace llvm {
         addFnAttr(attribute: Attribute.AttrKind): void;
         getArguments(): Argument[];
         getEntryBlock(): BasicBlock | null;
+        getBasicBlocks(): BasicBlock[];
         viewCFG(): void;
     }
 
@@ -250,6 +254,8 @@ declare namespace llvm {
         private constructor();
 
         addDereferenceableAttr(index: number, size: number): void;
+        hasRetAttr(kind: AttrKind): boolean;
+        paramHasAttr(index, kind: AttrKind): boolean;
         getNumArgOperands(): number;
     }
 
@@ -399,6 +405,9 @@ declare namespace llvm {
     class ArrayType extends Type {
         static get(elementType: Type, numElements: number): ArrayType;
 
+        elementType: Type;
+        numElements: number;
+
         private constructor();
     }
 
@@ -491,6 +500,8 @@ declare namespace llvm {
 
     class LLVMContext {
         constructor();
+        // any property that makes ts emits an error if any other object is passed to a method that is not an llvm context
+        private __marker: number;
     }
 
     class Module {

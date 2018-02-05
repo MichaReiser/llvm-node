@@ -69,6 +69,43 @@ NAN_METHOD(CallInstWrapper::addDereferenceableAttr) {
     call->addDereferenceableAttr(index, bytes);
 }
 
+NAN_METHOD(CallInstWrapper::hasRetAttr) {
+    if (info.Length() != 1 || !info[0]->IsUint32()) {
+        return Nan::ThrowTypeError("hasRetAttr needs to be called with: attrKind: AttrKind");
+    }
+
+    llvm::CallInst *call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
+    auto kind = static_cast<llvm::Attribute::AttrKind >(Nan::To<uint32_t>(info[0]).FromJust());
+    bool hasRetAttr = false;
+
+#if LLVM_VERSION_MAJOR == 4
+    hasRetAttr = call->paramHasAttr(llvm::AttributeSet::ReturnIndex, kind);
+#else
+    hasRetAttr = call->hasRetAttr(kind);
+#endif
+
+    info.GetReturnValue().Set(hasRetAttr);
+}
+
+NAN_METHOD(CallInstWrapper::paramHasAttr) {
+    if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32()) {
+        return Nan::ThrowTypeError("paramHasAttr needs to be called with: argNo: uint32, kind: AttrKind");
+    }
+
+    llvm::CallInst* call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
+
+    const auto index = Nan::To<uint32_t >(info[0]).FromJust();
+    const auto kind = static_cast<llvm::Attribute::AttrKind >(Nan::To<uint32_t>(info[1]).FromJust());
+    bool paramHasAttr = false;
+
+#if LLVM_VERSION_MAJOR == 4
+    paramHasAttr = call->paramHasAttr(index + 1, kind);
+#else
+    paramHasAttr = call->paramHasAttr(index, kind);
+#endif
+    info.GetReturnValue().Set(paramHasAttr);
+}
+
 NAN_METHOD(CallInstWrapper::getNumArgOperands) {
     auto* call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
     info.GetReturnValue().Set(Nan::New(call->getNumArgOperands()));
@@ -85,6 +122,8 @@ Nan::Persistent<v8::FunctionTemplate>& CallInstWrapper::callInstTemplate() {
 
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("callingConv").ToLocalChecked(), CallInstWrapper::getCallingConv, CallInstWrapper::setCallingConv);
         Nan::SetPrototypeMethod(localTemplate, "addDereferenceableAttr", CallInstWrapper::addDereferenceableAttr);
+        Nan::SetPrototypeMethod(localTemplate, "paramHasAttr", CallInstWrapper::paramHasAttr);
+        Nan::SetPrototypeMethod(localTemplate, "hasRetAttr", CallInstWrapper::hasRetAttr);
         Nan::SetPrototypeMethod(localTemplate, "getNumArgOperands", CallInstWrapper::getNumArgOperands);
 
         functionTemplate.Reset(localTemplate);

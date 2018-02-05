@@ -73,18 +73,28 @@ NAN_METHOD(ConstantDataArrayWrapper::getString) {
 }
 
 NAN_METHOD(ConstantDataArrayWrapper::get) {
-    if (info.Length() != 2 || !LLVMContextWrapper::isInstance(info[0]) || !(info[1]->IsFloat64Array() || info[1]->IsInt32Array())) {
-        return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, arrayRef: number[]");
+    if (info.Length() != 2 || !LLVMContextWrapper::isInstance(info[0]) ||
+            !(info[1]->IsUint32Array() || info[1]->IsFloat32Array() || info[1]->IsFloat64Array())) {
+        return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, arrayRef: UInt32Array | Float32Array | Float64Array");
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
     llvm::Constant* constant;
 
-    if (info[1]->IsInt32Array()) {
-        auto ints = toVector<uint32_t>(info[1]);
+    if (info[1]->IsUint32Array()) {
+        auto ints = toVector<uint32_t , v8::Uint32Array>(info[1]);
         constant = llvm::ConstantDataArray::get(context, ints);
+    } else if (info[1]->IsFloat32Array()) {
+        auto floatArray = info[1].As<v8::Float32Array>();
+        std::vector<float> floats (floatArray->Length());
+
+        for (uint32_t i = 0; i < floatArray->Length(); ++i) {
+            auto nativeValue = Nan::Get(floatArray, i).ToLocalChecked();
+            floats[i] = static_cast<float>(Nan::To<double>(nativeValue).FromJust());
+        }
+        constant = llvm::ConstantDataArray::get(context, floats);
     } else {
-        auto doubles = toVector<double>(info[1]);
+        auto doubles = toVector<double, v8::Float64Array>(info[1]);
         constant = llvm::ConstantDataArray::get(context, doubles);
     }
 
