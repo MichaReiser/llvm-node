@@ -102,21 +102,25 @@ declare namespace llvm {
     class Value {
         static MaxAlignmentExponent: number;
         static MaximumAlignment: number;
+
         protected constructor();
 
         type: Type;
         name: string;
 
         dump?: () => void;
+
         hasName(): boolean;
 
         /**
          * Deletes the value. It is, therefore, forbidden to use the value any further
          */
         release(): void;
+
         deleteValue(): void;
 
         replaceAllUsesWith(value: Value): void;
+
         useEmpty(): boolean;
 
     }
@@ -128,7 +132,9 @@ declare namespace llvm {
         constructor(type: Type, name?: string, fn?: Function, argNo?: number);
 
         addAttr(kind: Attribute.AttrKind): void;
+
         hasAttribute(kind: Attribute.AttrKind): boolean;
+
         addDereferenceableAttr(bytes: number): void;
     }
 
@@ -136,18 +142,22 @@ declare namespace llvm {
         alignment: number;
         type: PointerType;
         allocatedType: Type;
+        arraySize: Value | null;
 
         private constructor();
     }
 
     class BasicBlock extends Value {
         static create(context: LLVMContext, name?: string, parent?: Function, insertBefore?: BasicBlock): BasicBlock;
+
         private constructor();
 
         parent?: Function;
         empty: boolean;
         context: LLVMContext;
+
         eraseFromParent(): void;
+
         getTerminator(): Value | undefined;
     }
 
@@ -167,6 +177,7 @@ declare namespace llvm {
 
     class ConstantFP extends Constant {
         static get(context: LLVMContext, value: number): ConstantFP;
+
         static getNaN(type: Type): Constant;
 
         private constructor();
@@ -176,7 +187,9 @@ declare namespace llvm {
 
     class ConstantInt extends Constant {
         static get(context: LLVMContext, value: number, numBits?: number, signed?: boolean): ConstantInt;
+
         static getFalse(context: LLVMContext): ConstantInt;
+
         static getTrue(context: LLVMContext): ConstantInt;
 
         private constructor();
@@ -196,6 +209,7 @@ declare namespace llvm {
 
     class ConstantDataArray extends Constant {
         static get(llvmContext: LLVMContext, values: Uint32Array | Float32Array | Float64Array): Constant;
+
         static getString(llvmContext: LLVMContext, value: string): Constant;
 
         private constructor();
@@ -203,6 +217,7 @@ declare namespace llvm {
 
     class ConstantStruct extends Constant {
         static get(structType: StructType, values: Constant[]): Constant;
+
         private constructor();
     }
 
@@ -214,14 +229,23 @@ declare namespace llvm {
         type: PointerType & { elementType: FunctionType };
 
         private constructor();
+
         addAttribute(index: number, attribute: Attribute.AttrKind): void;
+
         addBasicBlock(basicBlock: BasicBlock): void;
+
         addDereferenceableAttr(attributeIndex: number, bytes: number): void;
+
         addDereferenceableOrNullAttr(attributeIndex: number, bytes: number): void;
+
         addFnAttr(attribute: Attribute.AttrKind): void;
+
         getArguments(): Argument[];
+
         getEntryBlock(): BasicBlock | null;
+
         getBasicBlocks(): BasicBlock[];
+
         viewCFG(): void;
     }
 
@@ -230,6 +254,7 @@ declare namespace llvm {
         initializer: Constant | undefined;
 
         setUnnamedAddr(unnamedAddr: UnnamedAddr): void;
+
         hasGlobalUnnamedAddr(): boolean;
 
         constructor(module: Module, type: Type, constant: boolean, linkageType: LinkageTypes, initializer?: Constant, name?: string);
@@ -254,8 +279,11 @@ declare namespace llvm {
         private constructor();
 
         addDereferenceableAttr(index: number, size: number): void;
+
         hasRetAttr(kind: AttrKind): boolean;
+
         paramHasAttr(index, kind: AttrKind): boolean;
+
         getNumArgOperands(): number;
     }
 
@@ -315,10 +343,15 @@ declare namespace llvm {
 
     class DataLayout {
         constructor(layout: string);
+
         getStringRepresentation(): string;
+
         getPointerSize(as: number): number;
+
         getPrefTypeAlignment(type: Type): number;
+
         getTypeStoreSize(type: Type): number;
+
         getIntPtrType(context: LLVMContext, as: number): Type;
     }
 
@@ -343,35 +376,59 @@ declare namespace llvm {
         };
 
         static getFloatTy(context: LLVMContext): Type;
+
         static getDoubleTy(context: LLVMContext): Type;
+
         static getVoidTy(context: LLVMContext): Type;
+
         static getLabelTy(context: LLVMContext): Type;
+
         static getInt1Ty(context: LLVMContext): Type;
+
         static getInt8Ty(context: LLVMContext): Type;
+
         static getInt16Ty(context: LLVMContext): Type;
+
         static getInt32Ty(context: LLVMContext): Type;
+
         static getInt64Ty(context: LLVMContext): Type;
+
         static getInt128Ty(context: LLVMContext): Type;
+
         static getIntNTy(context: LLVMContext, N: number): Type;
 
         static getInt1PtrTy(context: LLVMContext, AS?: number): PointerType;
+
         static getInt8PtrTy(context: LLVMContext, AS?: number): PointerType;
+
         static getInt32PtrTy(context: LLVMContext, AS?: number): PointerType;
 
         protected constructor();
 
         typeID: number;
+
         equals(other: Type): boolean;
+
         isVoidTy(): boolean;
+
         isFloatTy(): boolean;
+
         isDoubleTy(): boolean;
+
         isLabelTy(): boolean;
+
         isIntegerTy(bitWidth?: number): boolean;
+
         isFunctionTy(): this is FunctionType;
+
         isStructTy(): this is StructType;
+
         isArrayTy(): boolean;
+
         isPointerTy(): this is PointerType;
+
         getPointerTo(addressSpace?: number): PointerType;
+
         getPrimitiveSizeInBits(): number;
 
         toString(): string;
@@ -390,7 +447,9 @@ declare namespace llvm {
         numParams: number;
 
         private constructor();
+
         getParams(): Type[];
+
         getParamType(index: number): Type;
     }
 
@@ -413,6 +472,7 @@ declare namespace llvm {
 
     class StructType extends Type {
         static create(context: LLVMContext, name?: string): StructType;
+
         static get(context: LLVMContext, elements: Type[], isPacked?: boolean): StructType;
 
         name: string;
@@ -421,6 +481,7 @@ declare namespace llvm {
         private constructor();
 
         getElementType(index: number): Type;
+
         setBody(elements: Type[], packed?: boolean): void;
     }
 
@@ -429,77 +490,144 @@ declare namespace llvm {
         constructor(basicBlock: BasicBlock, beforeInstruction?: Value);
 
         setInsertionPoint(basicBlock: BasicBlock): void;
+
         createAdd(lhs: Value, rhs: Value, name?: string): Value;
+
         createAlloca(type: Type, arraySize?: Value, name?: string): AllocaInst;
+
         createAlignedLoad(ptr: Value, align: number, name?: string): Value;
+
         createAlignedStore(value: Value, ptr: Value, align: number, isVolatile?: boolean): Value;
+
         createAnd(lhs: Value, rhs: Value, name?: string): Value;
+
         createAShr(lhs: Value, rhs: Value, name?: string): Value;
+
         createBitCast(value: Value, destType: Type, name?: string): Value;
+
         createBr(basicBlock: BasicBlock): Value;
+
         createCall(callee: Value, args: Value[], name?: string): CallInst;
+
         createCondBr(condition: Value, then: BasicBlock, elseBlock: BasicBlock): Value;
+
         createExtractValue(agg: Value, idxs: number[], name?: string): Value;
+
         createFAdd(lhs: Value, rhs: Value, name?: string): Value;
+
         createFCmpOGE(lhs: Value, rhs: Value, name?: string): Value;
+
         createFCmpOGT(lhs: Value, rhs: Value, name?: string): Value;
+
         createFCmpOLE(lhs: Value, rhs: Value, name?: string): Value;
+
         createFCmpOLT(lhs: Value, rhs: Value, name?: string): Value;
+
         createFCmpOEQ(lhs: Value, rhs: Value, name?: string): Value;
+
         createFCmpONE(lhs: Value, rhs: Value, name?: string): Value;
+
         createFCmpUGE(lhs: Value, rhs: Value, name?: string): Value;
+
         createFCmpUGT(lhs: Value, rhs: Value, name?: string): Value;
+
         createFCmpULE(lhs: Value, rhs: Value, name?: string): Value;
+
         createFCmpULT(lhs: Value, rhs: Value, name?: string): Value;
+
         createFCmpUEQ(lhs: Value, rhs: Value, name?: string): Value;
+
         createFCmpUNE(lhs: Value, rhs: Value, name?: string): Value;
+
         createFDiv(lhs: Value, rhs: Value, name?: string): Value;
+
         createFNeg(value: Value, name?: string): Value;
+
         createFMul(lhs: Value, rhs: Value, name?: string): Value;
+
         createFRem(lhs: Value, rhs: Value, name?: string): Value;
+
         createFSub(lhs: Value, rhs: Value, name?: string): Value;
+
         createFPToSI(value: Value, type: Type, name?: string): Value;
+
         createGlobalString(str: string, name?: string, addressSpace?: number): Value;
+
         createGlobalStringPtr(str: string, name?: string, addressSpace?: number): Value;
+
         createInBoundsGEP(ptr: Value, idxList: Value[], name?: string): Value;
         createInBoundsGEP(type: Type, ptr: Value, idxList: Value[], name?: string): Value;
+
         createInsertValue(agg: Value, val: Value, idxList: number, name?: string): Value;
+
         createIntCast(vlaue: Value, type: Type, isSigned: boolean, name?: string): Value;
+
         createICmpEQ(lhs: Value, rhs: Value, name?: string): Value;
+
         createICmpNE(lhs: Value, rhs: Value, name?: string): Value;
+
         createICmpSGE(lhs: Value, rhs: Value, name?: string): Value;
+
         createICmpSGT(lhs: Value, rhs: Value, name?: string): Value;
+
         createICmpSLE(lhs: Value, rhs: Value, name?: string): Value;
+
         createICmpSLT(lhs: Value, rhs: Value, name?: string): Value;
+
         createICmpUGE(lhs: Value, rhs: Value, name?: string): Value;
+
         createICmpUGT(lhs: Value, rhs: Value, name?: string): Value;
+
         createICmpULE(lhs: Value, rhs: Value, name?: string): Value;
+
         createICmpULT(lhs: Value, rhs: Value, name?: string): Value;
+
         createLoad(ptr: Value, name?: string): Value;
+
         createLShr(lhs: Value, rhs: Value, name?: string): Value;
+
         createMul(lhs: Value, rhs: Value, name?: string): Value;
+
         createNeg(value: Value, name?: string, hasNUW?: boolean, hasNSW?: boolean): Value;
+
         createNot(value: Value, name?: string): Value;
+
         createOr(lhs: Value, rhs: Value, name?: string): Value;
+
         createXor(lhs: Value, rhs: Value, name?: string): Value;
+
         createPhi(type: Type, numReservedValues: number, name?: string): PhiNode;
+
         createPtrToInt(value: Value, destType: Type, name?: string): Value;
+
         createRet(value: Value): Value;
+
         createRetVoid(): Value;
+
         createSelect(condition: Value, trueValue: Value, falseValue: Value, name?: string): Value;
+
         createSDiv(lhs: Value, rhs: Value, name?: string): Value;
+
         createShl(lhs: Value, rhs: Value, name?: string): Value;
+
         createSIToFP(value: Value, type: Type, name?: string): Value;
+
         createUIToFP(value: Value, type: Type, name?: string): Value;
+
         createSub(lhs: Value, rhs: Value, name?: string): Value;
+
         createStore(value: Value, ptr: Value, isVolatile?: boolean): Value;
+
         createSRem(lhs: Value, rhs: Value, name?: string): Value;
+
         createZExt(value: Value, destType: Type, name?: string): Value;
+
         getInsertBlock(): BasicBlock;
     }
 
     class LLVMContext {
         constructor();
+
         // any property that makes ts emits an error if any other object is passed to a method that is not an llvm context
         private __marker: number;
     }
@@ -514,22 +642,29 @@ declare namespace llvm {
         constructor(moduleId: string, context: LLVMContext);
 
         dump?: () => void;
+
         print(): string;
+
         getFunction(name: string): Function;
+
         getOrInsertFunction(name: string, functionType: FunctionType): Constant;
+
         getGlobalVariable(name: string, allowInternal?: boolean): GlobalVariable;
     }
 
     // support
     class TargetRegistry {
         private constructor();
+
         static lookupTarget(target: string): Target;
     }
 
     class Target {
         name: string;
         shortDescription: string;
+
         private constructor();
+
         createTargetMachine(triple: string, cpu: string): TargetMachine;
     }
 

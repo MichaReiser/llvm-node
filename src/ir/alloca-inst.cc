@@ -71,6 +71,17 @@ NAN_SETTER(AllocaInstWrapper::setAlignment) {
     wrapper->getAllocaInst()->setAlignment(Nan::To<uint32_t>(value).FromJust());
 }
 
+NAN_GETTER(AllocaInstWrapper::getArraySize) {
+    auto* wrapper = AllocaInstWrapper::FromValue(info.Holder());
+
+    llvm::Value* arraySize = wrapper->getAllocaInst()->getArraySize();
+    if (arraySize == nullptr) {
+        info.GetReturnValue().Set(Nan::Null());
+    } else {
+        info.GetReturnValue().Set(ValueWrapper::of(arraySize));
+    }
+}
+
 Nan::Persistent<v8::FunctionTemplate>& AllocaInstWrapper::allocaInstTemplate() {
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
 
@@ -82,6 +93,7 @@ Nan::Persistent<v8::FunctionTemplate>& AllocaInstWrapper::allocaInstTemplate() {
 
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("allocatedType").ToLocalChecked(), AllocaInstWrapper::getAllocatedType, AllocaInstWrapper::setAllocatedType);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("alignment").ToLocalChecked(), AllocaInstWrapper::getAlignment, AllocaInstWrapper::setAlignment);
+        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("arraySize").ToLocalChecked(), AllocaInstWrapper::getArraySize);
 
         functionTemplate.Reset(localTemplate);
     }

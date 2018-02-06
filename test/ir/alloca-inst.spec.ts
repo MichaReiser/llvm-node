@@ -50,4 +50,19 @@ describe("ir/alloca-inst", () => {
             expect(allocation.type).toEqual(llvm.Type.getInt32Ty(context).getPointerTo());
         });
     });
+
+    describe("arraySize", () => {
+        it("returns the size of the array allocation", () => {
+            const int32Type = llvm.Type.getInt32Ty(context).getPointerTo();
+            const alloca = builder.createAlloca(int32Type, llvm.ConstantInt.get(context, 10), "test");
+
+            expect(alloca.arraySize).toEqual(llvm.ConstantInt.get(context, 10));
+        });
+
+        it("returns the value 1 if it is not an array allocation", () => {
+            const allocation = allocateInt32();
+
+            expect(allocation.arraySize).toEqual(llvm.ConstantInt.get(context, 1));
+        });
+    });
 });

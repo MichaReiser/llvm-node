@@ -26,6 +26,7 @@ private:
     static NAN_SETTER(setAllocatedType);
     static NAN_GETTER(getAlignment);
     static NAN_SETTER(setAlignment);
+    static NAN_GETTER(getArraySize);
     static Nan::Persistent<v8::FunctionTemplate>& allocaInstTemplate();
 };
 

@@ -68,7 +68,6 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     functionTemplate->SetClassName(Nan::New("IRBuilder").ToLocalChecked());
     functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
-    Nan::SetPrototypeMethod(functionTemplate, "setInsertionPoint", IRBuilderWrapper::SetInsertionPoint);
     Nan::SetPrototypeMethod(functionTemplate, "createAdd", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateAdd>>);
     Nan::SetPrototypeMethod(functionTemplate, "createAlloca", IRBuilderWrapper::CreateAlloca);
     Nan::SetPrototypeMethod(functionTemplate, "createAlignedLoad", IRBuilderWrapper::CreateAlignedLoad);
@@ -135,6 +134,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createStore", IRBuilderWrapper::CreateStore);
     Nan::SetPrototypeMethod(functionTemplate, "createZExt", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateZExt>);
     Nan::SetPrototypeMethod(functionTemplate, "getInsertBlock", IRBuilderWrapper::GetInsertBlock);
+    Nan::SetPrototypeMethod(functionTemplate, "setInsertionPoint", IRBuilderWrapper::SetInsertionPoint);
 
     auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
     irBuilderConstructor().Reset(constructorFunction);
