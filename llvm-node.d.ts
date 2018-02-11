@@ -558,7 +558,7 @@ declare namespace llvm {
         createInBoundsGEP(ptr: Value, idxList: Value[], name?: string): Value;
         createInBoundsGEP(type: Type, ptr: Value, idxList: Value[], name?: string): Value;
 
-        createInsertValue(agg: Value, val: Value, idxList: number, name?: string): Value;
+        createInsertValue(agg: Value, val: Value, idxList: number[], name?: string): Value;
 
         createIntCast(vlaue: Value, type: Type, isSigned: boolean, name?: string): Value;
 
