@@ -1,12 +1,9 @@
 import * as llvm from "../../";
-import {
-  createModule,
-  createBuilder,
-  createBuilderWithBlock
-} from "../test-utils";
+import { createModule, createBuilder, createBuilderWithBlock } from "../test-utils";
 
 describe("ir/module", () => {
   describe("constructor", () => {
+    const untypedCtor = llvm.Module as any;
     test("can create a new module", () => {
       const mod = new llvm.Module("test", new llvm.LLVMContext());
       expect(mod).toBeDefined();
@@ -14,19 +11,19 @@ describe("ir/module", () => {
     });
 
     test("throws if called with not enough arguments", () => {
-      expect(() => new llvm.Module()).toThrowError(
+      expect(() => new untypedCtor()).toThrowError(
         "The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)"
       );
-      expect(() => new llvm.Module("test")).toThrowError(
+      expect(() => new untypedCtor("test")).toThrowError(
         "The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)"
       );
     });
 
     test("throws with arguments not matching the expected type", () => {
-      expect(() => new llvm.Module(1, new llvm.LLVMContext())).toThrowError(
+      expect(() => new untypedCtor(1, new llvm.LLVMContext())).toThrowError(
         "The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)"
       );
-      expect(() => new llvm.Module("test", {})).toThrowError(
+      expect(() => new untypedCtor("test", {})).toThrowError(
         "The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)"
       );
     });
@@ -43,12 +40,7 @@ describe("ir/module", () => {
       const { module, context } = createModule();
 
       const fnType = llvm.FunctionType.get(llvm.Type.getVoidTy(context), false);
-      const fn = llvm.Function.create(
-        fnType,
-        llvm.LinkageTypes.ExternalWeakLinkage,
-        "test",
-        module
-      );
+      const fn = llvm.Function.create(fnType, llvm.LinkageTypes.ExternalWeakLinkage, "test", module);
 
       expect(module.empty).toBe(false);
     });
@@ -78,9 +70,7 @@ describe("ir/module", () => {
     test("it throws if it's not a string", () => {
       const { module } = createModule();
 
-      expect(() => (module.moduleIdentifier = 2)).toThrowError(
-        "moduleIdentifier needs to be a string"
-      );
+      expect(() => (module.moduleIdentifier = 2 as any)).toThrowError("moduleIdentifier needs to be a string");
     });
   });
 
@@ -94,9 +84,7 @@ describe("ir/module", () => {
     test("it throws if it's not a string", () => {
       const { module } = createModule();
 
-      expect(() => (module.sourceFileName = 2)).toThrowError(
-        "sourceFileName needs to be a string"
-      );
+      expect(() => (module.sourceFileName = 2 as any)).toThrowError("sourceFileName needs to be a string");
     });
   });
 
@@ -111,9 +99,7 @@ describe("ir/module", () => {
     test("it throws if it's not a string", () => {
       const { module } = createModule();
 
-      expect(() => (module.targetTriple = 1)).toThrowError(
-        "targetTriple needs to be a string"
-      );
+      expect(() => (module.targetTriple = 1 as any)).toThrowError("targetTriple needs to be a string");
     });
 
     it("it throws if it is an illegal target triple", () => {
@@ -158,11 +144,7 @@ describe("ir/module", () => {
 
       const fun = module.getOrInsertFunction(
         "fib",
-        llvm.FunctionType.get(
-          llvm.Type.getDoubleTy(context),
-          [llvm.Type.getDoubleTy(context)],
-          false
-        )
+        llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [llvm.Type.getDoubleTy(context)], false)
       );
 
       expect(fun).toBeDefined();

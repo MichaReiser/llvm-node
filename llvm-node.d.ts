@@ -104,7 +104,7 @@ declare namespace llvm {
 
     protected constructor();
 
-    type: Type;
+    readonly type: Type;
     name: string;
 
     dump?: () => void;
@@ -124,8 +124,8 @@ declare namespace llvm {
   }
 
   class Argument extends Value {
-    argumentNumber: number;
-    parent?: Function;
+    readonly argumentNumber: number;
+    readonly parent?: Function;
 
     constructor(type: Type, name?: string, fn?: Function, argNo?: number);
 
@@ -140,24 +140,19 @@ declare namespace llvm {
     alignment: number;
     type: PointerType;
     allocatedType: Type;
-    arraySize: Value | null;
+    readonly arraySize: Value | null;
 
     private constructor();
   }
 
   class BasicBlock extends Value {
-    static create(
-      context: LLVMContext,
-      name?: string,
-      parent?: Function,
-      insertBefore?: BasicBlock
-    ): BasicBlock;
+    static create(context: LLVMContext, name?: string, parent?: Function, insertBefore?: BasicBlock): BasicBlock;
 
     private constructor();
 
-    parent?: Function;
-    empty: boolean;
-    context: LLVMContext;
+    readonly parent?: Function;
+    readonly empty: boolean;
+    readonly context: LLVMContext;
 
     eraseFromParent(): void;
 
@@ -185,16 +180,11 @@ declare namespace llvm {
 
     private constructor();
 
-    value: number;
+    readonly value: number;
   }
 
   class ConstantInt extends Constant {
-    static get(
-      context: LLVMContext,
-      value: number,
-      numBits?: number,
-      signed?: boolean
-    ): ConstantInt;
+    static get(context: LLVMContext, value: number, numBits?: number, signed?: boolean): ConstantInt;
 
     static getFalse(context: LLVMContext): ConstantInt;
 
@@ -202,7 +192,7 @@ declare namespace llvm {
 
     private constructor();
 
-    value: number;
+    readonly value: number;
   }
 
   class ConstantPointerNull extends Constant {
@@ -216,10 +206,7 @@ declare namespace llvm {
   }
 
   class ConstantDataArray extends Constant {
-    static get(
-      llvmContext: LLVMContext,
-      values: Uint32Array | Float32Array | Float64Array
-    ): Constant;
+    static get(llvmContext: LLVMContext, values: Uint32Array | Float32Array | Float64Array): Constant;
 
     static getString(llvmContext: LLVMContext, value: string): Constant;
 
@@ -233,12 +220,7 @@ declare namespace llvm {
   }
 
   class Function extends Constant {
-    static create(
-      functionType: FunctionType,
-      linkageTypes: LinkageTypes,
-      name?: string,
-      module?: Module
-    ): Function;
+    static create(functionType: FunctionType, linkageTypes: LinkageTypes, name?: string, module?: Module): Function;
 
     callingConv: CallingConv;
     visibility: VisibilityTypes;
@@ -291,6 +273,8 @@ declare namespace llvm {
 
   class PhiNode extends Value {
     private constructor();
+
+    readonly elementType: Type;
 
     addIncoming(value: Value, basicBlock: BasicBlock): void;
   }
@@ -427,7 +411,7 @@ declare namespace llvm {
 
     protected constructor();
 
-    typeID: number;
+    readonly typeID: number;
 
     equals(other: Type): boolean;
 
@@ -464,9 +448,9 @@ declare namespace llvm {
 
     static isValidArgumentType(type: Type): boolean;
 
-    returnType: Type;
-    isVarArg: boolean;
-    numParams: number;
+    readonly returnType: Type;
+    readonly isVarArg: boolean;
+    readonly numParams: number;
 
     private constructor();
 
@@ -486,8 +470,8 @@ declare namespace llvm {
   class ArrayType extends Type {
     static get(elementType: Type, numElements: number): ArrayType;
 
-    elementType: Type;
-    numElements: number;
+    readonly elementType: Type;
+    readonly numElements: number;
 
     private constructor();
   }
@@ -495,11 +479,7 @@ declare namespace llvm {
   class StructType extends Type {
     static create(context: LLVMContext, name?: string): StructType;
 
-    static get(
-      context: LLVMContext,
-      elements: Type[],
-      isPacked?: boolean
-    ): StructType;
+    static get(context: LLVMContext, elements: Type[], isPacked?: boolean): StructType;
 
     name: string;
     readonly numElements: number;
@@ -523,12 +503,7 @@ declare namespace llvm {
 
     createAlignedLoad(ptr: Value, align: number, name?: string): Value;
 
-    createAlignedStore(
-      value: Value,
-      ptr: Value,
-      align: number,
-      isVolatile?: boolean
-    ): Value;
+    createAlignedStore(value: Value, ptr: Value, align: number, isVolatile?: boolean): Value;
 
     createAnd(lhs: Value, rhs: Value, name?: string): Value;
 
@@ -540,11 +515,7 @@ declare namespace llvm {
 
     createCall(callee: Value, args: Value[], name?: string): CallInst;
 
-    createCondBr(
-      condition: Value,
-      then: BasicBlock,
-      elseBlock: BasicBlock
-    ): Value;
+    createCondBr(condition: Value, then: BasicBlock, elseBlock: BasicBlock): Value;
 
     createExtractValue(agg: Value, idxs: number[], name?: string): Value;
 
@@ -586,39 +557,16 @@ declare namespace llvm {
 
     createFPToSI(value: Value, type: Type, name?: string): Value;
 
-    createGlobalString(
-      str: string,
-      name?: string,
-      addressSpace?: number
-    ): Value;
+    createGlobalString(str: string, name?: string, addressSpace?: number): Value;
 
-    createGlobalStringPtr(
-      str: string,
-      name?: string,
-      addressSpace?: number
-    ): Value;
+    createGlobalStringPtr(str: string, name?: string, addressSpace?: number): Value;
 
     createInBoundsGEP(ptr: Value, idxList: Value[], name?: string): Value;
-    createInBoundsGEP(
-      type: Type,
-      ptr: Value,
-      idxList: Value[],
-      name?: string
-    ): Value;
+    createInBoundsGEP(type: Type, ptr: Value, idxList: Value[], name?: string): Value;
 
-    createInsertValue(
-      agg: Value,
-      val: Value,
-      idxList: number[],
-      name?: string
-    ): Value;
+    createInsertValue(agg: Value, val: Value, idxList: number[], name?: string): Value;
 
-    createIntCast(
-      vlaue: Value,
-      type: Type,
-      isSigned: boolean,
-      name?: string
-    ): Value;
+    createIntCast(vlaue: Value, type: Type, isSigned: boolean, name?: string): Value;
 
     createICmpEQ(lhs: Value, rhs: Value, name?: string): Value;
 
@@ -646,12 +594,7 @@ declare namespace llvm {
 
     createMul(lhs: Value, rhs: Value, name?: string): Value;
 
-    createNeg(
-      value: Value,
-      name?: string,
-      hasNUW?: boolean,
-      hasNSW?: boolean
-    ): Value;
+    createNeg(value: Value, name?: string, hasNUW?: boolean, hasNSW?: boolean): Value;
 
     createNot(value: Value, name?: string): Value;
 
@@ -667,12 +610,7 @@ declare namespace llvm {
 
     createRetVoid(): Value;
 
-    createSelect(
-      condition: Value,
-      trueValue: Value,
-      falseValue: Value,
-      name?: string
-    ): Value;
+    createSelect(condition: Value, trueValue: Value, falseValue: Value, name?: string): Value;
 
     createSDiv(lhs: Value, rhs: Value, name?: string): Value;
 
@@ -729,8 +667,8 @@ declare namespace llvm {
   }
 
   class Target {
-    name: string;
-    shortDescription: string;
+    readonly name: string;
+    readonly shortDescription: string;
 
     private constructor();
 
