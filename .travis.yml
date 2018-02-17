@@ -23,7 +23,8 @@ before_install:
 - sudo apt-get install clang-$LLVM_VERSION llvm-$LLVM_VERSION llvm-$LLVM_VERSION-dev
 
 install:
-- npm install --LLVM_CONFIG=llvm-config-$LLVM_VERSION
+- npm config set LLVM_CONFIG=llvm-config-$LLVM_VERSION
+- yarn
 
 deploy:
   provider: npm
