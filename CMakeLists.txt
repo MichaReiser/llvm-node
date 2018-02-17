@@ -17,10 +17,12 @@ file(GLOB SOURCE_FILES
         "src/**/*.cc"
         )
 
+add_definitions(${LLVM_DEFINITIONS})
+
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
 
 llvm_map_components_to_libnames(llvm_libs all)
 
 # Link against LLVM libraries
-target_link_libraries(${PROJECT_NAME} ${llvm_libs};${CMAKE_JS_LIB} )
+target_link_libraries(${PROJECT_NAME} ${llvm_libs} ${CMAKE_JS_LIB} )
