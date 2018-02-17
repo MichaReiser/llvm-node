@@ -28,7 +28,7 @@ before_install:
 - sudo apt-get install libedit-dev clang-5.0 llvm-$LLVM_VERSION llvm-$LLVM_VERSION-dev
 
 install:
-- npm config set LLVM_CONFIG=llvm-config-$LLVM_VERSION
+- npm config set cmake_LLVM_DIR $(llvm-config-$LLVM_VERSION --cmakedir)
 - yarn
 
 deploy:
