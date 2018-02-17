@@ -666,16 +666,12 @@ declare namespace llvm {
     static lookupTarget(target: string): Target;
   }
 
-  class Target {
+  interface Target {
     readonly name: string;
     readonly shortDescription: string;
-
-    private constructor();
-
     createTargetMachine(triple: string, cpu: string): TargetMachine;
   }
 
-  // target
   interface TargetMachine {
     createDataLayout(): DataLayout;
   }
