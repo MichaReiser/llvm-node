@@ -1,125 +1,209 @@
 import * as llvm from "../../";
+import { createModule, createBuilder, createBuilderWithBlock } from "../test-utils";
 
 describe("ir/module", () => {
-    let context: llvm.LLVMContext;
-
-    beforeEach(() => {
-        context = new llvm.LLVMContext();
+  describe("constructor", () => {
+    const untypedCtor = llvm.Module as any;
+    test("can create a new module", () => {
+      const mod = new llvm.Module("test", new llvm.LLVMContext());
+      expect(mod).toBeDefined();
+      expect(mod.moduleIdentifier).toBe("test");
     });
 
-    describe("constructor", () => {
-        test("can create a new module", () => {
-            const mod = new llvm.Module("test", context);
-            expect(mod).toBeDefined();
-            expect(mod.moduleIdentifier).toBe("test");
-        });
-
-        test("throws if called with not enough arguments", () => {
-            expect(() => new llvm.Module()).toThrowError("The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)");
-            expect(() => new llvm.Module("test")).toThrowError("The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)");
-        });
-
-        test("throws with arguments not matching the expected type", () => {
-           expect(() => new llvm.Module(1, context)).toThrowError("The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)");
-           expect(() => new llvm.Module("test", {})).toThrowError("The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)");
-        });
+    test("throws if called with not enough arguments", () => {
+      expect(() => new untypedCtor()).toThrowError(
+        "The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)"
+      );
+      expect(() => new untypedCtor("test")).toThrowError(
+        "The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)"
+      );
     });
 
-    describe("moduleIdentifier", () => {
-        test("sets the moduleIdentifier", () => {
-            const mod = new llvm.Module("test", context);
-            mod.moduleIdentifier = "fib";
-            expect(mod.moduleIdentifier).toBe("fib");
-        });
+    test("throws with arguments not matching the expected type", () => {
+      expect(() => new untypedCtor(1, new llvm.LLVMContext())).toThrowError(
+        "The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)"
+      );
+      expect(() => new untypedCtor("test", {})).toThrowError(
+        "The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)"
+      );
+    });
+  });
 
-        test("it throws if it's not a string", () => {
-            const mod = new llvm.Module("test", context);
-            expect(() => mod.moduleIdentifier = 2).toThrowError("moduleIdentifier needs to be a string");
-        });
+  describe("empty", () => {
+    it("returns true when the module is empty", () => {
+      const { module } = createModule();
+
+      expect(module.empty).toBe(true);
     });
 
-    describe("sourceFileName", () => {
-        test("sets the source file name", () => {
-            const mod = new llvm.Module("test", context);
-            mod.sourceFileName = "fib.js";
-            expect(mod.sourceFileName).toBe("fib.js");
-        });
+    it("returns false when the module is no longer empty", () => {
+      const { module, context } = createModule();
 
-        test("it throws if it's not a string", () => {
-            const mod = new llvm.Module("test", context);
-            expect(() => mod.sourceFileName = 2).toThrowError("sourceFileName needs to be a string");
-        });
+      const fnType = llvm.FunctionType.get(llvm.Type.getVoidTy(context), false);
+      const fn = llvm.Function.create(fnType, llvm.LinkageTypes.ExternalWeakLinkage, "test", module);
+
+      expect(module.empty).toBe(false);
+    });
+  });
+
+  describe("name", () => {
+    it("returns the name of the module", () => {
+      const { module } = createModule({ moduleId: "abcd" });
+
+      expect(module.name).toBe("abcd");
+    });
+  });
+
+  describe("moduleIdentifier", () => {
+    test("returns the module identifier", () => {
+      const { module } = createModule({ moduleId: "abcd" });
+
+      expect(module.moduleIdentifier).toBe("abcd");
     });
 
-    describe("targetTriple", () => {
-        test("sets the target triple", () => {
-            const mod = new llvm.Module("test", context);
-            mod.targetTriple = "wasm32-unknown-unknown";
-            expect(mod.targetTriple).toBe("wasm32-unknown-unknown");
-        });
-
-        test("it throws if it's not a string", () => {
-            const mod = new llvm.Module("test", context);
-            expect(() => mod.targetTriple = 1).toThrowError("targetTriple needs to be a string");
-        });
-
-        it("it throws if it is an illegal target triple", () => {
-            const mod = new llvm.Module("test", context);
-            mod.targetTriple = "test";
-        });
+    test("sets the moduleIdentifier", () => {
+      const { module } = createModule();
+      module.moduleIdentifier = "fib";
+      expect(module.moduleIdentifier).toBe("fib");
     });
 
-    if (llvm.Module.prototype.dump) {
-        describe("dump", () => {
-            test("dumps the module", () => {
-                const mod = new llvm.Module("test", context);
-                mod.dump!();
-            });
-        });
-    }
+    test("it throws if it's not a string", () => {
+      const { module } = createModule();
 
-    describe("getFunction", () => {
-        test("returns the function with the given name", () => {
-            const mod = new llvm.Module("test", context);
+      expect(() => (module.moduleIdentifier = 2 as any)).toThrowError("moduleIdentifier needs to be a string");
+    });
+  });
 
-            const fun = llvm.Function.create(llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false), llvm.LinkageTypes.ExternalLinkage, "sin", mod);
-            expect(mod.getFunction("sin")).toEqual(fun);
-        });
-
-        test("returns undefined if no such function exists", () => {
-            const mod = new llvm.Module("test", context);
-
-            expect(mod.getFunction("fib")).toBeUndefined();
-        })
+  describe("sourceFileName", () => {
+    test("sets the source file name", () => {
+      const { module } = createModule();
+      module.sourceFileName = "fib.js";
+      expect(module.sourceFileName).toBe("fib.js");
     });
 
-    describe("getOrInsertFunction", () => {
-        test("returns a new function if not yet existing in the module", () => {
-            const mod = new llvm.Module("test", context);
+    test("it throws if it's not a string", () => {
+      const { module } = createModule();
 
-            const fun = mod.getOrInsertFunction("fib", llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [llvm.Type.getDoubleTy(context)], false));
+      expect(() => (module.sourceFileName = 2 as any)).toThrowError("sourceFileName needs to be a string");
+    });
+  });
 
-            expect(fun).toBeDefined();
-            expect(mod.getFunction("fib")).toEqual(fun);
-        });
+  describe("targetTriple", () => {
+    test("sets the target triple", () => {
+      const { module } = createModule();
 
-        test("returns the existing function if a function with the given name already exist", () => {
-            const mod = new llvm.Module("test", context);
-
-            const fun = llvm.Function.create(llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false), llvm.LinkageTypes.ExternalLinkage, "sin", mod);
-            const queriedFn = mod.getOrInsertFunction("sin", llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false));
-            expect(queriedFn).toEqual(fun);
-        });
+      module.targetTriple = "wasm32-unknown-unknown";
+      expect(module.targetTriple).toBe("wasm32-unknown-unknown");
     });
 
-    describe("print", () => {
-        test("returns the llvm assembly code for the module", () => {
-            const mod = new llvm.Module("test", context);
-            const fun = llvm.Function.create(llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false), llvm.LinkageTypes.ExternalLinkage, "sin", mod);
+    test("it throws if it's not a string", () => {
+      const { module } = createModule();
 
-            const entry = llvm.BasicBlock.create(context, "entry", fun);
-
-            expect(mod.print()).toMatchSnapshot();
-        });
+      expect(() => (module.targetTriple = 1 as any)).toThrowError("targetTriple needs to be a string");
     });
+
+    it("it throws if it is an illegal target triple", () => {
+      const { module } = createModule();
+
+      module.targetTriple = "test";
+    });
+  });
+
+  if (llvm.Module.prototype.dump) {
+    describe("dump", () => {
+      test("dumps the module", () => {
+        const mod = new llvm.Module("test", new llvm.LLVMContext());
+        mod.dump!();
+      });
+    });
+  }
+
+  describe("getFunction", () => {
+    test("returns the function with the given name", () => {
+      const { module, context } = createModule();
+
+      const fun = llvm.Function.create(
+        llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false),
+        llvm.LinkageTypes.ExternalLinkage,
+        "sin",
+        module
+      );
+      expect(module.getFunction("sin")).toEqual(fun);
+    });
+
+    test("returns undefined if no such function exists", () => {
+      const { module } = createModule();
+
+      expect(module.getFunction("fib")).toBeUndefined();
+    });
+  });
+
+  describe("getOrInsertFunction", () => {
+    test("returns a new function if not yet existing in the module", () => {
+      const { module, context } = createModule();
+
+      const fun = module.getOrInsertFunction(
+        "fib",
+        llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [llvm.Type.getDoubleTy(context)], false)
+      );
+
+      expect(fun).toBeDefined();
+      expect(module.getFunction("fib")).toEqual(fun);
+    });
+
+    test("returns the existing function if a function with the given name already exist", () => {
+      const { module, context } = createModule();
+
+      const fun = llvm.Function.create(
+        llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false),
+        llvm.LinkageTypes.ExternalLinkage,
+        "sin",
+        module
+      );
+      const queriedFn = module.getOrInsertFunction(
+        "sin",
+        llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false)
+      );
+      expect(queriedFn).toEqual(fun);
+    });
+  });
+
+  describe("print", () => {
+    test("returns the llvm assembly code for the module", () => {
+      const { module, context } = createModule();
+
+      const fun = llvm.Function.create(
+        llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false),
+        llvm.LinkageTypes.ExternalLinkage,
+        "sin",
+        module
+      );
+
+      const entry = llvm.BasicBlock.create(context, "entry", fun);
+
+      expect(module.print()).toMatchSnapshot();
+    });
+  });
+
+  describe("getGlobalVariable", () => {
+    it("returns undefined if the global variable is not defined", () => {
+      const { module } = createModule();
+
+      expect(module.getGlobalVariable("notExisting")).toBeUndefined();
+    });
+
+    it("returns the defined global variable", () => {
+      const { builder, module, context } = createBuilder();
+      const global = new llvm.GlobalVariable(
+        module,
+        llvm.Type.getInt32Ty(context),
+        true,
+        llvm.LinkageTypes.ExternalLinkage,
+        llvm.ConstantInt.get(context, 2),
+        "globalVar"
+      );
+
+      expect(module.getGlobalVariable("globalVar"));
+    });
+  });
 });
