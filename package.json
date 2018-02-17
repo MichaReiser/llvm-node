@@ -28,6 +28,7 @@
   "scripts": {
     "configure": "cmake-js configure",
     "build": "cmake-js compile",
+    "install": "npm run build",
     "clean": "cmake-js clean",
     "rebuild": "cmake-js rebuild",
     "test": "jest --coverage --runInBand",
