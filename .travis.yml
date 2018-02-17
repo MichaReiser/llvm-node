@@ -20,6 +20,7 @@ env:
     - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main" LLVM_VERSION=6.0
 
 before_install:
+- sudo rm -rf /var/lib/apt/lists/*
 - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
 - curl http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 - echo "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main" | sudo tee -a /etc/apt/sources.list
