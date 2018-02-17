@@ -1,30 +1,28 @@
 cmake_minimum_required(VERSION 3.6)
-project(llvm_node)
+project(llvm-node)
 
 set(CMAKE_CXX_STANDARD 14)
 
-file(GLOB llvm_node_SRC
+find_package(LLVM REQUIRED CONFIG)
+
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+include_directories(${CMAKE_JS_INC} "./node_modules/nan" ${LLVM_INCLUDE_DIRS})
+
+file(GLOB SOURCE_FILES 
         "src/*.h"
         "src/*.cc"
         "src/**/*.h"
         "src/**/*.cc"
         )
 
-set(SOURCE_FILES ${llvm_node_SRC})
-
-include(./node_modules/node-cmake/NodeJS.cmake)
-nodejs_init()
-
-find_package(LLVM 4 REQUIRED CONFIG)
-
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-
-include_directories(${LLVM_INCLUDE_DIRS} "./node_modules/nan")
 add_definitions(${LLVM_DEFINITIONS})
-add_nodejs_module(${PROJECT_NAME} ${SOURCE_FILES})
+
+add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
+set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
 
 llvm_map_components_to_libnames(llvm_libs all)
 
 # Link against LLVM libraries
-target_link_libraries(${PROJECT_NAME} ${llvm_libs})
+target_link_libraries(${PROJECT_NAME} ${llvm_libs};${CMAKE_JS_LIB} )
