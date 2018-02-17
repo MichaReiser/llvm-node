@@ -17,8 +17,6 @@ file(GLOB SOURCE_FILES
         "src/**/*.cc"
         )
 
-add_definitions(${LLVM_DEFINITIONS})
-
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
 
