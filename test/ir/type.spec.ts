@@ -136,11 +136,51 @@ describe("ir/type", () => {
     expect(llvm.Type.getInt16Ty(context).equals(llvm.Type.getInt32Ty(context))).toBe(false);
   });
 
-  xtest("isFunctionTy");
-  xtest("isStructTy");
-  xtest("isArrayTy");
-  xtest("typeId");
-  xtest("getPointerTo");
-  xtest("getPrimitiveSizeInBits");
-  xtest("toString");
+  test("isFunctionTy returns true for a function", () => {
+    const fnType = llvm.FunctionType.get(llvm.Type.getVoidTy(context), false);
+
+    expect(fnType.isFunctionTy()).toBe(true);
+    expect(llvm.Type.getInt32Ty(context).isFunctionTy()).toBe(false);
+  });
+
+  test("isStructTy returns true for a struct", () => {
+    const structTy = llvm.StructType.get(context, [llvm.Type.getInt32Ty(context)], false);
+
+    expect(structTy.isStructTy()).toBe(true);
+    expect(structTy.getElementType(0).isStructTy()).toBe(false);
+  });
+
+  test("isArrayTy returns true for an array", () => {
+    const arrayTy = llvm.ArrayType.get(llvm.Type.getInt32Ty(context), 2);
+
+    expect(arrayTy.isArrayTy()).toBe(true);
+    expect(arrayTy.elementType.isArrayTy()).toBe(false);
+  });
+
+  test("typeId returns the id of the type", () => {
+    expect(llvm.Type.getInt32Ty(context).typeID).toBe(llvm.Type.TypeID.IntegerTyID);
+  });
+
+  test("getPointerTo returns the pointer type of the type called on", () => {
+    const type = llvm.Type.getDoubleTy(context);
+
+    const pointerTy = type.getPointerTo();
+
+    expect(pointerTy.isPointerTy()).toBe(true);
+    expect(pointerTy.elementType).toEqual(llvm.Type.getDoubleTy(context));
+  });
+
+  test("getPrimitiveSizeInBits returns the size in bits", () => {
+    expect(llvm.Type.getDoubleTy(context).getPrimitiveSizeInBits()).toBe(64);
+    expect(llvm.Type.getInt32Ty(context).getPrimitiveSizeInBits()).toBe(32);
+    expect(llvm.Type.getIntNTy(context, 14).getPrimitiveSizeInBits()).toBe(14);
+  });
+
+  test("toString returns the string representation of the type", () => {
+    expect(
+      llvm.Type.getDoubleTy(context)
+        .getPointerTo()
+        .toString()
+    ).toBe("double*");
+  });
 });
