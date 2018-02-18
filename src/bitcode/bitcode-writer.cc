@@ -28,7 +28,11 @@ NAN_METHOD(WriteBitcodeToFile) {
         return Nan::ThrowError((messagePrefix + errorCode.message()).c_str());
     }
 
+#if LLVM_VERSION_MAJOR > 6
+    llvm::WriteBitcodeToFile(*module, byteCodeFile);
+#else
     llvm::WriteBitcodeToFile(module, byteCodeFile);
+#endif
 
     byteCodeFile.flush();
     byteCodeFile.close();
