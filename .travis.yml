@@ -1,5 +1,4 @@
 language: node_js
-compiler: gcc
 
 node_js:
 - node
@@ -21,6 +20,7 @@ before_install:
 - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
 - echo $LLVM_DEB | sudo tee -a /etc/apt/sources.list
 - sudo apt-get update -qq
+- sudo apt-get uninstall libllvm-5.0-dev libllvm-5.0
 - sudo apt-get install libedit-dev llvm-$LLVM_VERSION llvm-$LLVM_VERSION-dev
 
 install:
