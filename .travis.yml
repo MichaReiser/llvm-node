@@ -1,5 +1,4 @@
 language: node_js
-compiler: clang
 
 node_js:
 - node
@@ -24,7 +23,6 @@ before_install:
 - sudo apt-get install libedit-dev clang-$LLVM_VERSION llvm-$LLVM_VERSION llvm-$LLVM_VERSION-dev
 
 install:
- - npm config set cmake_LLVM_DIR $(llvm-config-$LLVM_VERSION --cmakedir) 
  - yarn
 
 deploy:
