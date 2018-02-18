@@ -32,16 +32,21 @@ llvm.writeBitcodeToFile(module, biteCodeFileName); // Writes file to disk
 ```
 
 ## Custom LLVM Installation
+You can use the npm configuration options to set the path to the LLVM cmake directory. This is needed if you don't want to use the system default LLVM installation --- e.g. when you want to compile againt the latest dev version.
 
-To build llvm-node against a custom --- not the systems default --- LLVM installation you can set the `GYP_DEFINES` environment variable before running `npm install` as follow (on unix systems):
+To change the LLVM version globally, use:
 
+```sh
+npm config set --global cmake_LLVM_DIR $(path-to-llvm/bin/llvm-config --cmakedir)
 ```
-GYP_DEFINES="LLVM_CONFIG=/path/to/llvm-config" npm install llvm-node --save-dev
+
+or for the current user only
+
+```sh
+npm config set cmake_LLVM_DIR $(path-to-llvm/bin/llvm-config --cmakedir)
 ```
 
-The `LLVM_CONFIG` value must point to the `llvm-config` executable.
-
-The `LLVM_CONFIG` variable can also be set using [`npm config set`](https://docs.npmjs.com/cli/config) or a [`.npmrc`](https://docs.npmjs.com/files/npmrc) file in your project.
+If you fant to change the value just for a single project use an [.npmrc](https://docs.npmjs.com/files/npmrc) file in your project.
 
 ## Debug Build
 If you want to use `Value.dump` or `Module.dump` you need to use the debug build of the library (and, as well, of LLVM).

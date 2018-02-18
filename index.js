@@ -1,1 +1,1 @@
-module.exports = require("bindings")("llvm.node");
+module.exports = require("bindings")("llvm-node.node");
