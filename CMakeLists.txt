@@ -8,14 +8,26 @@ find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
-include_directories(${CMAKE_JS_INC} "./node_modules/nan" ${LLVM_INCLUDE_DIRS})
+include_directories(${CMAKE_JS_INC} PRIVATE "${CMAKE_SOURCE_DIR}/node_modules/node-addon-api" ${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
-file(GLOB SOURCE_FILES 
-        "src/*.h"
+add_definitions(-DNAPI_CPP_EXCEPTIONS=ON)
+
+file(GLOB SOURCE_FILES
         "src/*.cc"
+        "src/bitcode/*.h"
+        "src/bitcode/*.cc"
+        "src/ir/ir.h"
+        "src/ir/ir.cc"
+        "src/ir/llvm-context.h"
+        "src/ir/llvm-context.cc"
+        "src/ir/module.h"
+        "src/ir/module.cc"
+        "src/ir/type.h",
+        "src/ir/type.cc",
+        "src/ir/value.h"
+        "src/ir/value.cc"
         "src/**/*.h"
-        "src/**/*.cc"
         )
 
 

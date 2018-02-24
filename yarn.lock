@@ -2097,6 +2097,10 @@ natural-compare@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
 
+node-addon-api@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-1.2.0.tgz#2d378bbed60cbb7b9e2c505c6833eed8723f41c4"
+
 node-gyp@^3.6.2:
   version "3.6.2"
   resolved "https://registry.yarnpkg.com/node-gyp/-/node-gyp-3.6.2.tgz#9bfbe54562286284838e750eac05295853fa1c60"

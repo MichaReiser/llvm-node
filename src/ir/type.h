@@ -5,40 +5,30 @@
 #ifndef LLVM_NODE_TYPE_H
 #define LLVM_NODE_TYPE_H
 
-#include <nan.h>
+#include <napi.h>
 #include <llvm/IR/Type.h>
 #include "llvm-context.h"
-#include "../util/from-value-mixin.h"
 
-class TypeWrapper: public Nan::ObjectWrap, public FromValueMixin<TypeWrapper> {
+class TypeWrapper: public Napi::ObjectWrap<TypeWrapper> {
 public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::Type *type);
-    using FromValueMixin::FromValue;
+    static Napi::FunctionReference constructor;
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    static Napi::Object of(Napi::Env env, llvm::Type *type);
+    static bool isInstanceOfType(Napi::Value value);
 
+    TypeWrapper(const Napi::CallbackInfo& info);
     llvm::Type* getType();
-
-    static bool isInstance(v8::Local<v8::Value> value);
 
 protected:
     llvm::Type* type;
-    TypeWrapper(llvm::Type* type) : Nan::ObjectWrap {}, type { type } {
-        assert(type && "No type pointer passed");
-    }
-
-    static Nan::Persistent<v8::FunctionTemplate>& typeTemplate();
-
-    // Static Methods
-    static NAN_METHOD(New);
-    static NAN_METHOD(getPointerTo);
-    static NAN_METHOD(getIntNTy);
-
 private:
-    // Instance Methods
-    static NAN_METHOD(equals);
-    static NAN_GETTER(getTypeID);
-    static NAN_METHOD(getPrimitiveSizeInBits);
-    static NAN_METHOD(toString);
+    static Napi::Object getIntNTy(const Napi::CallbackInfo& info);
+
+    Napi::Object getPointerTo(const Napi::CallbackInfo& info);
+    Napi::Value equals(const Napi::CallbackInfo& info);
+    Napi::Value getTypeID(const Napi::CallbackInfo& info);
+    Napi::Value getPrimitiveSizeInBits(const Napi::CallbackInfo& info);
+    Napi::Value toString(const Napi::CallbackInfo& info);
 };
 
 #endif //LLVM_NODE_TYPE_H

@@ -5,8 +5,8 @@
 #ifndef LLVM_NODE_BITCODE_H
 #define LLVM_NODE_BITCODE_H
 
-#include <nan.h>
+#include <napi.h>
 
-NAN_MODULE_INIT(InitBitCode);
+void InitBitCode(Napi::Env env, Napi::Object exports);
 
 #endif //LLVM_NODE_BITCODE_H

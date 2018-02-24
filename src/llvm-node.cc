@@ -1,15 +1,17 @@
-#include <nan.h>
+#include <napi.h>
 
-#include "bitcode/bitcode.h"
+//#include "bitcode/bitcode.h"
 #include "ir/ir.h"
-#include "support/support.h"
-#include "target/target.h"
+//#include "support/support.h"
+//#include "target/target.h"
 
-NAN_MODULE_INIT(InitAll) {
-    InitBitCode(target);
-    InitIR(target);
-    InitSupport(target);
-    InitTarget(target);
+Napi::Object InitAll(Napi::Env env, Napi::Object exports) {
+//    InitBitCode(env, exports);
+    InitIR(env, exports );
+//    InitSupport(target);
+//    InitTarget(target);
+
+    return exports;
 }
 
-NODE_MODULE(llvm, InitAll)
+NODE_API_MODULE(llvm, InitAll)

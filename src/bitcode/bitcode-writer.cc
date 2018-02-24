@@ -6,30 +6,33 @@
 #include <llvm/Support/FileSystem.h>
 #include "bitcode-writer.h"
 #include "../ir/module.h"
-#include "../util/string.h"
+//#include "../util/string.h"
 
-NAN_MODULE_INIT(InitBitcodeWriter) {
-    Nan::SetMethod(target, "writeBitcodeToFile", WriteBitcodeToFile);
-}
+Napi::Value WriteBitcodeToFile(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
 
-NAN_METHOD(WriteBitcodeToFile) {
-    if (info.Length() != 2 || !ModuleWrapper::isInstance(info[0]) || !info[1]->IsString()) {
-        return Nan::ThrowTypeError("writeBitcodeToFile needs to be called with: module: Module, filename: string");
+    if (info.Length() != 2 || !ModuleWrapper::isInstanceOfType(info[0]) || !info[1].IsString()) {
+        throw Napi::TypeError::New(env, "writeBitcodeToFile needs to be called with: module: Module, filename: string");
     }
 
-    auto* module = ModuleWrapper::FromValue(info[0])->getModule();
-    auto fileName = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
+    auto *module = ModuleWrapper::Unwrap(info[0].As<Napi::Object>())->getModule();
+    const std::string fileName = info[1].As<Napi::String>();
 
-    std::error_code errorCode {};
-    llvm::raw_fd_ostream byteCodeFile { fileName, errorCode, llvm::sys::fs::F_None };
+    std::error_code errorCode{};
+    llvm::raw_fd_ostream byteCodeFile{fileName, errorCode, llvm::sys::fs::F_None};
 
     if (errorCode) {
-        std::string messagePrefix { "Failed to open file: " };
-        return Nan::ThrowError((messagePrefix + errorCode.message()).c_str());
+        const std::string message = "Failed to open file: " + errorCode.message();
+        throw Napi::Error::New(env, Napi::String::New(env, message));
     }
 
-    llvm::WriteBitcodeToFile(module, byteCodeFile);
+    llvm::WriteBitcodeToFile(*module, byteCodeFile);
 
     byteCodeFile.flush();
     byteCodeFile.close();
 }
+
+void InitBitcodeWriter(Napi::Env env, Napi::Object exports) {
+    exports.Set(Napi::String::New(env, "writeBitcodeToFile"), Napi::Function::New(env, WriteBitcodeToFile));
+}
+

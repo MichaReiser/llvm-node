@@ -4,183 +4,130 @@
 
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instructions.h>
-#include "../util/string.h"
 #include "value.h"
-#include "basic-block.h"
-#include "constant.h"
-#include "type.h"
-#include "phi-node.h"
-#include "alloca-inst.h"
-#include "call-inst.h"
+//#include "type.h"
+//#include "basic-block.h"
+//#include "constant.h"
+//#include "type.h"
+//#include "phi-node.h"
+//#include "alloca-inst.h"
+//#include "call-inst.h"
 
-NAN_MODULE_INIT(ValueWrapper::Init)
-{
-    auto value = Nan::GetFunction(Nan::New(valueTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("Value").ToLocalChecked(), value);
-}
+Napi::FunctionReference ValueWrapper::constructor;
 
-Nan::Persistent<v8::FunctionTemplate> &ValueWrapper::valueTemplate()
-{
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate{};
+Napi::Object ValueWrapper::Init(Napi::Env env, Napi::Object exports) {
 
-    if (functionTemplate.IsEmpty())
-    {
-        v8::Local<v8::FunctionTemplate> localTemplate = Nan::New<v8::FunctionTemplate>(ValueWrapper::New);
-        localTemplate->SetClassName(Nan::New("Value").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-
+    Napi::Function func = DefineClass(env, "Value", {
+//            InstanceMethod("type", &ValueWrapper::getType),
+            InstanceAccessor("name", &ValueWrapper::getName, &ValueWrapper::setName),
+            InstanceMethod("hasName", &ValueWrapper::hasName),
+            InstanceMethod("release", &ValueWrapper::deleteValue),
+            InstanceMethod("deleteValue", &ValueWrapper::deleteValue),
+            InstanceMethod("replaceAllUsesWith", &ValueWrapper::replaceAllUsesWith),
+            InstanceMethod("useEmpty", &ValueWrapper::useEmpty),
 #if defined(LLVM_NODE_DEBUG)
-        Nan::SetPrototypeMethod(localTemplate, "dump", ValueWrapper::dump);
+            InstanceMethod("dump", &ValueWrapper::dump),
 #endif
+            StaticValue("MaxAlignmentExponent", Napi::Number::New(env, llvm::Value::MaxAlignmentExponent)),
+            StaticValue("MaximumAlignment", Napi::Number::New(env, llvm::Value::MaximumAlignment))
+    });
 
-        Nan::SetPrototypeMethod(localTemplate, "hasName", ValueWrapper::hasName);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("type").ToLocalChecked(), ValueWrapper::getType);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), ValueWrapper::getName,
-                         ValueWrapper::setName);
-        Nan::SetPrototypeMethod(localTemplate, "release", ValueWrapper::deleteValue);
-        Nan::SetPrototypeMethod(localTemplate, "deleteValue", ValueWrapper::deleteValue);
-        Nan::SetPrototypeMethod(localTemplate, "replaceAllUsesWith", ValueWrapper::replaceAllUsesWith);
-        Nan::SetPrototypeMethod(localTemplate, "useEmpty", ValueWrapper::useEmpty);
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
 
-        auto function = Nan::GetFunction(localTemplate).ToLocalChecked();
-        Nan::Set(function, Nan::New("MaxAlignmentExponent").ToLocalChecked(), Nan::New(llvm::Value::MaxAlignmentExponent));
-        Nan::Set(function, Nan::New("MaximumAlignment").ToLocalChecked(), Nan::New(llvm::Value::MaximumAlignment));
-
-        functionTemplate.Reset(localTemplate);
-    }
-
-    return functionTemplate;
+    exports.Set("Value", func);
 }
 
-NAN_METHOD(ValueWrapper::New)
-{
-    if (!info.IsConstructCall())
-    {
-        return Nan::ThrowTypeError("Class Constructor Value cannot be invoked without new");
+ValueWrapper::ValueWrapper(const Napi::CallbackInfo &info) : Napi::ObjectWrap<ValueWrapper>{info} {
+    Napi::Env env = info.Env();
+    if (!info.IsConstructCall()) {
+        throw Napi::TypeError::New(env, "Value constructor needs to be invoked with new");
     }
 
-    if (info.Length() != 1 || !info[0]->IsExternal())
-    {
-        return Nan::ThrowTypeError("External Value Pointer required");
+    if (info.Length() < 1) {
+        throw Napi::TypeError::New(env, "Expected value to be called with external pointer to llvm:Value");
     }
 
-    llvm::Value *value = static_cast<llvm::Value *>(v8::External::Cast(*info[0])->Value());
-    auto *wrapper = new ValueWrapper{value};
-    wrapper->Wrap(info.This());
-
-    info.GetReturnValue().Set(info.This());
+    Napi::External<llvm::Value> external = info[0].As<Napi::External<llvm::Value>>();
+    this->value = external.Data();
 }
+
 
 #if defined(LLVM_NODE_DEBUG)
-NAN_METHOD(ValueWrapper::dump)
-{
-    ValueWrapper::FromValue(info.Holder())->value->dump();
+Napi::Value ValueWrapper::dump(const Napi::CallbackInfo &info) {
+    this->value->dump();
+    return info.Env().Null();
 }
 #endif
 
-NAN_GETTER(ValueWrapper::getType)
-{
-    auto *type = ValueWrapper::FromValue(info.Holder())->value->getType();
+//Napi::Object ValueWrapper::getType(const Napi::CallbackInfo &info) {
+//    auto *type = this->value->getType();
+//    return TypeWrapper::of(type);
+//}
 
-    info.GetReturnValue().Set(TypeWrapper::of(type));
+Napi::Value ValueWrapper::hasName(const Napi::CallbackInfo &info) {
+    return Napi::Boolean::New(info.Env(), this->value->hasName());
 }
 
-NAN_METHOD(ValueWrapper::hasName)
-{
-    auto *wrapper = ValueWrapper::FromValue(info.Holder());
-
-    info.GetReturnValue().Set(Nan::New(wrapper->value->hasName()));
+Napi::Value ValueWrapper::getName(const Napi::CallbackInfo &info) {
+    return Napi::String::New(info.Env(), this->value->getName());
 }
 
-NAN_GETTER(ValueWrapper::getName)
-{
-    auto *wrapper = ValueWrapper::FromValue(info.Holder());
-
-    v8::Local<v8::String> name = Nan::New(wrapper->value->getName().str()).ToLocalChecked();
-    info.GetReturnValue().Set(name);
-}
-
-NAN_SETTER(ValueWrapper::setName)
-{
-    if (!value->IsString())
-    {
-        return Nan::ThrowTypeError("String required");
+void ValueWrapper::setName(const Napi::CallbackInfo &info, const Napi::Value &value) {
+    Napi::Env env = info.Env();
+    if (!value.IsString()) {
+        throw Napi::TypeError::New(env, "name needs to be a string");
     }
 
-    auto name = Nan::To<v8::String>(value).ToLocalChecked();
-    ValueWrapper::FromValue(info.Holder())->value->setName(ToString(name));
+    const std::string name = value.ToString();
+    this->value->setName(name);
 }
 
-NAN_METHOD(ValueWrapper::deleteValue)
-{
-    auto *wrapper = ValueWrapper::FromValue(info.Holder());
+void ValueWrapper::deleteValue(const Napi::CallbackInfo &info) {
 #if LLVM_VERSION_MAJOR == 4
-    delete wrapper->getValue();
+    delete this->value;
 #else
-    wrapper->getValue()->deleteValue();
+    this->value->deleteValue();
 #endif
 }
 
-NAN_METHOD(ValueWrapper::replaceAllUsesWith)
-{
-    if (info.Length() != 1 || !ValueWrapper::isInstance(info[0]))
-    {
-        return Nan::ThrowTypeError("replaceAllUsesWith needs to be called with: value: Value");
+void ValueWrapper::replaceAllUsesWith(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+
+    if (info.Length() != 1 || !ValueWrapper::isInstanceOfType(info[0])) {
+        throw Napi::TypeError::New(env, "replaceAllUsesWith needs to be called with: value: Value");
     }
 
-    auto *self = ValueWrapper::FromValue(info.Holder())->getValue();
-    auto *value = ValueWrapper::FromValue(info[0])->getValue();
-
-    self->replaceAllUsesWith(value);
+    auto *value = ValueWrapper::Unwrap(info[0].ToObject())->value;
+    this->value->replaceAllUsesWith(value);
 }
 
-NAN_METHOD(ValueWrapper::useEmpty)
-{
-    auto *value = ValueWrapper::FromValue(info.Holder())->getValue();
-    info.GetReturnValue().Set(Nan::New(value->use_empty()));
+Napi::Value ValueWrapper::useEmpty(const Napi::CallbackInfo &info) {
+    return Napi::Boolean::New(info.Env(), value->use_empty());
 }
 
-v8::Local<v8::Object> ValueWrapper::of(llvm::Value *value)
-{
-    v8::Local<v8::Object> result{};
-
-    if (llvm::Constant::classof(value))
-    {
-        result = ConstantWrapper::of(static_cast<llvm::Constant *>(value));
-    }
-    else if (llvm::BasicBlock::classof(value))
-    {
-        result = BasicBlockWrapper::of(static_cast<llvm::BasicBlock *>(value));
-    }
-    else if (llvm::PHINode::classof(value))
-    {
-        result = PhiNodeWrapper::of(static_cast<llvm::PHINode *>(value));
-    }
-    else if (llvm::AllocaInst::classof(value))
-    {
-        result = AllocaInstWrapper::of(static_cast<llvm::AllocaInst *>(value));
-    }
-    else if (llvm::CallInst::classof(value))
-    {
-        result = CallInstWrapper::of(static_cast<llvm::CallInst *>(value));
-    }
-    else
-    {
-        auto constructorFunction = Nan::GetFunction(Nan::New(valueTemplate())).ToLocalChecked();
-        v8::Local<v8::Value> args[1] = {Nan::New<v8::External>(value)};
-        result = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-    }
-
-    Nan::EscapableHandleScope escapeScope{};
-    return escapeScope.Escape(result);
+Napi::Object ValueWrapper::of(Napi::Env env, llvm::Value *value) {
+//    if (llvm::Constant::classof(value)) {
+//        return ConstantWrapper::of(static_cast<llvm::Constant *>(value));
+//    } else if (llvm::BasicBlock::classof(value)) {
+//        result = BasicBlockWrapper::of(static_cast<llvm::BasicBlock *>(value));
+//    } else if (llvm::PHINode::classof(value)) {
+//        result = PhiNodeWrapper::of(static_cast<llvm::PHINode *>(value));
+//    } else if (llvm::AllocaInst::classof(value)) {
+//        result = AllocaInstWrapper::of(static_cast<llvm::AllocaInst *>(value));
+//    } else if (llvm::CallInst::classof(value)) {
+//        result = CallInstWrapper::of(static_cast<llvm::CallInst *>(value));
+//    } else {
+    Napi::EscapableHandleScope scope { env };
+    Napi::Object object = constructor.New({ Napi::External<llvm::Value>::New(env, value) });
+    return scope.Escape(object).ToObject();
+//    }
 }
 
-bool ValueWrapper::isInstance(v8::Local<v8::Value> value)
-{
-    return Nan::New(valueTemplate())->HasInstance(value);
+bool ValueWrapper::isInstanceOfType(const Napi::Value& value) {
+    return value.ToObject().InstanceOf(constructor.Value());
 }
 
-llvm::Value *ValueWrapper::getValue()
-{
+llvm::Value *ValueWrapper::getValue() {
     return value;
 }

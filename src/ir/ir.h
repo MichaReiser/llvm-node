@@ -5,8 +5,8 @@
 #ifndef LLVM_NODE_IRH_H
 #define LLVM_NODE_IRH_H
 
-#include <nan.h>
+#include <napi.h>
 
-NAN_MODULE_INIT(InitIR);
+Napi::Object InitIR(Napi::Env env, Napi::Object exports);
 
 #endif //LLVM_NODE_IRH_H

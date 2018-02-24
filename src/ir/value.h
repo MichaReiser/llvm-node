@@ -5,37 +5,29 @@
 #ifndef LLVM_NODE_VALUE_H
 #define LLVM_NODE_VALUE_H
 
-#include <nan.h>
+#include <napi.h>
 #include <llvm/IR/Value.h>
-#include "../util/from-value-mixin.h"
 
-class ValueWrapper: public Nan::ObjectWrap, public FromValueMixin<ValueWrapper> {
+class ValueWrapper: public Napi::ObjectWrap<ValueWrapper> {
 public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::Value* value);
-    static bool isInstance(v8::Local<v8::Value> value);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    static Napi::Object of(Napi::Env env, llvm::Value* value);
+    static bool isInstanceOfType(const Napi::Value& value);
+    static Napi::FunctionReference constructor;
+    ValueWrapper(const Napi::CallbackInfo& info);
     llvm::Value *getValue();
-
-protected:
-    static Nan::Persistent<v8::FunctionTemplate>& valueTemplate();
-    ValueWrapper(llvm::Value* value)
-            : Nan::ObjectWrap {}, value { value } {
-        assert(value && "value pointer is missing");
-    }
-
 
 private:
     llvm::Value* value;
 
-    static NAN_METHOD(New);
-    static NAN_METHOD(dump);
-    static NAN_GETTER(getType);
-    static NAN_METHOD(hasName);
-    static NAN_GETTER(getName);
-    static NAN_SETTER(setName);
-    static NAN_METHOD(deleteValue);
-    static NAN_METHOD(replaceAllUsesWith);
-    static NAN_METHOD(useEmpty);
+    Napi::Value dump(const Napi::CallbackInfo& info);
+//    Napi::Object getType(const Napi::CallbackInfo& info);
+    Napi::Value hasName(const Napi::CallbackInfo& info);
+    Napi::Value getName(const Napi::CallbackInfo& info);
+    void setName(const Napi::CallbackInfo& info, const Napi::Value& value);
+    void deleteValue(const Napi::CallbackInfo& info);
+    void replaceAllUsesWith(const Napi::CallbackInfo& info);
+    Napi::Value useEmpty(const Napi::CallbackInfo& info);
 };
 
 

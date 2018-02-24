@@ -5,11 +5,9 @@
 #ifndef LLVM_NODE_BITCODE_WRITER_H
 #define LLVM_NODE_BITCODE_WRITER_H
 
-#include <nan.h>
+#include <napi.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 
-NAN_MODULE_INIT(InitBitcodeWriter);
-
-NAN_METHOD(WriteBitcodeToFile);
+void InitBitcodeWriter(Napi::Env env, Napi::Object exports);
 
 #endif //LLVM_NODE_BITCODE_WRITER_H
