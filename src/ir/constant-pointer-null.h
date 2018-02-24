@@ -18,7 +18,7 @@ public:
     llvm::ConstantPointerNull* getConstantPointerNull();
 
 private:
-    ConstantPointerNullWrapper(llvm::ConstantPointerNull* constant)
+    explicit ConstantPointerNullWrapper(llvm::ConstantPointerNull* constant)
             : ConstantWrapper { constant }
     {}
 

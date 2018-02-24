@@ -18,7 +18,8 @@ public:
 
 protected:
     static Nan::Persistent<v8::FunctionTemplate>& valueTemplate();
-    ValueWrapper(llvm::Value* value)
+
+    explicit ValueWrapper(llvm::Value* value)
             : Nan::ObjectWrap {}, value { value } {
         assert(value && "value pointer is missing");
     }

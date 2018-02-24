@@ -17,7 +17,7 @@ public:
     llvm::ConstantStruct* getConstantStruct();
 
 private:
-    ConstantStructWrapper(llvm::ConstantStruct* constantStruct) : ConstantWrapper { constantStruct }
+    explicit ConstantStructWrapper(llvm::ConstantStruct* constantStruct) : ConstantWrapper { constantStruct }
     {}
 
     static Nan::Persistent<v8::FunctionTemplate>& constantStructTemplate();

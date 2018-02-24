@@ -20,7 +20,7 @@ public:
     }
 
 private:
-    BasicBlockWrapper(llvm::BasicBlock* basicBlock)
+    explicit BasicBlockWrapper(llvm::BasicBlock* basicBlock)
             : ValueWrapper { basicBlock }
     {}
 

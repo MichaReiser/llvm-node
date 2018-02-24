@@ -22,7 +22,8 @@ public:
 
 protected:
     llvm::Type* type;
-    TypeWrapper(llvm::Type* type) : Nan::ObjectWrap {}, type { type } {
+
+    explicit TypeWrapper(llvm::Type* type) : Nan::ObjectWrap {}, type { type } {
         assert(type && "No type pointer passed");
     }
 

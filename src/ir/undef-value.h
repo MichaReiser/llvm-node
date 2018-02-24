@@ -17,7 +17,7 @@ public:
     llvm::UndefValue* getUndefValue();
 
 private:
-    UndefValueWrapper(llvm::UndefValue* constant)
+    explicit UndefValueWrapper(llvm::UndefValue* constant)
             : ConstantWrapper { constant }
     {}
 

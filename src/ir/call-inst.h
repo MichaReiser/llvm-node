@@ -27,7 +27,7 @@ private:
     static NAN_METHOD(paramHasAttr);
     static NAN_METHOD(getNumArgOperands);
 
-    CallInstWrapper(llvm::CallInst* value) : ValueWrapper(value) {}
+    explicit CallInstWrapper(llvm::CallInst* value) : ValueWrapper { value } {}
 
     static Nan::Persistent<v8::FunctionTemplate>& callInstTemplate();
 };

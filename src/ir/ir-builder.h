@@ -20,7 +20,7 @@ public:
 private:
     llvm::IRBuilder<> irBuilder;
 
-    IRBuilderWrapper(llvm::IRBuilder<> irBuilder) : irBuilder { irBuilder } {
+    explicit IRBuilderWrapper(llvm::IRBuilder<> irBuilder) : irBuilder { irBuilder } {
     }
 
     // static

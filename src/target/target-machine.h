@@ -18,7 +18,7 @@ private:
     const llvm::TargetMachine* targetMachine;
     static Nan::Persistent<v8::ObjectTemplate> targetMachineTemplate;
 
-    TargetMachineWrapper(const llvm::TargetMachine* targetMachine): targetMachine { targetMachine } {
+    explicit TargetMachineWrapper(const llvm::TargetMachine* targetMachine): targetMachine { targetMachine } {
         assert(targetMachine && "No target machine passed");
     }
 

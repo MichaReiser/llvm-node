@@ -19,7 +19,7 @@ public:
     using FromValueMixin<ArgumentWrapper>::FromValue;
 
 private:
-    ArgumentWrapper(llvm::Argument *argument)
+    explicit ArgumentWrapper(llvm::Argument *argument)
         : ValueWrapper { argument }
     {}
 

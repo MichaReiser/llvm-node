@@ -9,7 +9,7 @@
 #include "argument.h"
 #include "basic-block.h"
 
-FunctionWrapper::FunctionWrapper(llvm::Function *function) : ConstantWrapper(function) {}
+FunctionWrapper::FunctionWrapper(llvm::Function *function) : ConstantWrapper { function } {}
 
 NAN_MODULE_INIT(FunctionWrapper::Init) {
     auto constructorFunction = Nan::GetFunction(Nan::New(functionTemplate())).ToLocalChecked();

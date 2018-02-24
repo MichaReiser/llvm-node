@@ -18,7 +18,7 @@ public:
     using FromValueMixin<ArrayTypeWrapper>::FromValue;
     llvm::ArrayType* getArrayType();
 private:
-    ArrayTypeWrapper(llvm::ArrayType* type) : TypeWrapper { type } {
+    explicit ArrayTypeWrapper(llvm::ArrayType* type) : TypeWrapper { type } {
     }
 
     static NAN_METHOD(New);

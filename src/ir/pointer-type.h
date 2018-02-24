@@ -23,7 +23,7 @@ public:
 
 protected:
     llvm::Type* type;
-    PointerTypeWrapper(llvm::PointerType* type) : TypeWrapper { type } {
+    explicit PointerTypeWrapper(llvm::PointerType* type) : TypeWrapper { type } {
     }
 
     static Nan::Persistent<v8::FunctionTemplate>& pointerTypeTemplate();

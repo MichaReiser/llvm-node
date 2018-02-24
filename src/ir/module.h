@@ -22,7 +22,7 @@ private:
     llvm::Module* module;
 
     ModuleWrapper(llvm::StringRef moduleId, llvm::LLVMContext& context)
-    : module { new llvm::Module (moduleId, context) } {
+    : module { new llvm::Module { moduleId, context } } {
     }
 
     // static

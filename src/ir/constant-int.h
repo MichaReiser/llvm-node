@@ -17,7 +17,7 @@ public:
     llvm::ConstantInt* getConstantInt();
 
 private:
-    ConstantIntWrapper(llvm::ConstantInt* constant)
+    explicit ConstantIntWrapper(llvm::ConstantInt* constant)
             : ConstantWrapper { constant }
     {}
 
