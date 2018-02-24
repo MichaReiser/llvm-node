@@ -5,7 +5,8 @@
 #ifndef LLVM_NODE_GLOBAL_VARIABLE_H
 #define LLVM_NODE_GLOBAL_VARIABLE_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include <llvm/IR/GlobalVariable.h>
 #include "constant.h"
 #include "../util/from-value-mixin.h"
@@ -13,8 +14,8 @@
 class GlobalVariableWrapper: public ConstantWrapper, public FromValueMixin<GlobalVariableWrapper> {
 public:
 
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::GlobalVariable* variable);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    static Napi::Object of(llvm::GlobalVariable* variable);
     using FromValueMixin<GlobalVariableWrapper>::FromValue;
     llvm::GlobalVariable* getGlobalVariable();
 
@@ -22,19 +23,19 @@ public:
 private:
     explicit GlobalVariableWrapper(llvm::GlobalVariable* variable) : ConstantWrapper { variable } {}
 
-    static NAN_METHOD(New);
-    static NAN_METHOD(NewFromExternal);
-    static NAN_METHOD(NewFromArguments);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value NewFromExternal(const Napi::CallbackInfo& info);
+    static Napi::Value NewFromArguments(const Napi::CallbackInfo& info);
 
-    static NAN_METHOD(hasGlobalUnnamedAddr);
-    static NAN_METHOD(setUnnamedAddr);
+    static Napi::Value hasGlobalUnnamedAddr(const Napi::CallbackInfo& info);
+    static Napi::Value setUnnamedAddr(const Napi::CallbackInfo& info);
 
-    static NAN_GETTER(getConstant);
-    static NAN_SETTER(setConstant);
+    Napi::Value getConstant(const Napi::CallbackInfo& info);
+    void setConstant(const Napi::CallbackInfo& info, const Napi::Value& value);
 
-    static NAN_GETTER(getInitializer);
-    static NAN_SETTER(setInitializer);
-    static Nan::Persistent<v8::FunctionTemplate>& globalVariableTemplate();
+    Napi::Value getInitializer(const Napi::CallbackInfo& info);
+    void setInitializer(const Napi::CallbackInfo& info, const Napi::Value& value);
+    static Napi::FunctionReference& globalVariableTemplate();
 
 };
 

@@ -5,25 +5,27 @@
 #include "function-type.h"
 #include "../util/string.h"
 
-NAN_MODULE_INIT(FunctionTypeWrapper::Init) {
-    auto functionType = Nan::GetFunction(Nan::New(functionTypeTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("FunctionType").ToLocalChecked(), functionType);
+Napi::Object FunctionTypeWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto functionType = Napi::GetFunction(Napi::New(env, functionTypeTemplate()));
+    (target).Set(Napi::String::New(env, "FunctionType"), functionType);
 }
 
-NAN_METHOD(FunctionTypeWrapper::New) {
+Napi::Value FunctionTypeWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("Constructor needs to be called with new");
+        Napi::TypeError::New(env, "Constructor needs to be called with new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() < 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("Expected type pointer");
+    if (info.Length() < 1 || !info[0].IsExternal()) {
+        Napi::TypeError::New(env, "Expected type pointer").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto* functionType = static_cast<llvm::FunctionType*>(v8::External::Cast(*info[0])->Value());
+    auto* functionType = static_cast<llvm::FunctionType*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new FunctionTypeWrapper { functionType };
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
 
@@ -31,144 +33,152 @@ llvm::FunctionType *FunctionTypeWrapper::getFunctionType() {
     return static_cast<llvm::FunctionType*>(this->type);
 }
 
-v8::Local<v8::Object> FunctionTypeWrapper::Create(llvm::FunctionType *functionType) {
-    Nan::EscapableHandleScope escapeScope {};
+Napi::Object FunctionTypeWrapper::Create(llvm::FunctionType *functionType) {
+    Napi::EscapableHandleScope escapeScope {};
 
-    v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New(functionTypeTemplate());
-    auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
-    v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(functionType) };
-    v8::Local<v8::Object> object = Nan::NewInstance(constructorFunction, 1, argv).ToLocalChecked();
+    Napi::FunctionReference functionTemplate = Napi::New(env, functionTypeTemplate());
+    auto constructorFunction = Napi::GetFunction(functionTemplate);
+    Napi::Value argv[1] = { Napi::External::New(env, functionType) };
+    Napi::Object object = Napi::NewInstance(constructorFunction, 1, argv);
 
     return escapeScope.Escape(object);
 }
 
 
-NAN_METHOD(FunctionTypeWrapper::get) {
+Napi::Value FunctionTypeWrapper::get(const Napi::CallbackInfo& info) {
     if (info.Length() < 2 || !TypeWrapper::isInstance(info[0])
-        || (!(info.Length() == 2 && info[1]->IsBoolean())
-            && !(info.Length() == 3 && info[1]->IsArray() && info[2]->IsBoolean()))) {
-        return Nan::ThrowTypeError("Get needs to be called with: result: Type, params: Type[], isVarArg: boolean");
+        || (!(info.Length() == 2 && info[1].IsBoolean())
+            && !(info.Length() == 3 && info[1].IsArray() && info[2].IsBoolean()))) {
+        Napi::TypeError::New(env, "Get needs to be called with: result: Type, params: Type[], isVarArg: boolean").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto returnType = TypeWrapper::FromValue(info[0])->getType();
     llvm::FunctionType* functionType {};
 
     if (info.Length() == 2) {
-        auto varArg = Nan::To<bool>(info[1]).FromJust();
+        auto varArg = info[1].As<Napi::Boolean>().Value();
 
         functionType = llvm::FunctionType::get(returnType, varArg);
     } else {
-        auto argumentTypesArray = v8::Array::Cast(*info[1]);
+        auto argumentTypesArray = *info[1].As<Napi::Array>();
         std::vector<llvm::Type *> argumentTypes {argumentTypesArray->Length()};
 
         for (size_t i = 0; i < argumentTypesArray->Length(); ++i) {
             auto argumentTypeObject = argumentTypesArray->Get(i);
             if (!TypeWrapper::isInstance(argumentTypeObject)) {
-                return Nan::ThrowTypeError("Expected Type in arguments array");
+                Napi::TypeError::New(env, "Expected Type in arguments array").ThrowAsJavaScriptException();
+                return env.Null();
             }
 
             argumentTypes[i] = TypeWrapper::FromValue(argumentTypeObject)->getType();
         }
 
-        auto varArg = Nan::To<bool>(info[2]).FromJust();
+        auto varArg = info[2].As<Napi::Boolean>().Value();
 
         functionType = llvm::FunctionType::get(returnType, argumentTypes, varArg);
     }
 
-    info.GetReturnValue().Set(FunctionTypeWrapper::Create(functionType));
+    return FunctionTypeWrapper::Create(functionType);
 }
 
-NAN_METHOD(FunctionTypeWrapper::isValidReturnType) {
+Napi::Value FunctionTypeWrapper::isValidReturnType(const Napi::CallbackInfo& info) {
     if (info.Length() != 1) {
-        return Nan::ThrowTypeError("isValidReturnType takes exactly one argument");
+        Napi::TypeError::New(env, "isValidReturnType takes exactly one argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     if (!TypeWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("a Type is required");
+        Napi::TypeError::New(env, "a Type is required").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto returnTypeWrapper = TypeWrapper::FromValue(info[0]);
-    info.GetReturnValue().Set(Nan::New(llvm::FunctionType::isValidArgumentType(returnTypeWrapper->getType())));
+    return Napi::New(env, llvm::FunctionType::isValidArgumentType(returnTypeWrapper->getType()));
 }
 
-NAN_METHOD(FunctionTypeWrapper::isValidArgumentType) {
+Napi::Value FunctionTypeWrapper::isValidArgumentType(const Napi::CallbackInfo& info) {
     if (info.Length() != 1) {
-        return Nan::ThrowTypeError("isValidArgumentType takes exactly one argument");
+        Napi::TypeError::New(env, "isValidArgumentType takes exactly one argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     if (!TypeWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("a Type is required");
+        Napi::TypeError::New(env, "a Type is required").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto argumentTypeWrapper = TypeWrapper::FromValue(info[0]);
-    info.GetReturnValue().Set(Nan::New(llvm::FunctionType::isValidArgumentType(argumentTypeWrapper->getType())));
+    return Napi::New(env, llvm::FunctionType::isValidArgumentType(argumentTypeWrapper->getType()));
 }
 
-NAN_GETTER(FunctionTypeWrapper::getReturnType) {
+Napi::Value FunctionTypeWrapper::getReturnType(const Napi::CallbackInfo& info) {
     auto* functionTypeWrapper = FunctionTypeWrapper::FromValue(info.Holder());
     auto* returnType = functionTypeWrapper->getFunctionType()->getReturnType();
-    info.GetReturnValue().Set(TypeWrapper::of(returnType));
+    return TypeWrapper::of(returnType);
 }
 
-NAN_GETTER(FunctionTypeWrapper::isVarArg) {
+Napi::Value FunctionTypeWrapper::isVarArg(const Napi::CallbackInfo& info) {
     auto* functionTypeWrapper = FunctionTypeWrapper::FromValue(info.Holder());
-    info.GetReturnValue().Set(Nan::New(functionTypeWrapper->getFunctionType()->isVarArg()));
+    return Napi::New(env, functionTypeWrapper->getFunctionType()->isVarArg());
 }
 
-NAN_GETTER(FunctionTypeWrapper::getNumParams) {
+Napi::Value FunctionTypeWrapper::getNumParams(const Napi::CallbackInfo& info) {
     auto* functionTypeWrapper = FunctionTypeWrapper::FromValue(info.Holder());
-    info.GetReturnValue().Set(Nan::New(functionTypeWrapper->getFunctionType()->getNumParams()));
+    return Napi::New(env, functionTypeWrapper->getFunctionType()->getNumParams());
 }
 
-NAN_METHOD(FunctionTypeWrapper::getParams) {
+Napi::Value FunctionTypeWrapper::getParams(const Napi::CallbackInfo& info) {
     auto* functionTypeWrapper = FunctionTypeWrapper::FromValue(info.Holder());
-    auto result = Nan::New<v8::Array>(functionTypeWrapper->getFunctionType()->getNumParams());
+    auto result = Napi::Array::New(env, functionTypeWrapper->getFunctionType()->getNumParams());
 
     uint32_t i = 0;
     for (auto paramsIterator = functionTypeWrapper->getFunctionType()->param_begin(); paramsIterator !=
             functionTypeWrapper->getFunctionType()->param_end(); ++paramsIterator) {
-        result->Set(i, TypeWrapper::of(*paramsIterator));
+        result.Set(i, TypeWrapper::of(*paramsIterator));
         ++i;
     }
 
-    info.GetReturnValue().Set(result);
+    return result;
 }
 
-NAN_METHOD(FunctionTypeWrapper::getParamType) {
-    if (info.Length() != 1 && !info[0]->IsUint32()) {
-        return Nan::ThrowTypeError("A positive int is required");
+Napi::Value FunctionTypeWrapper::getParamType(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1 && !info[0].IsUint32()) {
+        Napi::TypeError::New(env, "A positive int is required").ThrowAsJavaScriptException();
+        return env.Null();
     }
     auto* functionTypeWrapper = FunctionTypeWrapper::FromValue(info.Holder());
 
-    unsigned index = Nan::To<unsigned>(info[0]).FromJust();
+    unsigned index = Napi::To<unsigned>(info[0]);
     if (index < functionTypeWrapper->getFunctionType()->getNumParams()) {
         auto* paramType = functionTypeWrapper->getFunctionType()->getParamType(index);
 
-        info.GetReturnValue().Set(TypeWrapper::of(paramType));
+        return TypeWrapper::of(paramType);
     } else {
-        return Nan::ThrowRangeError("Index out of range");
+        Napi::RangeError::New(env, "Index out of range").ThrowAsJavaScriptException();
+        return env.Null();
     }
 }
 
-Nan::Persistent<v8::FunctionTemplate>& FunctionTypeWrapper::functionTypeTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+Napi::FunctionReference& FunctionTypeWrapper::functionTypeTemplate() {
+    static Napi::FunctionReference functionTemplate {};
 
     if (functionTemplate.IsEmpty()) {
-        v8::Local<v8::FunctionTemplate> localTemplate = Nan::New<v8::FunctionTemplate>(FunctionTypeWrapper::New);
-        localTemplate->SetClassName(Nan::New("FunctionType").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+        Napi::FunctionReference localTemplate = Napi::Function::New(env, FunctionTypeWrapper::New);
+        localTemplate->SetClassName(Napi::String::New(env, "FunctionType"));
 
-        Nan::SetMethod(localTemplate, "get", FunctionTypeWrapper::get);
-        Nan::SetMethod(localTemplate, "isValidReturnType", FunctionTypeWrapper::isValidReturnType);
-        Nan::SetMethod(localTemplate, "isValidArgumentType", FunctionTypeWrapper::isValidArgumentType);
 
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("returnType").ToLocalChecked(), FunctionTypeWrapper::getReturnType);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("isVarArg").ToLocalChecked(), FunctionTypeWrapper::isVarArg);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("numParams").ToLocalChecked(), FunctionTypeWrapper::getNumParams);
-        Nan::SetPrototypeMethod(localTemplate, "getParams", FunctionTypeWrapper::getParams);
-        Nan::SetPrototypeMethod(localTemplate, "getParamType", FunctionTypeWrapper::getParamType);
+        Napi::SetMethod(localTemplate, "get", FunctionTypeWrapper::get);
+        Napi::SetMethod(localTemplate, "isValidReturnType", FunctionTypeWrapper::isValidReturnType);
+        Napi::SetMethod(localTemplate, "isValidArgumentType", FunctionTypeWrapper::isValidArgumentType);
 
-        v8::Local<v8::FunctionTemplate> localTypeTemplate = Nan::New(TypeWrapper::typeTemplate());
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "returnType"), FunctionTypeWrapper::getReturnType);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "isVarArg"), FunctionTypeWrapper::isVarArg);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "numParams"), FunctionTypeWrapper::getNumParams);
+        Napi::SetPrototypeMethod(localTemplate, "getParams", FunctionTypeWrapper::getParams);
+        Napi::SetPrototypeMethod(localTemplate, "getParamType", FunctionTypeWrapper::getParamType);
+
+        Napi::FunctionReference localTypeTemplate = Napi::New(env, TypeWrapper::typeTemplate());
         localTemplate->Inherit(localTypeTemplate);
 
         functionTemplate.Reset(localTemplate);
@@ -177,7 +187,8 @@ Nan::Persistent<v8::FunctionTemplate>& FunctionTypeWrapper::functionTypeTemplate
     return functionTemplate;
 }
 
-bool FunctionTypeWrapper::isInstance(v8::Local<v8::Value> value) {
-    return Nan::New(functionTypeTemplate())->HasInstance(value);
+bool FunctionTypeWrapper::isInstance(Napi::Value value) {
+    Napi::Env env = value.Env();
+    return Napi::New(env, functionTypeTemplate())->HasInstance(value);
 }
 

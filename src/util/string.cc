@@ -4,7 +4,8 @@
 
 #include "string.h"
 
-std::string ToString(v8::Local<v8::Value> value) {
-    Nan::Utf8String utf8Value { value };
+std::string ToString(Napi::Value value) {
+    Napi::Env env = value.Env();
+    std::string utf8Value { value };
     return std::string {*utf8Value};
 }

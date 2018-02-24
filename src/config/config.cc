@@ -5,6 +5,6 @@
 #include "config.h"
 #include "llvm-config.h"
 
-NAN_MODULE_INIT(InitConfig) {
+Napi::Object InitConfig(Napi::Env env, Napi::Object exports) {
     InitLLVMConfig(target);
 }

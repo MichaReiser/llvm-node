@@ -5,7 +5,8 @@
 #ifndef LLVM_NODE_UNWRAP_MIXIN_H
 #define LLVM_NODE_UNWRAP_MIXIN_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 
 template <class T>
 class FromValueMixin {
@@ -15,9 +16,10 @@ public:
      * @param value the v8 value
      * @return the wrapper object
      */
-    inline static T* FromValue(v8::Local<v8::Value> value) {
-        auto object = Nan::To<v8::Object>(value).ToLocalChecked();
-        return Nan::ObjectWrap::Unwrap<T>(object);
+    inline static T* FromValue(Napi::Value value) {
+        Napi::Env env = value.Env();
+        auto object = value.To<Napi::Object>();
+        return object.Unwrap<T>();
     }
 };
 

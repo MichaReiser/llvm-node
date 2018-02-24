@@ -1,14 +1,15 @@
 #ifndef SUPPORT_H
 #define SUPPORT_H
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include "target-registry.h"
 
-NAN_METHOD(InitializeAllTargetInfos);
-NAN_METHOD(InitializeAllTargets);
-NAN_METHOD(InitializeAllTargetMCs);
-NAN_METHOD(InitializeAllAsmParsers);
-NAN_METHOD(InitializeAllAsmPrinters);
+Napi::Value InitializeAllTargetInfos(const Napi::CallbackInfo& info);
+Napi::Value InitializeAllTargets(const Napi::CallbackInfo& info);
+Napi::Value InitializeAllTargetMCs(const Napi::CallbackInfo& info);
+Napi::Value InitializeAllAsmParsers(const Napi::CallbackInfo& info);
+Napi::Value InitializeAllAsmPrinters(const Napi::CallbackInfo& info);
 
-NAN_MODULE_INIT(InitSupport);
+Napi::Object InitSupport(Napi::Env env, Napi::Object exports);
 
 #endif

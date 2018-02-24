@@ -5,14 +5,15 @@
 #ifndef LLVM_NODE_UNDEF_VALUE_H
 #define LLVM_NODE_UNDEF_VALUE_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include <llvm/IR/Constants.h>
 #include "constant.h"
 
 class UndefValueWrapper: public ConstantWrapper, public FromValueMixin<UndefValueWrapper> {
 public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::UndefValue* undefValue);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    static Napi::Object of(llvm::UndefValue* undefValue);
     using FromValueMixin<UndefValueWrapper>::FromValue;
     llvm::UndefValue* getUndefValue();
 
@@ -21,11 +22,11 @@ private:
             : ConstantWrapper { constant }
     {}
 
-    static Nan::Persistent<v8::FunctionTemplate>& undefValueTemplate();
+    static Napi::FunctionReference& undefValueTemplate();
 
     // static
-    static NAN_METHOD(New);
-    static NAN_METHOD(get);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value get(const Napi::CallbackInfo& info);
 };
 
 #endif //LLVM_NODE_UNDEF_VALUE_H

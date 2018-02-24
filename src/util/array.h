@@ -6,22 +6,23 @@
 #define LLVM_NODE_ARRAY_H
 
 #include<vector>
-#include<nan.h>
+#include<napi.h>
 
 template <typename T, typename TArray=v8::Array>
 std::vector<T> toVector(v8::Local<TArray> value) {
     std::vector<T> result (value->Length());
 
     for (uint32_t i = 0; i < value->Length(); ++i) {
-        auto nativeValue = Nan::Get(value, i).ToLocalChecked();
-        result[i] = Nan::To<T>(nativeValue).FromJust();
+        auto nativeValue = (value).Get(i);
+        result[i] = Napi::To<T>(nativeValue);
     }
 
     return result;
 }
 
 template <typename T, typename TArray=v8::Array>
-std::vector<T> toVector(v8::Local<v8::Value> value) {
+std::vector<T> toVector(Napi::Value value) {
+    Napi::Env env = value.Env();
     return toVector<T>(value.As<TArray>());
 }
 

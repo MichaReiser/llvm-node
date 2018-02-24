@@ -5,108 +5,113 @@
 #include "constant-int.h"
 #include "llvm-context.h"
 
-NAN_MODULE_INIT(ConstantIntWrapper::Init) {
-    auto constantInt = Nan::GetFunction(Nan::New(constantIntTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("ConstantInt").ToLocalChecked(), constantInt);
+Napi::Object ConstantIntWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto constantInt = Napi::GetFunction(Napi::New(env, constantIntTemplate()));
+    (target).Set(Napi::String::New(env, "ConstantInt"), constantInt);
 }
 
-NAN_METHOD(ConstantIntWrapper::New) {
+Napi::Value ConstantIntWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("Class Constructor ConstantInt cannot be invoked without new");
+        Napi::TypeError::New(env, "Class Constructor ConstantInt cannot be invoked without new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() != 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("ConstantInt constructor needs to be called with: constantInt: external");
+    if (info.Length() != 1 || !info[0].IsExternal()) {
+        Napi::TypeError::New(env, "ConstantInt constructor needs to be called with: constantInt: external").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto* constantInt = static_cast<llvm::ConstantInt*>(v8::External::Cast(*info[0])->Value());
+    auto* constantInt = static_cast<llvm::ConstantInt*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new ConstantIntWrapper { constantInt };
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_METHOD(ConstantIntWrapper::get) {
-    if (info.Length() < 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsNumber() ||
-            (info.Length() > 2 && !info[2]->IsNumber() && !info[2]->IsUndefined()) ||
-            (info.Length() > 3 && !info[3]->IsBoolean()) ||
+Napi::Value ConstantIntWrapper::get(const Napi::CallbackInfo& info) {
+    if (info.Length() < 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1].IsNumber() ||
+            (info.Length() > 2 && !info[2].IsNumber() && !info[2].IsUndefined()) ||
+            (info.Length() > 3 && !info[3].IsBoolean()) ||
             info.Length() > 4) {
-        return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number, numBits = 32, signed= true");
+        Napi::TypeError::New(env, "get needs to be called with: context: LLVMContext, value: number, numBits = 32, signed= true").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
-    int64_t number = Nan::To<int64_t >(info[1]).FromJust();
+    int64_t number = Napi::To<int64_t >(info[1]);
     uint32_t numBits = 32;
     bool isSigned = true;
 
-    if (info.Length() > 2 && !info[2]->IsUndefined()) {
-        numBits = Nan::To<uint32_t>(info[2]).FromJust();
+    if (info.Length() > 2 && !info[2].IsUndefined()) {
+        numBits = info[2].As<Napi::Number>().Uint32Value();
     }
 
     if (info.Length() == 3) {
-        isSigned = Nan::To<bool>(info[3]).FromJust();
+        isSigned = info[3].As<Napi::Boolean>().Value();
     }
 
     auto* constant = llvm::ConstantInt::get(context, llvm::APInt { numBits, static_cast<uint64_t>(number), isSigned } );
 
-    info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
+    return ConstantIntWrapper::of(constant);
 }
 
-NAN_METHOD(ConstantIntWrapper::getTrue) {
+Napi::Value ConstantIntWrapper::getTrue(const Napi::CallbackInfo& info) {
     if (info.Length() != 1 || !LLVMContextWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("getTrue needs to be called with: context: LLVMContext");
+        Napi::TypeError::New(env, "getTrue needs to be called with: context: LLVMContext").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
     auto* constant = llvm::ConstantInt::getTrue(context);
 
-    info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
+    return ConstantIntWrapper::of(constant);
 }
 
-NAN_METHOD(ConstantIntWrapper::getFalse) {
+Napi::Value ConstantIntWrapper::getFalse(const Napi::CallbackInfo& info) {
     if (info.Length() != 1 || !LLVMContextWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("getFalse needs to be called with: context: LLVMContext");
+        Napi::TypeError::New(env, "getFalse needs to be called with: context: LLVMContext").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
     auto* constant = llvm::ConstantInt::getFalse(context);
 
-    info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
+    return ConstantIntWrapper::of(constant);
 }
 
-NAN_GETTER(ConstantIntWrapper::getValueApf) {
+Napi::Value ConstantIntWrapper::getValueApf(const Napi::CallbackInfo& info) {
     auto* wrapper = ConstantIntWrapper::FromValue(info.Holder());
     auto value = wrapper->getConstantInt()->getValue();
 
-    info.GetReturnValue().Set(Nan::New(value.signedRoundToDouble()));
+    return Napi::New(env, value.signedRoundToDouble());
 }
 
 llvm::ConstantInt *ConstantIntWrapper::getConstantInt() {
     return static_cast<llvm::ConstantInt*>(getValue());
 }
 
-v8::Local<v8::Object> ConstantIntWrapper::of(llvm::ConstantInt *constantInt) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(constantIntTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantInt) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+Napi::Object ConstantIntWrapper::of(llvm::ConstantInt *constantInt) {
+    auto constructorFunction = Napi::GetFunction(Napi::New(env, constantIntTemplate()));
+    Napi::Value args[1] = { Napi::External::New(env, constantInt) };
+    auto instance = Napi::NewInstance(constructorFunction, 1, args);
 
-    Nan::EscapableHandleScope escapeScpoe {};
+    Napi::EscapableHandleScope escapeScpoe {};
     return escapeScpoe.Escape(instance);
 }
 
-Nan::Persistent<v8::FunctionTemplate>& ConstantIntWrapper::constantIntTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+Napi::FunctionReference& ConstantIntWrapper::constantIntTemplate() {
+    static Napi::FunctionReference functionTemplate {};
 
     if (functionTemplate.IsEmpty()) {
-        auto localTemplate = Nan::New<v8::FunctionTemplate>(ConstantIntWrapper::New);
-        localTemplate->SetClassName(Nan::New("ConstantInt").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        localTemplate->Inherit(Nan::New(constantTemplate()));
+        auto localTemplate = Napi::Function::New(env, ConstantIntWrapper::New);
+        localTemplate->SetClassName(Napi::String::New(env, "ConstantInt"));
 
-        Nan::SetMethod(localTemplate, "get", ConstantIntWrapper::get);
-        Nan::SetMethod(localTemplate, "getFalse", ConstantIntWrapper::getFalse);
-        Nan::SetMethod(localTemplate, "getTrue", ConstantIntWrapper::getTrue);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("value").ToLocalChecked(), ConstantIntWrapper::getValueApf);
+        localTemplate->Inherit(Napi::New(env, constantTemplate()));
+
+        Napi::SetMethod(localTemplate, "get", ConstantIntWrapper::get);
+        Napi::SetMethod(localTemplate, "getFalse", ConstantIntWrapper::getFalse);
+        Napi::SetMethod(localTemplate, "getTrue", ConstantIntWrapper::getTrue);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "value"), ConstantIntWrapper::getValueApf);
 
         functionTemplate.Reset(localTemplate);
     }

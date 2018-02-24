@@ -6,81 +6,86 @@
 #include "data-layout.h"
 #include "type.h"
 
-Nan::Persistent<v8::FunctionTemplate> DataLayoutWrapper::functionTemplate {};
+Napi::FunctionReference DataLayoutWrapper::functionTemplate {};
 
-v8::Local<v8::Object> DataLayoutWrapper::of(llvm::DataLayout layout) {
-    v8::Local<v8::FunctionTemplate> localFunctionTemplate = Nan::New(functionTemplate);
-    v8::Local<v8::Object> object = Nan::NewInstance(localFunctionTemplate->InstanceTemplate()).ToLocalChecked();
+Napi::Object DataLayoutWrapper::of(llvm::DataLayout layout) {
+    Napi::FunctionReference localNapi::FunctionReference = Napi::New(env, functionTemplate);
+    Napi::Object object = Napi::NewInstance(localNapi::FunctionReference->InstanceTemplate());
 
     DataLayoutWrapper* wrapper = new DataLayoutWrapper(layout);
     wrapper->Wrap(object);
 
-    Nan::EscapableHandleScope escapeScope {};
+    Napi::EscapableHandleScope escapeScope {};
     return escapeScope.Escape(object);
 }
 
-NAN_MODULE_INIT(DataLayoutWrapper::Init) {
-    v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
+Napi::Object DataLayoutWrapper::Init(Napi::Env env, Napi::Object exports) {
+    Napi::FunctionReference tpl = Napi::Function::New(env, New);
 
-    tpl->SetClassName(Nan::New("DataLayout").ToLocalChecked());
-    tpl->InstanceTemplate()->SetInternalFieldCount(1);
-    Nan::SetPrototypeMethod(tpl, "getStringRepresentation", DataLayoutWrapper::getStringRepresentation);
-    Nan::SetPrototypeMethod(tpl, "getPrefTypeAlignment", DataLayoutWrapper::getPrefTypeAlignment);
-    Nan::SetPrototypeMethod(tpl, "getTypeStoreSize", DataLayoutWrapper::getTypeStoreSize);
-    Nan::SetPrototypeMethod(tpl, "getPointerSize", DataLayoutWrapper::getPointerSize);
-    Nan::SetPrototypeMethod(tpl, "getIntPtrType", DataLayoutWrapper::getIntPtrType);
+    tpl->SetClassName(Napi::String::New(env, "DataLayout"));
+
+    Napi::SetPrototypeMethod(tpl, "getStringRepresentation", DataLayoutWrapper::getStringRepresentation);
+    Napi::SetPrototypeMethod(tpl, "getPrefTypeAlignment", DataLayoutWrapper::getPrefTypeAlignment);
+    Napi::SetPrototypeMethod(tpl, "getTypeStoreSize", DataLayoutWrapper::getTypeStoreSize);
+    Napi::SetPrototypeMethod(tpl, "getPointerSize", DataLayoutWrapper::getPointerSize);
+    Napi::SetPrototypeMethod(tpl, "getIntPtrType", DataLayoutWrapper::getIntPtrType);
 
     functionTemplate.Reset(tpl);
 
-    Nan::Set(target, Nan::New("DataLayout").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+    (target).Set(Napi::String::New(env, "DataLayout"), Napi::GetFunction(tpl));
 }
 
-NAN_METHOD(DataLayoutWrapper::New) {
+Napi::Value DataLayoutWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("DataLayout functionTemplate needs to be called with new");
+        Napi::TypeError::New(env, "DataLayout functionTemplate needs to be called with new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() < 1 && !info[0]->IsString()) {
-        return Nan::ThrowTypeError("DataLayout functionTemplate needs to be called with single string argument");
+    if (info.Length() < 1 && !info[0].IsString()) {
+        Napi::TypeError::New(env, "DataLayout functionTemplate needs to be called with single string argument").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    llvm::DataLayout layout { ToString(info[0]->ToString()) };
+    llvm::DataLayout layout { ToString(info[0].ToString()) };
     DataLayoutWrapper* wrapper = new DataLayoutWrapper { layout };
     wrapper->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_METHOD(DataLayoutWrapper::getStringRepresentation) {
+Napi::Value DataLayoutWrapper::getStringRepresentation(const Napi::CallbackInfo& info) {
     DataLayoutWrapper* wrapper = DataLayoutWrapper::FromValue(info.Holder());
     std::string representation = wrapper->layout.getStringRepresentation();
 
-    info.GetReturnValue().Set(v8::String::NewFromUtf8(info.GetIsolate(), representation.c_str()));
+    return v8::String::NewFromUtf8(info.GetIsolate(), representation.c_str());
 }
 
-NAN_METHOD(DataLayoutWrapper::getPointerSize) {
-    if (info.Length() != 1 || !info[0]->IsUint32()) {
-        return Nan::ThrowTypeError("getPointerSize needs to be called with: AS: uint32");
+Napi::Value DataLayoutWrapper::getPointerSize(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1 || !info[0].IsUint32()) {
+        Napi::TypeError::New(env, "getPointerSize needs to be called with: AS: uint32").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto as = Nan::To<uint32_t>(info[0]).FromJust();
+    auto as = info[0].As<Napi::Number>().Uint32Value();
     auto dataLayout = DataLayoutWrapper::FromValue(info.Holder())->getDataLayout();
-    info.GetReturnValue().Set(Nan::New(dataLayout.getPointerSize(as)));
+    return Napi::New(env, dataLayout.getPointerSize(as));
 }
 
-NAN_METHOD(DataLayoutWrapper::getPrefTypeAlignment) {
+Napi::Value DataLayoutWrapper::getPrefTypeAlignment(const Napi::CallbackInfo& info) {
     if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("getPrefTypeAlignment needs to be called with: type: Type");
+        Napi::TypeError::New(env, "getPrefTypeAlignment needs to be called with: type: Type").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* type = TypeWrapper::FromValue(info[0])->getType();
     auto dataLayout = DataLayoutWrapper::FromValue(info.Holder())->getDataLayout();
 
-    info.GetReturnValue().Set(Nan::New(dataLayout.getPrefTypeAlignment(type)));
+    return Napi::New(env, dataLayout.getPrefTypeAlignment(type));
 }
 
-NAN_METHOD(DataLayoutWrapper::getTypeStoreSize) {
+Napi::Value DataLayoutWrapper::getTypeStoreSize(const Napi::CallbackInfo& info) {
     if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("getTypeStoreSize needs to be called with: type: Type");
+        Napi::TypeError::New(env, "getTypeStoreSize needs to be called with: type: Type").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* type = TypeWrapper::FromValue(info[0])->getType();
@@ -89,14 +94,15 @@ NAN_METHOD(DataLayoutWrapper::getTypeStoreSize) {
     auto size = dataLayout.getTypeStoreSize(type);
      assert (size < UINT32_MAX && "V8 does not support uint64 but size overflows uint32"); // v8 does not support uint64_t :(
 
-    info.GetReturnValue().Set(Nan::New(static_cast<uint32_t>(size)));
+    return Napi::New(env, static_cast<uint32_t>(size));
 }
 
-NAN_METHOD(DataLayoutWrapper::getIntPtrType) {
+Napi::Value DataLayoutWrapper::getIntPtrType(const Napi::CallbackInfo& info) {
     if (info.Length() < 1 || !LLVMContextWrapper::isInstance(info[0]) ||
-            (info.Length() == 2 && !info[1]->IsUint32()) ||
+            (info.Length() == 2 && !info[1].IsUint32()) ||
             info.Length() > 2) {
-        return Nan::ThrowTypeError("getIntPtrType needs to be called with: context: LLVMContext, addressSpace?: uint32");
+        Napi::TypeError::New(env, "getIntPtrType needs to be called with: context: LLVMContext, addressSpace?: uint32").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
@@ -104,17 +110,18 @@ NAN_METHOD(DataLayoutWrapper::getIntPtrType) {
     uint32_t addressSpace {};
 
     if (info.Length() == 2) {
-        addressSpace = Nan::To<uint32_t>(info[1]).FromJust();
+        addressSpace = info[1].As<Napi::Number>().Uint32Value();
     }
 
     auto* type = dataLayout.getIntPtrType(context, addressSpace);
-    info.GetReturnValue().Set(TypeWrapper::of(type));
+    return TypeWrapper::of(type);
 }
 
 llvm::DataLayout DataLayoutWrapper::getDataLayout() {
     return layout;
 }
 
-bool DataLayoutWrapper::isInstance(v8::Local<v8::Value> value) {
-    return Nan::New(functionTemplate)->HasInstance(value);
+bool DataLayoutWrapper::isInstance(Napi::Value value) {
+    Napi::Env env = value.Env();
+    return Napi::New(env, functionTemplate)->HasInstance(value);
 }

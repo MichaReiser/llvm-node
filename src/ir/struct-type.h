@@ -5,15 +5,16 @@
 #ifndef LLVM_NODE_STRUCT_TYPE_H
 #define LLVM_NODE_STRUCT_TYPE_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include <llvm/IR/DerivedTypes.h>
 #include "type.h"
 
 class StructTypeWrapper: public TypeWrapper, public FromValueMixin<StructTypeWrapper> {
 public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::StructType *type);
-    static bool isInstance(v8::Local<v8::Value> value);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    static Napi::Object of(llvm::StructType *type);
+    static bool isInstance(Napi::Value value);
     using FromValueMixin<StructTypeWrapper>::FromValue;
     llvm::StructType* getStructType();
 
@@ -22,19 +23,19 @@ private:
     }
 
     // static
-    static NAN_METHOD(New);
-    static NAN_METHOD(get);
-    static NAN_METHOD(create);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value get(const Napi::CallbackInfo& info);
+    static Napi::Value create(const Napi::CallbackInfo& info);
 
     // instance
-    static NAN_GETTER(getName);
-    static NAN_SETTER(setName);
-    static NAN_GETTER(getNumElements);
-    static NAN_METHOD(getElementType);
+    Napi::Value getName(const Napi::CallbackInfo& info);
+    void setName(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value getNumElements(const Napi::CallbackInfo& info);
+    static Napi::Value getElementType(const Napi::CallbackInfo& info);
 
-    static NAN_METHOD(setBody);
+    static Napi::Value setBody(const Napi::CallbackInfo& info);
 
-    static Nan::Persistent<v8::FunctionTemplate>& structTypeTemplate();
+    static Napi::FunctionReference& structTypeTemplate();
 };
 
 #endif //LLVM_NODE_STRUCT_TYPE_H

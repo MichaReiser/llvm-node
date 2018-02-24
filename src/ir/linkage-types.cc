@@ -4,20 +4,20 @@
 
 #include "linkage-types.h"
 
-NAN_MODULE_INIT(InitLinkageTypes) {
-    auto object = Nan::New<v8::Object>();
+Napi::Object InitLinkageTypes(Napi::Env env, Napi::Object exports) {
+    auto object = Napi::Object::New(env);
 
-    Nan::Set(object, Nan::New("ExternalLinkage").ToLocalChecked(), Nan::New(llvm::GlobalValue::LinkageTypes::ExternalLinkage));
-    Nan::Set(object, Nan::New("AvailableExternallyLinkage").ToLocalChecked(), Nan::New(llvm::GlobalValue::LinkageTypes::AvailableExternallyLinkage));
-    Nan::Set(object, Nan::New("LinkOnceAnyLinkage").ToLocalChecked(), Nan::New(llvm::GlobalValue::LinkageTypes::LinkOnceAnyLinkage));
-    Nan::Set(object, Nan::New("LinkOnceODRLinkage").ToLocalChecked(), Nan::New(llvm::GlobalValue::LinkageTypes::LinkOnceODRLinkage));
-    Nan::Set(object, Nan::New("WeakAnyLinkage").ToLocalChecked(), Nan::New(llvm::GlobalValue::LinkageTypes::WeakAnyLinkage));
-    Nan::Set(object, Nan::New("WeakODRLinkage").ToLocalChecked(), Nan::New(llvm::GlobalValue::LinkageTypes::WeakODRLinkage));
-    Nan::Set(object, Nan::New("AppendingLinkage").ToLocalChecked(), Nan::New(llvm::GlobalValue::LinkageTypes::AppendingLinkage));
-    Nan::Set(object, Nan::New("InternalLinkage").ToLocalChecked(), Nan::New(llvm::GlobalValue::LinkageTypes::InternalLinkage));
-    Nan::Set(object, Nan::New("PrivateLinkage").ToLocalChecked(), Nan::New(llvm::GlobalValue::LinkageTypes::PrivateLinkage));
-    Nan::Set(object, Nan::New("ExternalWeakLinkage").ToLocalChecked(), Nan::New(llvm::GlobalValue::LinkageTypes::ExternalWeakLinkage));
-    Nan::Set(object, Nan::New("CommonLinkage").ToLocalChecked(), Nan::New(llvm::GlobalValue::LinkageTypes::CommonLinkage));
+    (object).Set(Napi::String::New(env, "ExternalLinkage"), Napi::New(env, llvm::GlobalValue::LinkageTypes::ExternalLinkage));
+    (object).Set(Napi::String::New(env, "AvailableExternallyLinkage"), Napi::New(env, llvm::GlobalValue::LinkageTypes::AvailableExternallyLinkage));
+    (object).Set(Napi::String::New(env, "LinkOnceAnyLinkage"), Napi::New(env, llvm::GlobalValue::LinkageTypes::LinkOnceAnyLinkage));
+    (object).Set(Napi::String::New(env, "LinkOnceODRLinkage"), Napi::New(env, llvm::GlobalValue::LinkageTypes::LinkOnceODRLinkage));
+    (object).Set(Napi::String::New(env, "WeakAnyLinkage"), Napi::New(env, llvm::GlobalValue::LinkageTypes::WeakAnyLinkage));
+    (object).Set(Napi::String::New(env, "WeakODRLinkage"), Napi::New(env, llvm::GlobalValue::LinkageTypes::WeakODRLinkage));
+    (object).Set(Napi::String::New(env, "AppendingLinkage"), Napi::New(env, llvm::GlobalValue::LinkageTypes::AppendingLinkage));
+    (object).Set(Napi::String::New(env, "InternalLinkage"), Napi::New(env, llvm::GlobalValue::LinkageTypes::InternalLinkage));
+    (object).Set(Napi::String::New(env, "PrivateLinkage"), Napi::New(env, llvm::GlobalValue::LinkageTypes::PrivateLinkage));
+    (object).Set(Napi::String::New(env, "ExternalWeakLinkage"), Napi::New(env, llvm::GlobalValue::LinkageTypes::ExternalWeakLinkage));
+    (object).Set(Napi::String::New(env, "CommonLinkage"), Napi::New(env, llvm::GlobalValue::LinkageTypes::CommonLinkage));
 
-    Nan::Set(target, Nan::New("LinkageTypes").ToLocalChecked(), object);
+    (target).Set(Napi::String::New(env, "LinkageTypes"), object);
 }

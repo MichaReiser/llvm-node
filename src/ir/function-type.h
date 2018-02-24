@@ -5,7 +5,8 @@
 #ifndef LLVM_NODE_FUNCTION_TYPE_H
 #define LLVM_NODE_FUNCTION_TYPE_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/DerivedTypes.h>
 
@@ -14,9 +15,9 @@
 
 class FunctionTypeWrapper: public TypeWrapper, FromValueMixin<FunctionTypeWrapper> {
 public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> Create(llvm::FunctionType* functionType);
-    static bool isInstance(v8::Local<v8::Value> value);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    static Napi::Object Create(llvm::FunctionType* functionType);
+    static bool isInstance(Napi::Value value);
     using FromValueMixin<FunctionTypeWrapper>::FromValue;
     llvm::FunctionType* getFunctionType();
 
@@ -26,19 +27,19 @@ private:
     {}
 
     // static
-    static NAN_METHOD(New);
-    static NAN_METHOD(get);
-    static NAN_METHOD(isValidReturnType);
-    static NAN_METHOD(isValidArgumentType);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value get(const Napi::CallbackInfo& info);
+    static Napi::Value isValidReturnType(const Napi::CallbackInfo& info);
+    static Napi::Value isValidArgumentType(const Napi::CallbackInfo& info);
 
     // instance
-    static NAN_GETTER(getReturnType);
-    static NAN_GETTER(isVarArg);
-    static NAN_METHOD(getParamType);
-    static NAN_GETTER(getNumParams);
-    static NAN_METHOD(getParams);
+    Napi::Value getReturnType(const Napi::CallbackInfo& info);
+    Napi::Value isVarArg(const Napi::CallbackInfo& info);
+    static Napi::Value getParamType(const Napi::CallbackInfo& info);
+    Napi::Value getNumParams(const Napi::CallbackInfo& info);
+    static Napi::Value getParams(const Napi::CallbackInfo& info);
 
-    static Nan::Persistent<v8::FunctionTemplate>& functionTypeTemplate();
+    static Napi::FunctionReference& functionTypeTemplate();
 
 };
 

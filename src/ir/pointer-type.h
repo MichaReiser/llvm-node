@@ -5,7 +5,8 @@
 #ifndef LLVM_NODE_POINTER_TYPE_H
 #define LLVM_NODE_POINTER_TYPE_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/DerivedTypes.h>
 #include "llvm-context.h"
@@ -14,25 +15,25 @@
 
 class PointerTypeWrapper: public TypeWrapper, public FromValueMixin<PointerTypeWrapper> {
 public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::PointerType *type);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    static Napi::Object of(llvm::PointerType *type);
     using FromValueMixin<PointerTypeWrapper>::FromValue;
 
     llvm::PointerType* getPointerType();
-    static bool isInstance(v8::Local<v8::Value> value);
+    static bool isInstance(Napi::Value value);
 
 protected:
     llvm::Type* type;
     explicit PointerTypeWrapper(llvm::PointerType* type) : TypeWrapper { type } {
     }
 
-    static Nan::Persistent<v8::FunctionTemplate>& pointerTypeTemplate();
+    static Napi::FunctionReference& pointerTypeTemplate();
 
 private:
     // Static Methods
-    static NAN_METHOD(New);
-    static NAN_METHOD(get);
-    static NAN_GETTER(getElementType);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value get(const Napi::CallbackInfo& info);
+    Napi::Value getElementType(const Napi::CallbackInfo& info);
 };
 
 #endif //LLVM_NODE_POINTER_TYPE_H

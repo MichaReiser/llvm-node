@@ -5,44 +5,45 @@
 #ifndef LLVM_NODE_FUNCTION_H
 #define LLVM_NODE_FUNCTION_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include <llvm/IR/Function.h>
 #include "constant.h"
 #include "../util/from-value-mixin.h"
 
 class FunctionWrapper: public ConstantWrapper, public FromValueMixin<FunctionWrapper> {
 public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::Function* function);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    static Napi::Object of(llvm::Function* function);
 
     llvm::Function* getFunction();
 
-    static bool isInstance(v8::Local<v8::Value> value);
+    static bool isInstance(Napi::Value value);
     using FromValueMixin<FunctionWrapper>::FromValue;
 
 private:
     explicit FunctionWrapper(llvm::Function* function);
 
     // static
-    static NAN_METHOD(New);
-    static NAN_METHOD(Create);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value Create(const Napi::CallbackInfo& info);
 
     // instance
-    static NAN_METHOD(addAttribute);
-    static NAN_METHOD(addBasicBlock);
-    static NAN_METHOD(addDereferenceableAttr);
-    static NAN_METHOD(addDereferenceableOrNullAttr);
-    static NAN_METHOD(addFnAttr);
-    static NAN_METHOD(getArguments);
-    static NAN_METHOD(getEntryBlock);
-    static NAN_METHOD(getBasicBlocks);
-    static NAN_GETTER(getCallingConv);
-    static NAN_SETTER(setCallingConv);
-    static NAN_GETTER(getVisibility);
-    static NAN_SETTER(setVisibility);
-    static NAN_METHOD(viewCFG);
+    static Napi::Value addAttribute(const Napi::CallbackInfo& info);
+    static Napi::Value addBasicBlock(const Napi::CallbackInfo& info);
+    static Napi::Value addDereferenceableAttr(const Napi::CallbackInfo& info);
+    static Napi::Value addDereferenceableOrNullAttr(const Napi::CallbackInfo& info);
+    static Napi::Value addFnAttr(const Napi::CallbackInfo& info);
+    static Napi::Value getArguments(const Napi::CallbackInfo& info);
+    static Napi::Value getEntryBlock(const Napi::CallbackInfo& info);
+    static Napi::Value getBasicBlocks(const Napi::CallbackInfo& info);
+    Napi::Value getCallingConv(const Napi::CallbackInfo& info);
+    void setCallingConv(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value getVisibility(const Napi::CallbackInfo& info);
+    void setVisibility(const Napi::CallbackInfo& info, const Napi::Value& value);
+    static Napi::Value viewCFG(const Napi::CallbackInfo& info);
 
-    static Nan::Persistent<v8::FunctionTemplate>& functionTemplate();
+    static Napi::FunctionReference& functionTemplate();
 };
 
 

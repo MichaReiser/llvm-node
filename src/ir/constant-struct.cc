@@ -5,19 +5,19 @@
 #include "constant-struct.h"
 #include "struct-type.h"
 
-NAN_MODULE_INIT(ConstantStructWrapper::Init) {
-    auto constantStruct = Nan::GetFunction(Nan::New(constantStructTemplate())).ToLocalChecked();
+Napi::Object ConstantStructWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto constantStruct = Napi::GetFunction(Napi::New(env, constantStructTemplate()));
 
-    Nan::Set(target, Nan::New("ConstantStruct").ToLocalChecked(), constantStruct);
+    (target).Set(Napi::String::New(env, "ConstantStruct"), constantStruct);
 }
 
-v8::Local<v8::Object> ConstantStructWrapper::of(llvm::ConstantStruct* constantStruct) {
-    auto constructor = Nan::GetFunction(Nan::New(constantStructTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External> (constantStruct) };
+Napi::Object ConstantStructWrapper::of(llvm::ConstantStruct* constantStruct) {
+    auto constructor = Napi::GetFunction(Napi::New(env, constantStructTemplate()));
+    Napi::Value args[1] = { Napi::New<v8::External> (constantStruct) };
 
-    auto instance = Nan::NewInstance(constructor, 1, args).ToLocalChecked();
+    auto instance = Napi::NewInstance(constructor, 1, args);
 
-    Nan::EscapableHandleScope escapableHandleScope {};
+    Napi::EscapableHandleScope escapableHandleScope {};
     return escapableHandleScope.Escape(instance);
 }
 
@@ -25,16 +25,16 @@ llvm::ConstantStruct* ConstantStructWrapper::getConstantStruct() {
     return static_cast<llvm::ConstantStruct*>(getValue());
 }
 
-Nan::Persistent<v8::FunctionTemplate>& ConstantStructWrapper::constantStructTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+Napi::FunctionReference& ConstantStructWrapper::constantStructTemplate() {
+    static Napi::FunctionReference functionTemplate {};
 
     if (functionTemplate.IsEmpty()) {
-        v8::Local<v8::FunctionTemplate> localTemplate = Nan::New<v8::FunctionTemplate>(ConstantStructWrapper::New);
-        localTemplate->SetClassName(Nan::New("ConstantStruct").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        localTemplate->Inherit(Nan::New(constantTemplate()));
+        Napi::FunctionReference localTemplate = Napi::Function::New(env, ConstantStructWrapper::New);
+        localTemplate->SetClassName(Napi::String::New(env, "ConstantStruct"));
 
-        Nan::SetMethod(localTemplate, "get", ConstantStructWrapper::get);
+        localTemplate->Inherit(Napi::New(env, constantTemplate()));
+
+        Napi::SetMethod(localTemplate, "get", ConstantStructWrapper::get);
 
         functionTemplate.Reset(localTemplate);
     }
@@ -42,36 +42,40 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantStructWrapper::constantStructTemp
     return functionTemplate;
 }
 
-NAN_METHOD(ConstantStructWrapper::New) {
+Napi::Value ConstantStructWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("ConstantStruct constructor needs to be called with new");
+        Napi::TypeError::New(env, "ConstantStruct constructor needs to be called with new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (!info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("ConstantStruct constructor needs to be called with: constantStruct: External");
+    if (!info[0].IsExternal()) {
+        Napi::TypeError::New(env, "ConstantStruct constructor needs to be called with: constantStruct: External").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto* constantStruct = static_cast<llvm::ConstantStruct*>(v8::External::Cast(*info[0])->Value());
+    auto* constantStruct = static_cast<llvm::ConstantStruct*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new ConstantStructWrapper { constantStruct };
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
 
-NAN_METHOD(ConstantStructWrapper::get) {
-    if (info.Length() != 2 || !StructTypeWrapper::isInstance(info[0]) || !info[1]->IsArray()) {
-        return Nan::ThrowTypeError("get needs to be called with: structType: StructType, values: Constant[]");
+Napi::Value ConstantStructWrapper::get(const Napi::CallbackInfo& info) {
+    if (info.Length() != 2 || !StructTypeWrapper::isInstance(info[0]) || !info[1].IsArray()) {
+        Napi::TypeError::New(env, "get needs to be called with: structType: StructType, values: Constant[]").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* structType = StructTypeWrapper::FromValue(info[0])->getStructType();
-    auto array = info[1].As<v8::Array>();
+    auto array = info[1].As<Napi::Array>();
     std::vector<llvm::Constant*> constants { array->Length() };
 
     for (uint32_t i = 0; i < array->Length(); ++i) {
-        auto value = Nan::Get(array, i).ToLocalChecked();
+        auto value = (array).Get(i);
         if (!ConstantWrapper::isInstance(value)) {
-            return Nan::ThrowTypeError("get expected array of Constant values");
+            Napi::TypeError::New(env, "get expected array of Constant values").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
         constants[i] = ConstantWrapper::FromValue(value)->getConstant();
@@ -79,5 +83,5 @@ NAN_METHOD(ConstantStructWrapper::get) {
 
     auto constantStruct = llvm::ConstantStruct::get(structType, constants);
 
-    info.GetReturnValue().Set(ConstantWrapper::of(constantStruct));
+    return ConstantWrapper::of(constantStruct);
 }

@@ -5,8 +5,9 @@
 #ifndef LLVM_NODE_ATTRIBUTE_H
 #define LLVM_NODE_ATTRIBUTE_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 
-NAN_MODULE_INIT(InitAttribute);
+Napi::Object InitAttribute(Napi::Env env, Napi::Object exports);
 
 #endif //LLVM_NODE_ATTRIBUTE_H

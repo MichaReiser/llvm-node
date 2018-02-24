@@ -5,8 +5,9 @@
 #ifndef LLVM_NODE_VISIBILITY_TYPES_H
 #define LLVM_NODE_VISIBILITY_TYPES_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 
-NAN_MODULE_INIT(InitVisibilityTypes);
+Napi::Object InitVisibilityTypes(Napi::Env env, Napi::Object exports);
 
 #endif //LLVM_NODE_VISIBILITY_TYPES_H

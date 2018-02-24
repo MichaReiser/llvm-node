@@ -1,4 +1,5 @@
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 
 #include "bitcode/bitcode.h"
 #include "ir/ir.h"
@@ -6,7 +7,7 @@
 #include "support/support.h"
 #include "target/target.h"
 
-NAN_MODULE_INIT(InitAll) {
+Napi::Object InitAll(Napi::Env env, Napi::Object exports) {
     InitBitCode(target);
     InitConfig(target);
     InitIR(target);
@@ -14,4 +15,4 @@ NAN_MODULE_INIT(InitAll) {
     InitTarget(target);
 }
 
-NODE_MODULE(llvm, InitAll)
+NODE_API_MODULE(llvm, InitAll)

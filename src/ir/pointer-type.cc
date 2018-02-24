@@ -4,70 +4,73 @@
 
 #include "pointer-type.h"
 
-NAN_MODULE_INIT(PointerTypeWrapper::Init) {
-    auto pointerType = Nan::GetFunction(Nan::New(pointerTypeTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("PointerType").ToLocalChecked(), pointerType);
+Napi::Object PointerTypeWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto pointerType = Napi::GetFunction(Napi::New(env, pointerTypeTemplate()));
+    (target).Set(Napi::String::New(env, "PointerType"), pointerType);
 }
 
-NAN_METHOD(PointerTypeWrapper::New) {
+Napi::Value PointerTypeWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("Constructor needs to be called with new");
+        Napi::TypeError::New(env, "Constructor needs to be called with new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() < 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("Expected pointer type pointer");
+    if (info.Length() < 1 || !info[0].IsExternal()) {
+        Napi::TypeError::New(env, "Expected pointer type pointer").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto* type = static_cast<llvm::PointerType*>(v8::External::Cast(*info[0])->Value());
+    auto* type = static_cast<llvm::PointerType*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new PointerTypeWrapper { type };
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_METHOD(PointerTypeWrapper::get) {
-    if (info.Length() != 2 || !TypeWrapper::isInstance(info[0]) || !info[1]->IsUint32()) {
-        return Nan::ThrowTypeError("PointerTypeWrapper.get needs to be called with: elementType: Type, addressSpace: uint32");
+Napi::Value PointerTypeWrapper::get(const Napi::CallbackInfo& info) {
+    if (info.Length() != 2 || !TypeWrapper::isInstance(info[0]) || !info[1].IsUint32()) {
+        Napi::TypeError::New(env, "PointerTypeWrapper.get needs to be called with: elementType: Type, addressSpace: uint32").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* type = TypeWrapper::FromValue(info[0])->getType();
-    uint32_t as = Nan::To<uint32_t>(info[1]).FromJust();
+    uint32_t as = info[1].As<Napi::Number>().Uint32Value();
 
     auto* pointerType = llvm::PointerType::get(type, as);
 
-    info.GetReturnValue().Set(PointerTypeWrapper::of(pointerType));
+    return PointerTypeWrapper::of(pointerType);
 }
 
-NAN_GETTER(PointerTypeWrapper::getElementType) {
+Napi::Value PointerTypeWrapper::getElementType(const Napi::CallbackInfo& info) {
     auto* pointerType = PointerTypeWrapper::FromValue(info.Holder())->getPointerType();
     auto* elementType = pointerType->getElementType();
 
-    info.GetReturnValue().Set(TypeWrapper::of(elementType));
+    return TypeWrapper::of(elementType);
 }
 
-v8::Local<v8::Object> PointerTypeWrapper::of(llvm::PointerType *type) {
-    Nan::EscapableHandleScope escapeScope {};
+Napi::Object PointerTypeWrapper::of(llvm::PointerType *type) {
+    Napi::EscapableHandleScope escapeScope {};
 
-    v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New(pointerTypeTemplate());
-    auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
-    v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(type) };
-    v8::Local<v8::Object> object = Nan::NewInstance(constructorFunction, 1, argv).ToLocalChecked();
+    Napi::FunctionReference functionTemplate = Napi::New(env, pointerTypeTemplate());
+    auto constructorFunction = Napi::GetFunction(functionTemplate);
+    Napi::Value argv[1] = { Napi::External::New(env, type) };
+    Napi::Object object = Napi::NewInstance(constructorFunction, 1, argv);
 
     return escapeScope.Escape(object);
 }
 
-Nan::Persistent<v8::FunctionTemplate>& PointerTypeWrapper::pointerTypeTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> persistentTemplate {};
+Napi::FunctionReference& PointerTypeWrapper::pointerTypeTemplate() {
+    static Napi::FunctionReference persistentTemplate {};
 
     if (persistentTemplate.IsEmpty()) {
-        v8::Local<v8::FunctionTemplate> pointerTypeTemplate = Nan::New<v8::FunctionTemplate>(PointerTypeWrapper::New);
+        Napi::FunctionReference pointerTypeTemplate = Napi::Function::New(env, PointerTypeWrapper::New);
 
-        Nan::SetMethod(pointerTypeTemplate, "get", PointerTypeWrapper::get);
-        pointerTypeTemplate->SetClassName(Nan::New("PointerType").ToLocalChecked());
-        pointerTypeTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        pointerTypeTemplate->Inherit(Nan::New(typeTemplate()));
+        Napi::SetMethod(pointerTypeTemplate, "get", PointerTypeWrapper::get);
+        pointerTypeTemplate->SetClassName(Napi::String::New(env, "PointerType"));
 
-        Nan::SetAccessor(pointerTypeTemplate->InstanceTemplate(), Nan::New("elementType").ToLocalChecked(), PointerTypeWrapper::getElementType);
+        pointerTypeTemplate->Inherit(Napi::New(env, typeTemplate()));
+
+        Napi::SetAccessor(pointerTypeTemplate->InstanceTemplate(), Napi::String::New(env, "elementType"), PointerTypeWrapper::getElementType);
 
         persistentTemplate.Reset(pointerTypeTemplate);
     }
@@ -75,8 +78,9 @@ Nan::Persistent<v8::FunctionTemplate>& PointerTypeWrapper::pointerTypeTemplate()
     return persistentTemplate;
 }
 
-bool PointerTypeWrapper::isInstance(v8::Local<v8::Value> object) {
-    return Nan::New(pointerTypeTemplate())->HasInstance(object);
+bool PointerTypeWrapper::isInstance(Napi::Value object) {
+    Napi::Env env = object.Env();
+    return Napi::New(env, pointerTypeTemplate())->HasInstance(object);
 }
 
 llvm::PointerType *PointerTypeWrapper::getPointerType() {

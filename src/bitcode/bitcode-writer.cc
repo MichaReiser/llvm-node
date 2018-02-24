@@ -8,24 +8,26 @@
 #include "../ir/module.h"
 #include "../util/string.h"
 
-NAN_MODULE_INIT(InitBitcodeWriter) {
-    Nan::SetMethod(target, "writeBitcodeToFile", WriteBitcodeToFile);
+Napi::Object InitBitcodeWriter(Napi::Env env, Napi::Object exports) {
+    exports.Set(Napi::String::New(env, "writeBitcodeToFile"), Napi::Function::New(env, WriteBitcodeToFile));
 }
 
-NAN_METHOD(WriteBitcodeToFile) {
-    if (info.Length() != 2 || !ModuleWrapper::isInstance(info[0]) || !info[1]->IsString()) {
-        return Nan::ThrowTypeError("writeBitcodeToFile needs to be called with: module: Module, filename: string");
+Napi::Value WriteBitcodeToFile(const Napi::CallbackInfo& info) {
+    if (info.Length() != 2 || !ModuleWrapper::isInstance(info[0]) || !info[1].IsString()) {
+        Napi::TypeError::New(env, "writeBitcodeToFile needs to be called with: module: Module, filename: string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* module = ModuleWrapper::FromValue(info[0])->getModule();
-    auto fileName = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
+    auto fileName = ToString(info[1].To<Napi::String>());
 
     std::error_code errorCode {};
     llvm::raw_fd_ostream byteCodeFile { fileName, errorCode, llvm::sys::fs::F_None };
 
     if (errorCode) {
         std::string messagePrefix { "Failed to open file: " };
-        return Nan::ThrowError((messagePrefix + errorCode.message()).c_str());
+        Napi::Error::New(env, (messagePrefix + errorCode.message()).c_str()).ThrowAsJavaScriptException();
+        return env.Null();
     }
 
 #if LLVM_VERSION_MAJOR > 6

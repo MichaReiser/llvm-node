@@ -5,61 +5,64 @@
 #include "constant-pointer-null.h"
 #include "pointer-type.h"
 
-NAN_MODULE_INIT(ConstantPointerNullWrapper::Init) {
-    auto constantPointerNull = Nan::GetFunction(Nan::New(constantPointerNullTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("ConstantPointerNull").ToLocalChecked(), constantPointerNull);
+Napi::Object ConstantPointerNullWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto constantPointerNull = Napi::GetFunction(Napi::New(env, constantPointerNullTemplate()));
+    (target).Set(Napi::String::New(env, "ConstantPointerNull"), constantPointerNull);
 }
 
-NAN_METHOD(ConstantPointerNullWrapper::New) {
+Napi::Value ConstantPointerNullWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("Class Constructor ConstantPointerNull cannot be invoked without new");
+        Napi::TypeError::New(env, "Class Constructor ConstantPointerNull cannot be invoked without new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() != 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("ConstantPointerNull constructor needs to be called with: constantPointerNull: external");
+    if (info.Length() != 1 || !info[0].IsExternal()) {
+        Napi::TypeError::New(env, "ConstantPointerNull constructor needs to be called with: constantPointerNull: external").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto* constantPointerNull = static_cast<llvm::ConstantPointerNull*>(v8::External::Cast(*info[0])->Value());
+    auto* constantPointerNull = static_cast<llvm::ConstantPointerNull*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new ConstantPointerNullWrapper { constantPointerNull };
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_METHOD(ConstantPointerNullWrapper::get) {
+Napi::Value ConstantPointerNullWrapper::get(const Napi::CallbackInfo& info) {
     if (info.Length() != 1 || !PointerTypeWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("get needs to be called with: type: PointerType");
+        Napi::TypeError::New(env, "get needs to be called with: type: PointerType").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* type = PointerTypeWrapper::FromValue(info[0])->getPointerType();
     auto* constant = llvm::ConstantPointerNull::get(type);
 
-    info.GetReturnValue().Set(ConstantPointerNullWrapper::of(constant));
+    return ConstantPointerNullWrapper::of(constant);
 }
 
 llvm::ConstantPointerNull *ConstantPointerNullWrapper::getConstantPointerNull() {
     return static_cast<llvm::ConstantPointerNull*>(getValue());
 }
 
-v8::Local<v8::Object> ConstantPointerNullWrapper::of(llvm::ConstantPointerNull *constantPointerNull) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(constantPointerNullTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantPointerNull) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+Napi::Object ConstantPointerNullWrapper::of(llvm::ConstantPointerNull *constantPointerNull) {
+    auto constructorFunction = Napi::GetFunction(Napi::New(env, constantPointerNullTemplate()));
+    Napi::Value args[1] = { Napi::External::New(env, constantPointerNull) };
+    auto instance = Napi::NewInstance(constructorFunction, 1, args);
 
-    Nan::EscapableHandleScope escapeScpoe {};
+    Napi::EscapableHandleScope escapeScpoe {};
     return escapeScpoe.Escape(instance);
 }
 
-Nan::Persistent<v8::FunctionTemplate>& ConstantPointerNullWrapper::constantPointerNullTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+Napi::FunctionReference& ConstantPointerNullWrapper::constantPointerNullTemplate() {
+    static Napi::FunctionReference functionTemplate {};
 
     if (functionTemplate.IsEmpty()) {
-        auto localTemplate = Nan::New<v8::FunctionTemplate>(ConstantPointerNullWrapper::New);
-        localTemplate->SetClassName(Nan::New("ConstantPointerNull").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        localTemplate->Inherit(Nan::New(constantTemplate()));
+        auto localTemplate = Napi::Function::New(env, ConstantPointerNullWrapper::New);
+        localTemplate->SetClassName(Napi::String::New(env, "ConstantPointerNull"));
 
-        Nan::SetMethod(localTemplate, "get", ConstantPointerNullWrapper::get);
+        localTemplate->Inherit(Napi::New(env, constantTemplate()));
+
+        Napi::SetMethod(localTemplate, "get", ConstantPointerNullWrapper::get);
 
         functionTemplate.Reset(localTemplate);
     }

@@ -5,7 +5,8 @@
 #ifndef LLVM_NODE_ALLOCAINST_H
 #define LLVM_NODE_ALLOCAINST_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include <llvm/IR/Instructions.h>
 #include "value.h"
 
@@ -13,21 +14,21 @@ class AllocaInstWrapper: public ValueWrapper, public FromValueMixin<AllocaInstWr
 public:
     using FromValueMixin<AllocaInstWrapper>::FromValue;
 
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::AllocaInst* allocaInst);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    static Napi::Object of(llvm::AllocaInst* allocaInst);
     llvm::AllocaInst* getAllocaInst();
 
 private:
     explicit AllocaInstWrapper(llvm::AllocaInst* allocaInst): ValueWrapper { allocaInst } {
     }
 
-    static NAN_METHOD(New);
-    static NAN_GETTER(getAllocatedType);
-    static NAN_SETTER(setAllocatedType);
-    static NAN_GETTER(getAlignment);
-    static NAN_SETTER(setAlignment);
-    static NAN_GETTER(getArraySize);
-    static Nan::Persistent<v8::FunctionTemplate>& allocaInstTemplate();
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    Napi::Value getAllocatedType(const Napi::CallbackInfo& info);
+    void setAllocatedType(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value getAlignment(const Napi::CallbackInfo& info);
+    void setAlignment(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value getArraySize(const Napi::CallbackInfo& info);
+    static Napi::FunctionReference& allocaInstTemplate();
 };
 
 

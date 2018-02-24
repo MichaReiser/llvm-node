@@ -5,8 +5,9 @@
 #ifndef LLVM_NODE_UNNAMED_ADDR_H
 #define LLVM_NODE_UNNAMED_ADDR_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 
-NAN_MODULE_INIT(InitUnnamedAddr);
+Napi::Object InitUnnamedAddr(Napi::Env env, Napi::Object exports);
 
 #endif //LLVM_NODE_UNNAMED_ADDR_H

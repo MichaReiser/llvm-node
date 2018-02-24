@@ -5,8 +5,9 @@
 #ifndef LLVM_NODE_CALLING_CONV_H
 #define LLVM_NODE_CALLING_CONV_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 
-NAN_MODULE_INIT(InitCallingConv);
+Napi::Object InitCallingConv(Napi::Env env, Napi::Object exports);
 
 #endif //LLVM_NODE_CALLING_CONV_H

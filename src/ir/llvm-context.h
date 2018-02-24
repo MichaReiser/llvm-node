@@ -5,26 +5,27 @@
 #ifndef LLVM_NODE_LLVM_CONTEXT_H
 #define LLVM_NODE_LLVM_CONTEXT_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include <llvm/IR/LLVMContext.h>
 #include "../util/from-value-mixin.h"
 
-class LLVMContextWrapper: public Nan::ObjectWrap, public FromValueMixin<LLVMContextWrapper> {
+class LLVMContextWrapper : public Napi::ObjectWrap<LLVMContextWrapper>, public FromValueMixin<LLVMContextWrapper> {
 public:
-    static NAN_MODULE_INIT(Init);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
 
-    static bool isInstance(v8::Local<v8::Value> value);
+    static bool isInstance(Napi::Value value);
     llvm::LLVMContext& getContext();
 
-    static v8::Local<v8::Object> of(llvm::LLVMContext &llvmContext);
+    static Napi::Object of(llvm::LLVMContext &llvmContext);
 
 
 private:
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate;
+    static Napi::FunctionReference functionTemplate;
     llvm::LLVMContext context;
     LLVMContextWrapper() = default;
 
-    static NAN_METHOD(New);
+    static Napi::Value New(const Napi::CallbackInfo& info);
 };
 
 #endif //LLVM_NODE_LLVM_CONTEXT_H

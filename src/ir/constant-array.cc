@@ -5,31 +5,31 @@
 #include "constant-array.h"
 #include "array-type.h"
 
-NAN_MODULE_INIT(ConstantArrayWrapper::Init) {
-    auto constantArray = Nan::GetFunction(Nan::New(constantArrayTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("ConstantArray").ToLocalChecked(), constantArray);
+Napi::Object ConstantArrayWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto constantArray = Napi::GetFunction(Napi::New(env, constantArrayTemplate()));
+    (target).Set(Napi::String::New(env, "ConstantArray"), constantArray);
 }
 
-v8::Local<v8::Object> ConstantArrayWrapper::of(llvm::ConstantArray* constantArray) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(constantArrayTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantArray)};
+Napi::Object ConstantArrayWrapper::of(llvm::ConstantArray* constantArray) {
+    auto constructorFunction = Napi::GetFunction(Napi::New(env, constantArrayTemplate()));
+    Napi::Value args[1] = { Napi::External::New(env, constantArray)};
 
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+    auto instance = Napi::NewInstance(constructorFunction, 1, args);
 
-    Nan::EscapableHandleScope escapableHandleScope {};
+    Napi::EscapableHandleScope escapableHandleScope {};
     return escapableHandleScope.Escape(instance);
 }
 
-Nan::Persistent<v8::FunctionTemplate>& ConstantArrayWrapper::constantArrayTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+Napi::FunctionReference& ConstantArrayWrapper::constantArrayTemplate() {
+    static Napi::FunctionReference functionTemplate {};
 
     if (functionTemplate.IsEmpty()) {
-        v8::Local<v8::FunctionTemplate> localTemplate = Nan::New<v8::FunctionTemplate>(ConstantArrayWrapper::New);
-        localTemplate->SetClassName(Nan::New("ConstantArray").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        localTemplate->Inherit(Nan::New(constantTemplate()));
+        Napi::FunctionReference localTemplate = Napi::Function::New(env, ConstantArrayWrapper::New);
+        localTemplate->SetClassName(Napi::String::New(env, "ConstantArray"));
 
-        Nan::SetMethod(localTemplate, "get", ConstantArrayWrapper::get);
+        localTemplate->Inherit(Napi::New(env, constantTemplate()));
+
+        Napi::SetMethod(localTemplate, "get", ConstantArrayWrapper::get);
 
         functionTemplate.Reset(localTemplate);
     }
@@ -37,40 +37,44 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantArrayWrapper::constantArrayTempla
     return functionTemplate;
 }
 
-NAN_METHOD(ConstantArrayWrapper::New) {
+Napi::Value ConstantArrayWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("The constructor of ConstantArray needs to be called with new");
+        Napi::TypeError::New(env, "The constructor of ConstantArray needs to be called with new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() != 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("The constructor of ConstantArray needs to be called width: value: External");
+    if (info.Length() != 1 || !info[0].IsExternal()) {
+        Napi::TypeError::New(env, "The constructor of ConstantArray needs to be called width: value: External").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto* value = static_cast<llvm::ConstantArray*>(v8::External::Cast(*info[0])->Value());
+    auto* value = static_cast<llvm::ConstantArray*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new ConstantArrayWrapper { value };
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_METHOD(ConstantArrayWrapper::get) {
-    if (info.Length() != 2 || !ArrayTypeWrapper::isInstance(info[0]) || !info[1]->IsArray()) {
-        return Nan::ThrowTypeError("ConstantArray.get needs to be called with: type: ArrayType, values: constants");
+Napi::Value ConstantArrayWrapper::get(const Napi::CallbackInfo& info) {
+    if (info.Length() != 2 || !ArrayTypeWrapper::isInstance(info[0]) || !info[1].IsArray()) {
+        Napi::TypeError::New(env, "ConstantArray.get needs to be called with: type: ArrayType, values: constants").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* arrayType = ArrayTypeWrapper::FromValue(info[0])->getArrayType();
-    auto jsArray = info[1].As<v8::Array>();
+    auto jsArray = info[1].As<Napi::Array>();
     std::vector<llvm::Constant*> constants { jsArray->Length() };
 
     for (uint32_t i = 0; i < jsArray->Length(); ++i) {
-        auto value = Nan::Get(jsArray, i).ToLocalChecked();
+        auto value = (jsArray).Get(i);
         if (!ConstantWrapper::isInstance(value)) {
-            return Nan::ThrowTypeError("get expected array of Constant values");
+            Napi::TypeError::New(env, "get expected array of Constant values").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
         constants[i] = ConstantWrapper::FromValue(value)->getConstant();
     }
 
     auto* result = llvm::ConstantArray::get(arrayType, constants);
-    info.GetReturnValue().Set(ConstantWrapper::of(result));
+    return ConstantWrapper::of(result);
 }
