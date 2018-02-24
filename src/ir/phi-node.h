@@ -5,7 +5,7 @@
 #ifndef LLVM_NODE_PHINODEWRAPPER_H
 #define LLVM_NODE_PHINODEWRAPPER_H
 
-#include<nan.h>
+#include<napi.h>
 #include<llvm/IR/Instructions.h>
 #include "value.h"
 
@@ -13,8 +13,8 @@ class PhiNodeWrapper: public ValueWrapper, public FromValueMixin<PhiNodeWrapper>
 public:
     llvm::PHINode* getPhiNode();
 
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::PHINode* phiNode);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    static Napi::Object of(llvm::PHINode* phiNode);
     using FromValueMixin<PhiNodeWrapper>::FromValue;
 
 private:
@@ -22,11 +22,11 @@ private:
             : ValueWrapper { phiNode }
     {}
 
-    static NAN_METHOD(New);
-    static NAN_METHOD(addIncoming);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value addIncoming(const Napi::CallbackInfo& info);
 
-    static inline Nan::Persistent<v8::FunctionTemplate>& phiNodeTemplate() {
-        static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+    static inline Napi::FunctionReference& phiNodeTemplate() {
+        static Napi::FunctionReference functionTemplate {};
         return functionTemplate;
     }
 };

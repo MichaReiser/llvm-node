@@ -5,16 +5,17 @@
 #ifndef LLVM_NODE_IR_BUILDER_H
 #define LLVM_NODE_IR_BUILDER_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include <llvm/IR/IRBuilder.h>
 #include <nan_callbacks_12_inl.h>
 #include "../util/from-value-mixin.h"
 #include "value.h"
 #include "../util/string.h"
 
-class IRBuilderWrapper: public Nan::ObjectWrap, public FromValueMixin<IRBuilderWrapper> {
+class IRBuilderWrapper : public Napi::ObjectWrap<IRBuilderWrapper>, public FromValueMixin<IRBuilderWrapper> {
 public:
-    static NAN_MODULE_INIT(Init);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
     llvm::IRBuilder<>& getIRBuilder();
 
 private:
@@ -24,41 +25,41 @@ private:
     }
 
     // static
-    static NAN_METHOD(New);
+    static Napi::Value New(const Napi::CallbackInfo& info);
 
     // instance
     typedef llvm::Value* (llvm::IRBuilder<>::*ConvertOperationFn)(llvm::Value*, llvm::Type*, const llvm::Twine&);
     template<ConvertOperationFn method>
-    static NAN_METHOD(ConvertOperation);
+    static Napi::Value ConvertOperation(const Napi::CallbackInfo& info);
 
-    static NAN_METHOD(CreateAlloca);
-    static NAN_METHOD(CreateAlignedLoad);
-    static NAN_METHOD(CreateAlignedStore);
-    static NAN_METHOD(CreateBr);
-    static NAN_METHOD(CreateCall);
-    static NAN_METHOD(CreateCondBr);
-    static NAN_METHOD(CreateExtractValue);
-    static NAN_METHOD(CreateFNeg);
-    static NAN_METHOD(CreateGlobalStringPtr);
-    static NAN_METHOD(CreateGlobalString);
-    static NAN_METHOD(CreateInBoundsGEP);
-    static NAN_METHOD(CreateInBoundsGEPWithoutType);
-    static NAN_METHOD(CreateInBoundsGEPWithType);
-    static NAN_METHOD(CreateInsertValue);
-    static NAN_METHOD(CreateIntCast);
-    static NAN_METHOD(CreateLoad);
-    static NAN_METHOD(CreateNeg);
-    static NAN_METHOD(CreateNot);
-    static NAN_METHOD(CreatePHI);
-    static NAN_METHOD(CreateRet);
-    static NAN_METHOD(CreateRetVoid);
-    static NAN_METHOD(CreateSelect);
-    static NAN_METHOD(CreateStore);
-    static NAN_METHOD(GetInsertBlock);
-    static NAN_METHOD(SetInsertionPoint);
+    static Napi::Value CreateAlloca(const Napi::CallbackInfo& info);
+    static Napi::Value CreateAlignedLoad(const Napi::CallbackInfo& info);
+    static Napi::Value CreateAlignedStore(const Napi::CallbackInfo& info);
+    static Napi::Value CreateBr(const Napi::CallbackInfo& info);
+    static Napi::Value CreateCall(const Napi::CallbackInfo& info);
+    static Napi::Value CreateCondBr(const Napi::CallbackInfo& info);
+    static Napi::Value CreateExtractValue(const Napi::CallbackInfo& info);
+    static Napi::Value CreateFNeg(const Napi::CallbackInfo& info);
+    static Napi::Value CreateGlobalStringPtr(const Napi::CallbackInfo& info);
+    static Napi::Value CreateGlobalString(const Napi::CallbackInfo& info);
+    static Napi::Value CreateInBoundsGEP(const Napi::CallbackInfo& info);
+    static Napi::Value CreateInBoundsGEPWithoutType(const Napi::CallbackInfo& info);
+    static Napi::Value CreateInBoundsGEPWithType(const Napi::CallbackInfo& info);
+    static Napi::Value CreateInsertValue(const Napi::CallbackInfo& info);
+    static Napi::Value CreateIntCast(const Napi::CallbackInfo& info);
+    static Napi::Value CreateLoad(const Napi::CallbackInfo& info);
+    static Napi::Value CreateNeg(const Napi::CallbackInfo& info);
+    static Napi::Value CreateNot(const Napi::CallbackInfo& info);
+    static Napi::Value CreatePHI(const Napi::CallbackInfo& info);
+    static Napi::Value CreateRet(const Napi::CallbackInfo& info);
+    static Napi::Value CreateRetVoid(const Napi::CallbackInfo& info);
+    static Napi::Value CreateSelect(const Napi::CallbackInfo& info);
+    static Napi::Value CreateStore(const Napi::CallbackInfo& info);
+    static Napi::Value GetInsertBlock(const Napi::CallbackInfo& info);
+    static Napi::Value SetInsertionPoint(const Napi::CallbackInfo& info);
 
-    static inline Nan::Persistent<v8::Function>& irBuilderConstructor() {
-        static Nan::Persistent<v8::Function> constructor {};
+    static inline Napi::FunctionReference& irBuilderConstructor() {
+        static Napi::FunctionReference constructor {};
         return constructor;
     }
 };

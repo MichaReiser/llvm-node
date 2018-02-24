@@ -4,41 +4,43 @@
 
 #include "llvm-context.h"
 
-Nan::Persistent<v8::FunctionTemplate> LLVMContextWrapper::functionTemplate {};
+Napi::FunctionReference LLVMContextWrapper::functionTemplate {};
 
-NAN_MODULE_INIT(LLVMContextWrapper::Init) {
-    v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-    tpl->SetClassName(Nan::New("LLVMContext").ToLocalChecked());
-    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+Napi::Object LLVMContextWrapper::Init(Napi::Env env, Napi::Object exports) {
+    Napi::FunctionReference tpl = Napi::Function::New(env, New);
+    tpl->SetClassName(Napi::String::New(env, "LLVMContext"));
+
 
     functionTemplate.Reset(tpl);
-    Nan::Set(target, Nan::New("LLVMContext").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+    (target).Set(Napi::String::New(env, "LLVMContext"), Napi::GetFunction(tpl));
 }
 
-v8::Local<v8::Object> LLVMContextWrapper::of(llvm::LLVMContext &llvmContext) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(functionTemplate)).ToLocalChecked();
-    v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(&llvmContext) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, argv).ToLocalChecked();
+Napi::Object LLVMContextWrapper::of(llvm::LLVMContext &llvmContext) {
+    auto constructorFunction = Napi::GetFunction(Napi::New(env, functionTemplate));
+    Napi::Value argv[1] = { Napi::External::New(env, &llvmContext) };
+    auto instance = Napi::NewInstance(constructorFunction, 1, argv);
 
-    Nan::EscapableHandleScope escapeScope {};
+    Napi::EscapableHandleScope escapeScope {};
     return escapeScope.Escape(instance);
 }
 
-NAN_METHOD(LLVMContextWrapper::New) {
+Napi::Value LLVMContextWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("LLVMContext functionTemplate needs to be called with new");
+        Napi::TypeError::New(env, "LLVMContext functionTemplate needs to be called with new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* wrapper = new LLVMContextWrapper {};
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
 llvm::LLVMContext &LLVMContextWrapper::getContext() {
     return context;
 }
 
-bool LLVMContextWrapper::isInstance(v8::Local<v8::Value> value) {
-    return Nan::New(functionTemplate)->HasInstance(value);
+bool LLVMContextWrapper::isInstance(Napi::Value value) {
+    Napi::Env env = value.Env();
+    return Napi::New(env, functionTemplate)->HasInstance(value);
 }

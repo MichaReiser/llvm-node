@@ -11,94 +11,99 @@
 #include "function-type.h"
 #include "global-variable.h"
 
-NAN_MODULE_INIT(ModuleWrapper::Init) {
-    v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New<v8::FunctionTemplate>(New);
-    functionTemplate->SetClassName(Nan::New("Module").ToLocalChecked());
-    functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+Napi::Object ModuleWrapper::Init(Napi::Env env, Napi::Object exports) {
+    Napi::FunctionReference functionTemplate = Napi::Function::New(env, New);
+    functionTemplate->SetClassName(Napi::String::New(env, "Module"));
+
 
 #if LLVM_NODE_DEBUG
-    Nan::SetPrototypeMethod(functionTemplate, "dump", dump);
+    InstanceMethod("dump", &dump),
 #endif
 
-    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("empty").ToLocalChecked(), empty);
-    Nan::SetPrototypeMethod(functionTemplate, "getFunction", getFunction);
-    Nan::SetPrototypeMethod(functionTemplate, "getOrInsertFunction", getOrInsertFunction);
-    Nan::SetPrototypeMethod(functionTemplate, "getGlobalVariable", getGlobalVariable);
-    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), getName);
-    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("dataLayout").ToLocalChecked(), getDataLayout, setDataLayout);
-    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("moduleIdentifier").ToLocalChecked(), getModuleIdentifier, setModuleIdentifier);
-    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("sourceFileName").ToLocalChecked(), getSourceFileName, setSourceFileName);
-    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("targetTriple").ToLocalChecked(), getTargetTriple, setTargetTriple);
-    Nan::SetPrototypeMethod(functionTemplate, "print", ModuleWrapper::print);
+    Napi::SetAccessor(functionTemplate->InstanceTemplate(), Napi::String::New(env, "empty"), empty);
+    InstanceMethod("getFunction", &getFunction),
+    InstanceMethod("getOrInsertFunction", &getOrInsertFunction),
+    InstanceMethod("getGlobalVariable", &getGlobalVariable),
+    Napi::SetAccessor(functionTemplate->InstanceTemplate(), Napi::String::New(env, "name"), getName);
+    Napi::SetAccessor(functionTemplate->InstanceTemplate(), Napi::String::New(env, "dataLayout"), getDataLayout, setDataLayout);
+    Napi::SetAccessor(functionTemplate->InstanceTemplate(), Napi::String::New(env, "moduleIdentifier"), getModuleIdentifier, setModuleIdentifier);
+    Napi::SetAccessor(functionTemplate->InstanceTemplate(), Napi::String::New(env, "sourceFileName"), getSourceFileName, setSourceFileName);
+    Napi::SetAccessor(functionTemplate->InstanceTemplate(), Napi::String::New(env, "targetTriple"), getTargetTriple, setTargetTriple);
+    Napi::SetPrototypeMethod(functionTemplate, "print", ModuleWrapper::print);
     moduleTemplate().Reset(functionTemplate);
 
-    auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
-    Nan::Set(target, Nan::New("Module").ToLocalChecked(), constructorFunction);
+    auto constructorFunction = Napi::GetFunction(functionTemplate);
+    (target).Set(Napi::String::New(env, "Module"), constructorFunction);
 }
 
-NAN_METHOD(ModuleWrapper::New) {
+Napi::Value ModuleWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("The Module functionTemplate needs to be called with new");
+        Napi::TypeError::New(env, "The Module functionTemplate needs to be called with new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() < 2 || !info[0]->IsString() || !LLVMContextWrapper::isInstance(info[1])) {
-        return Nan::ThrowTypeError("The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)");
+    if (info.Length() < 2 || !info[0].IsString() || !LLVMContextWrapper::isInstance(info[1])) {
+        Napi::TypeError::New(env, "The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto moduleId = ToString(info[0]->ToString());
+    auto moduleId = ToString(info[0].ToString());
     auto* llvmContextWrapper = LLVMContextWrapper::FromValue(info[1]);
 
-    auto* moduleWrapper = new ModuleWrapper { llvm::StringRef { moduleId.c_str(), moduleId.length() },
+    auto* moduleWrapper = new ModuleWrapper { llvm::StringRef { moduleId.c_str(), moduleId.Length() },
                                               llvmContextWrapper->getContext() };
     moduleWrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
 #if LLVM_NODE_DEBUG
-NAN_METHOD(ModuleWrapper::dump) {
+Napi::Value ModuleWrapper::dump(const Napi::CallbackInfo& info) {
     ModuleWrapper::FromValue(info.Holder())->module->dump();
 }
 #endif
 
-NAN_GETTER(ModuleWrapper::empty) {
+Napi::Value ModuleWrapper::empty(const Napi::CallbackInfo& info) {
     bool empty = ModuleWrapper::FromValue(info.Holder())->module->empty();
-    info.GetReturnValue().Set(Nan::New(empty));
+    return Napi::New(env, empty);
 }
 
-NAN_METHOD(ModuleWrapper::getFunction) {
-    if (info.Length() != 1 || !info[0]->IsString()) {
-        return Nan::ThrowTypeError("getFunction needs to be called with: name: string");
+Napi::Value ModuleWrapper::getFunction(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1 || !info[0].IsString()) {
+        Napi::TypeError::New(env, "getFunction needs to be called with: name: string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    std::string functionName = ToString(Nan::To<v8::String>(info[0]).ToLocalChecked());
+    std::string functionName = ToString(info[0].To<Napi::String>());
     auto* wrapper = ModuleWrapper::FromValue(info.Holder());
     auto* function = wrapper->module->getFunction(functionName);
 
     if (function) {
-        return info.GetReturnValue().Set(FunctionWrapper::of(function));
+        return return FunctionWrapper::of(function);
     }
 
-    info.GetReturnValue().Set(Nan::Undefined());
+    return env.Undefined();
 }
 
-NAN_METHOD(ModuleWrapper::getOrInsertFunction) {
-    if (info.Length() != 2 || !info[0]->IsString() || !FunctionTypeWrapper::isInstance(info[1])) {
-        return Nan::ThrowTypeError("getOrInsertFunction needs to be called with: name: string, functionType: FunctionType");
+Napi::Value ModuleWrapper::getOrInsertFunction(const Napi::CallbackInfo& info) {
+    if (info.Length() != 2 || !info[0].IsString() || !FunctionTypeWrapper::isInstance(info[1])) {
+        Napi::TypeError::New(env, "getOrInsertFunction needs to be called with: name: string, functionType: FunctionType").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* module = ModuleWrapper::FromValue(info.Holder())->getModule();
     std::string name = ToString(info[0]);
     auto* fnType = FunctionTypeWrapper::FromValue(info[1])->getFunctionType();
 
-    info.GetReturnValue().Set(ConstantWrapper::of(module->getOrInsertFunction(name, fnType)));
+    return ConstantWrapper::of(module->getOrInsertFunction(name, fnType));
 }
 
-NAN_METHOD(ModuleWrapper::getGlobalVariable) {
-    if (info.Length() < 1 || !info[0]->IsString() ||
-            (info.Length() == 2 && !info[1]->IsBoolean()) ||
+Napi::Value ModuleWrapper::getGlobalVariable(const Napi::CallbackInfo& info) {
+    if (info.Length() < 1 || !info[0].IsString() ||
+            (info.Length() == 2 && !info[1].IsBoolean()) ||
             info.Length() > 2) {
-        return Nan::ThrowTypeError("getGlobalVariable needs to be called with: name: string, allowInternal?: boolean");
+        Napi::TypeError::New(env, "getGlobalVariable needs to be called with: name: string, allowInternal?: boolean").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     const auto name = ToString(info[0]);
@@ -106,29 +111,30 @@ NAN_METHOD(ModuleWrapper::getGlobalVariable) {
     bool allowInternal = false;
 
     if (info.Length() == 2) {
-        allowInternal = Nan::To<bool>(info[1]).FromJust();
+        allowInternal = info[1].As<Napi::Boolean>().Value();
     }
 
     auto* global = module->getGlobalVariable(name, allowInternal);
     if (global != nullptr) {
-        info.GetReturnValue().Set(GlobalVariableWrapper::of(global));
+        return GlobalVariableWrapper::of(global);
     }
 }
 
-NAN_GETTER(ModuleWrapper::getName) {
+Napi::Value ModuleWrapper::getName(const Napi::CallbackInfo& info) {
     auto* module = ModuleWrapper::FromValue(info.Holder())->getModule();
-    auto name = Nan::New(module->getName().str()).ToLocalChecked();
-    info.GetReturnValue().Set(name);
+    auto name = Napi::New(env, module->getName().str());
+    return name;
 }
 
-NAN_GETTER(ModuleWrapper::getDataLayout) {
+Napi::Value ModuleWrapper::getDataLayout(const Napi::CallbackInfo& info) {
     auto dataLayout = ModuleWrapper::FromValue(info.Holder())->getModule()->getDataLayout();
-    info.GetReturnValue().Set(DataLayoutWrapper::of(dataLayout));
+    return DataLayoutWrapper::of(dataLayout);
 }
 
-NAN_SETTER(ModuleWrapper::setDataLayout) {
+void ModuleWrapper::setDataLayout(const Napi::CallbackInfo& info, const Napi::Value& value) {
     if (!DataLayoutWrapper::isInstance(value)) {
-        return Nan::ThrowTypeError("dataLayout needs to an instance of DataLayout");
+        Napi::TypeError::New(env, "dataLayout needs to an instance of DataLayout").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     DataLayoutWrapper* dataLayoutWrapper = DataLayoutWrapper::FromValue(value);
@@ -136,57 +142,60 @@ NAN_SETTER(ModuleWrapper::setDataLayout) {
     wrapper->module->setDataLayout(dataLayoutWrapper->getDataLayout());
 }
 
-NAN_GETTER(ModuleWrapper::getModuleIdentifier) {
+Napi::Value ModuleWrapper::getModuleIdentifier(const Napi::CallbackInfo& info) {
     auto* module = ModuleWrapper::FromValue(info.Holder())->getModule();
-    auto identifier = Nan::New(module->getModuleIdentifier()).ToLocalChecked();
-    info.GetReturnValue().Set(identifier);
+    auto identifier = Napi::New(env, module->getModuleIdentifier());
+    return identifier;
 }
 
-NAN_SETTER(ModuleWrapper::setModuleIdentifier) {
-    if (!value->IsString()) {
-        return Nan::ThrowTypeError("moduleIdentifier needs to be a string");
+void ModuleWrapper::setModuleIdentifier(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    if (!value.IsString()) {
+        Napi::TypeError::New(env, "moduleIdentifier needs to be a string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Nan::Utf8String moduleIdentifier{ Nan::To<v8::String>(value).ToLocalChecked() };
+    std::string moduleIdentifier{ value.To<Napi::String>() };
     auto wrapper = ModuleWrapper::FromValue(info.Holder());
 
     wrapper->module->setModuleIdentifier(llvm::StringRef(*moduleIdentifier));
 }
 
-NAN_GETTER(ModuleWrapper::getSourceFileName) {
+Napi::Value ModuleWrapper::getSourceFileName(const Napi::CallbackInfo& info) {
     auto* module = ModuleWrapper::FromValue(info.Holder())->getModule();
-    auto name = Nan::New(module->getSourceFileName()).ToLocalChecked();
-    info.GetReturnValue().Set(name);
+    auto name = Napi::New(env, module->getSourceFileName());
+    return name;
 }
 
-NAN_SETTER(ModuleWrapper::setSourceFileName) {
-    if (!value->IsString()) {
-        return Nan::ThrowTypeError("sourceFileName needs to be a string");
+void ModuleWrapper::setSourceFileName(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    if (!value.IsString()) {
+        Napi::TypeError::New(env, "sourceFileName needs to be a string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Nan::Utf8String sourceFileName { Nan::To<v8::String>(value).ToLocalChecked() };
+    std::string sourceFileName { value.To<Napi::String>() };
     auto wrapper = ModuleWrapper::FromValue(info.Holder());
 
     wrapper->module->setSourceFileName(llvm::StringRef(*sourceFileName));
 }
 
-NAN_GETTER(ModuleWrapper::getTargetTriple) {
+Napi::Value ModuleWrapper::getTargetTriple(const Napi::CallbackInfo& info) {
     auto* module = ModuleWrapper::FromValue(info.Holder())->getModule();
-    auto name = Nan::New(module->getTargetTriple()).ToLocalChecked();
-    info.GetReturnValue().Set(name);
+    auto name = Napi::New(env, module->getTargetTriple());
+    return name;
 }
 
-NAN_SETTER(ModuleWrapper::setTargetTriple) {
-    if (!value->IsString()) {
-        return Nan::ThrowTypeError("targetTriple needs to be a string");
+void ModuleWrapper::setTargetTriple(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    if (!value.IsString()) {
+        Napi::TypeError::New(env, "targetTriple needs to be a string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    Nan::Utf8String triple { Nan::To<v8::String>(value).ToLocalChecked() };
+    std::string triple { value.To<Napi::String>() };
     auto wrapper = ModuleWrapper::FromValue(info.Holder());
     wrapper->module->setTargetTriple(llvm::StringRef(*triple));
 }
 
-NAN_METHOD(ModuleWrapper::print) {
+Napi::Value ModuleWrapper::print(const Napi::CallbackInfo& info) {
     auto* module = ModuleWrapper::FromValue(info.Holder())->getModule();
     std::string str {};
     llvm::raw_string_ostream output { str };
@@ -194,13 +203,14 @@ NAN_METHOD(ModuleWrapper::print) {
     module->print(output, nullptr);
     output.flush();
 
-    info.GetReturnValue().Set(Nan::New(str).ToLocalChecked());
+    return Napi::New(env, str);
 }
 
 llvm::Module *ModuleWrapper::getModule() {
     return module;
 }
 
-bool ModuleWrapper::isInstance(v8::Local<v8::Value> value) {
-    return Nan::New(moduleTemplate())->HasInstance(value);
+bool ModuleWrapper::isInstance(Napi::Value value) {
+    Napi::Env env = value.Env();
+    return Napi::New(env, moduleTemplate())->HasInstance(value);
 }

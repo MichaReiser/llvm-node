@@ -7,17 +7,17 @@
 #include "../util/from-value-mixin.h"
 
 
-NAN_MODULE_INIT(GlobalVariableWrapper::Init) {
-    auto globalVariable = Nan::GetFunction(Nan::New(globalVariableTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("GlobalVariable").ToLocalChecked(), globalVariable);
+Napi::Object GlobalVariableWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto globalVariable = Napi::GetFunction(Napi::New(env, globalVariableTemplate()));
+    (target).Set(Napi::String::New(env, "GlobalVariable"), globalVariable);
 }
 
-v8::Local<v8::Object> GlobalVariableWrapper::of(llvm::GlobalVariable* variable) {
-    auto constructor = Nan::GetFunction(Nan::New(globalVariableTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External> (variable) };
+Napi::Object GlobalVariableWrapper::of(llvm::GlobalVariable* variable) {
+    auto constructor = Napi::GetFunction(Napi::New(env, globalVariableTemplate()));
+    Napi::Value args[1] = { Napi::New<v8::External> (variable) };
 
-    auto instance = Nan::NewInstance(constructor, 1, args).ToLocalChecked();
-    Nan::EscapableHandleScope escapeHandleScope {};
+    auto instance = Napi::NewInstance(constructor, 1, args);
+    Napi::EscapableHandleScope escapeHandleScope {};
     return escapeHandleScope.Escape(instance);
 }
 
@@ -25,39 +25,41 @@ llvm::GlobalVariable* GlobalVariableWrapper::getGlobalVariable() {
     return static_cast<llvm::GlobalVariable*>(getValue());
 }
 
-NAN_METHOD(GlobalVariableWrapper::New) {
+Napi::Value GlobalVariableWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("The GlobalVariable needs to be called with new");
+        Napi::TypeError::New(env, "The GlobalVariable needs to be called with new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() == 1 && info[0]->IsExternal()) {
+    if (info.Length() == 1 && info[0].IsExternal()) {
         NewFromExternal(info);
-    } else if (info.Length() >= 4 && ModuleWrapper::isInstance(info[0]) && TypeWrapper::isInstance(info[1]) && info[2]->IsBoolean() && info[3]->IsUint32()
-               && (info.Length() < 5 || ConstantWrapper::isInstance(info[4]) || info[4]->IsUndefined())
-               && (info.Length() < 6 || info[5]->IsString())) {
+    } else if (info.Length() >= 4 && ModuleWrapper::isInstance(info[0]) && TypeWrapper::isInstance(info[1]) && info[2].IsBoolean() && info[3].IsUint32()
+               && (info.Length() < 5 || ConstantWrapper::isInstance(info[4]) || info[4].IsUndefined())
+               && (info.Length() < 6 || info[5].IsString())) {
         NewFromArguments(info);
     } else {
-        return Nan::ThrowTypeError("The GlobalVariable constructor needs to be called with: module: Module, type: Type, isConstant: boolean, linkageType: LinkageTypes, initializer?: Constant, name?: string");
+        Napi::TypeError::New(env, "The GlobalVariable constructor needs to be called with: module: Module, type: Type, isConstant: boolean, linkageType: LinkageTypes, initializer?: Constant, name?: string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 }
 
 
-NAN_METHOD(GlobalVariableWrapper::NewFromExternal) {
-    auto* globalVariable = static_cast<llvm::GlobalVariable*>(v8::External::Cast(*info[0])->Value());
+Napi::Value GlobalVariableWrapper::NewFromExternal(const Napi::CallbackInfo& info) {
+    auto* globalVariable = static_cast<llvm::GlobalVariable*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new GlobalVariableWrapper { globalVariable };
     wrapper->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_METHOD(GlobalVariableWrapper::NewFromArguments) {
+Napi::Value GlobalVariableWrapper::NewFromArguments(const Napi::CallbackInfo& info) {
     auto* module = ModuleWrapper::FromValue(info[0])->getModule();
     auto* type = TypeWrapper::FromValue(info[1])->getType();
-    auto constant = Nan::To<bool>(info[2]).FromJust();
-    auto linkageType = static_cast<llvm::GlobalValue::LinkageTypes>(Nan::To<uint32_t>(info[3]).FromJust());
+    auto constant = info[2].As<Napi::Boolean>().Value();
+    auto linkageType = static_cast<llvm::GlobalValue::LinkageTypes>(info[3].As<Napi::Number>().Uint32Value());
     llvm::Constant* initializer = nullptr;
     std::string name {};
 
-    if (info.Length() > 4 && !info[4]->IsUndefined()) {
+    if (info.Length() > 4 && !info[4].IsUndefined()) {
         initializer = ConstantWrapper::FromValue(info[4])->getConstant();
     }
 
@@ -69,52 +71,55 @@ NAN_METHOD(GlobalVariableWrapper::NewFromArguments) {
 
     auto* wrapper = new GlobalVariableWrapper { globalVariable };
     wrapper->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_METHOD(GlobalVariableWrapper::hasGlobalUnnamedAddr) {
+Napi::Value GlobalVariableWrapper::hasGlobalUnnamedAddr(const Napi::CallbackInfo& info) {
     auto* globalVariable = GlobalVariableWrapper::FromValue(info.Holder())->getGlobalVariable();
-    info.GetReturnValue().Set(Nan::New(globalVariable->hasGlobalUnnamedAddr()));
+    return Napi::New(env, globalVariable->hasGlobalUnnamedAddr());
 }
 
-NAN_METHOD(GlobalVariableWrapper::setUnnamedAddr) {
-    if (!info[0]->IsUint32()) {
-        return Nan::ThrowTypeError("setUnnamedAddr needs to be called with: addr: GlobalValue.UnnamedAddr");
+Napi::Value GlobalVariableWrapper::setUnnamedAddr(const Napi::CallbackInfo& info) {
+    if (!info[0].IsUint32()) {
+        Napi::TypeError::New(env, "setUnnamedAddr needs to be called with: addr: GlobalValue.UnnamedAddr").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* globalVariable = GlobalVariableWrapper::FromValue(info.Holder())->getGlobalVariable();
-    auto value = Nan::To<uint32_t>(info[0]).FromJust();
+    auto value = info[0].As<Napi::Number>().Uint32Value();
     globalVariable->setUnnamedAddr(static_cast<llvm::GlobalValue::UnnamedAddr>(value));
 }
 
-NAN_GETTER(GlobalVariableWrapper::getConstant) {
+Napi::Value GlobalVariableWrapper::getConstant(const Napi::CallbackInfo& info) {
     auto* globalVariable = GlobalVariableWrapper::FromValue(info.Holder())->getGlobalVariable();
-    info.GetReturnValue().Set(Nan::New(globalVariable->isConstant()));
+    return Napi::New(env, globalVariable->isConstant());
 }
 
-NAN_SETTER(GlobalVariableWrapper::setConstant) {
+void GlobalVariableWrapper::setConstant(const Napi::CallbackInfo& info, const Napi::Value& value) {
     if (!value->IsBoolean()) {
-        return Nan::ThrowTypeError("GlobalVariable.constant is of type boolean");
+        Napi::TypeError::New(env, "GlobalVariable.constant is of type boolean").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* globalVariable = GlobalVariableWrapper::FromValue(info.Holder())->getGlobalVariable();
-    globalVariable->setConstant(Nan::To<bool>(value).FromJust());
+    globalVariable->setConstant(value.As<Napi::Boolean>().Value());
 }
 
-NAN_GETTER(GlobalVariableWrapper::getInitializer) {
+Napi::Value GlobalVariableWrapper::getInitializer(const Napi::CallbackInfo& info) {
     auto* globalVariable = GlobalVariableWrapper::FromValue(info.Holder())->getGlobalVariable();
     auto* initializer = globalVariable->getInitializer();
 
     if (initializer) {
-        info.GetReturnValue().Set(ConstantWrapper::of(initializer));
+        return ConstantWrapper::of(initializer);
     } else {
-        info.GetReturnValue().Set(Nan::Undefined());
+        return env.Undefined();
     }
 }
 
-NAN_SETTER(GlobalVariableWrapper::setInitializer) {
+void GlobalVariableWrapper::setInitializer(const Napi::CallbackInfo& info, const Napi::Value& value) {
     if (!value->IsUndefined() && !ConstantWrapper::isInstance(value)) {
-        return Nan::ThrowTypeError("GlobalVariable.initializer is of type Constant");
+        Napi::TypeError::New(env, "GlobalVariable.initializer is of type Constant").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* globalVariable = GlobalVariableWrapper::FromValue(info.Holder())->getGlobalVariable();
@@ -127,20 +132,20 @@ NAN_SETTER(GlobalVariableWrapper::setInitializer) {
     globalVariable->setInitializer(initializer);
 }
 
-Nan::Persistent<v8::FunctionTemplate>& GlobalVariableWrapper::globalVariableTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+Napi::FunctionReference& GlobalVariableWrapper::globalVariableTemplate() {
+    static Napi::FunctionReference functionTemplate {};
 
     if (functionTemplate.IsEmpty()) {
-        v8::Local<v8::FunctionTemplate> localTemplate = Nan::New<v8::FunctionTemplate>(GlobalVariableWrapper::New);
-        localTemplate->SetClassName(Nan::New("GlobalVariable").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        localTemplate->Inherit(Nan::New(constantTemplate()));
+        Napi::FunctionReference localTemplate = Napi::Function::New(env, GlobalVariableWrapper::New);
+        localTemplate->SetClassName(Napi::String::New(env, "GlobalVariable"));
 
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("constant").ToLocalChecked(), GlobalVariableWrapper::getConstant, GlobalVariableWrapper::setConstant);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("initializer").ToLocalChecked(), GlobalVariableWrapper::getInitializer, GlobalVariableWrapper::setInitializer);
+        localTemplate->Inherit(Napi::New(env, constantTemplate()));
 
-        Nan::SetPrototypeMethod(localTemplate, "hasGlobalUnnamedAddr", GlobalVariableWrapper::hasGlobalUnnamedAddr);
-        Nan::SetPrototypeMethod(localTemplate, "setUnnamedAddr", GlobalVariableWrapper::setUnnamedAddr);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "constant"), GlobalVariableWrapper::getConstant, GlobalVariableWrapper::setConstant);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "initializer"), GlobalVariableWrapper::getInitializer, GlobalVariableWrapper::setInitializer);
+
+        Napi::SetPrototypeMethod(localTemplate, "hasGlobalUnnamedAddr", GlobalVariableWrapper::hasGlobalUnnamedAddr);
+        Napi::SetPrototypeMethod(localTemplate, "setUnnamedAddr", GlobalVariableWrapper::setUnnamedAddr);
 
         functionTemplate.Reset(localTemplate);
     }

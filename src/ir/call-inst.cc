@@ -4,78 +4,84 @@
 
 #include "call-inst.h"
 
-NAN_MODULE_INIT(CallInstWrapper::Init) {
-    auto callInstruction = Nan::GetFunction(Nan::New(callInstTemplate())).ToLocalChecked();
+Napi::Object CallInstWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto callInstruction = Napi::GetFunction(Napi::New(env, callInstTemplate()));
 
-    Nan::Set(target, Nan::New("CallInst").ToLocalChecked(), callInstruction);
+    (target).Set(Napi::String::New(env, "CallInst"), callInstruction);
 }
 
-v8::Local<v8::Object> CallInstWrapper::of(llvm::CallInst* inst) {
-    Nan::EscapableHandleScope escapeScope {};
-    auto constructorFunction = Nan::GetFunction(Nan::New(callInstTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(inst) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+Napi::Object CallInstWrapper::of(llvm::CallInst* inst) {
+    Napi::EscapableHandleScope escapeScope {};
+    auto constructorFunction = Napi::GetFunction(Napi::New(env, callInstTemplate()));
+    Napi::Value args[1] = { Napi::External::New(env, inst) };
+    auto instance = Napi::NewInstance(constructorFunction, 1, args);
 
     return escapeScope.Escape(instance);
 }
 
-bool CallInstWrapper::isInstance(v8::Local<v8::Value> value) {
-    return Nan::New(callInstTemplate())->HasInstance(value);
+bool CallInstWrapper::isInstance(Napi::Value value) {
+    Napi::Env env = value.Env();
+    return Napi::New(env, callInstTemplate())->HasInstance(value);
 }
 
 llvm::CallInst* CallInstWrapper::getCallInst() {
     return static_cast<llvm::CallInst*>(getValue());
 }
 
-NAN_METHOD(CallInstWrapper::New) {
+Napi::Value CallInstWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("CallInst Constructor needs to be called with new");
+        Napi::TypeError::New(env, "CallInst Constructor needs to be called with new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() != 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("CallInst Constructor needs to be called with: callInst: External");
+    if (info.Length() != 1 || !info[0].IsExternal()) {
+        Napi::TypeError::New(env, "CallInst Constructor needs to be called with: callInst: External").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto* callInst = static_cast<llvm::CallInst*>(v8::External::Cast(*info[0])->Value());
+    auto* callInst = static_cast<llvm::CallInst*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new CallInstWrapper { callInst };
     wrapper->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_GETTER(CallInstWrapper::getCallingConv) {
+Napi::Value CallInstWrapper::getCallingConv(const Napi::CallbackInfo& info) {
     auto* callInst = CallInstWrapper::FromValue(info.Holder())->getCallInst();
     auto callingConv = callInst->getCallingConv();
-    info.GetReturnValue().Set(Nan::New(callingConv));
+    return Napi::New(env, callingConv);
 }
 
-NAN_SETTER(CallInstWrapper::setCallingConv) {
+void CallInstWrapper::setCallingConv(const Napi::CallbackInfo& info, const Napi::Value& value) {
     if (!value->IsUint32()) {
-        return Nan::ThrowTypeError("The Calling Convention needs to be a value from llvm.CallingConv");
+        Napi::TypeError::New(env, "The Calling Convention needs to be a value from llvm.CallingConv").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto callingConv = Nan::To<uint32_t>(value).FromJust();
+    auto callingConv = value.As<Napi::Number>().Uint32Value();
     CallInstWrapper::FromValue(info.Holder())->getCallInst()->setCallingConv(callingConv);
 }
 
-NAN_METHOD(CallInstWrapper::addDereferenceableAttr) {
-    if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32()) {
-        return Nan::ThrowTypeError("addDereferenceableAttr needs to be called with: argumentIndex: uint32, bytes: uint32");
+Napi::Value CallInstWrapper::addDereferenceableAttr(const Napi::CallbackInfo& info) {
+    if (info.Length() != 2 || !info[0].IsUint32() || !info[1].IsUint32()) {
+        Napi::TypeError::New(env, "addDereferenceableAttr needs to be called with: argumentIndex: uint32, bytes: uint32").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
-    auto index = Nan::To<uint32_t>(info[0]).FromJust();
-    auto bytes = Nan::To<uint32_t>(info[1]).FromJust();
+    auto index = info[0].As<Napi::Number>().Uint32Value();
+    auto bytes = info[1].As<Napi::Number>().Uint32Value();
 
     call->addDereferenceableAttr(index, bytes);
 }
 
-NAN_METHOD(CallInstWrapper::hasRetAttr) {
-    if (info.Length() != 1 || !info[0]->IsUint32()) {
-        return Nan::ThrowTypeError("hasRetAttr needs to be called with: attrKind: AttrKind");
+Napi::Value CallInstWrapper::hasRetAttr(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1 || !info[0].IsUint32()) {
+        Napi::TypeError::New(env, "hasRetAttr needs to be called with: attrKind: AttrKind").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     llvm::CallInst *call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
-    auto kind = static_cast<llvm::Attribute::AttrKind >(Nan::To<uint32_t>(info[0]).FromJust());
+    auto kind = static_cast<llvm::Attribute::AttrKind >(info[0].As<Napi::Number>().Uint32Value());
     bool hasRetAttr = false;
 
 #if LLVM_VERSION_MAJOR == 4
@@ -84,18 +90,19 @@ NAN_METHOD(CallInstWrapper::hasRetAttr) {
     hasRetAttr = call->hasRetAttr(kind);
 #endif
 
-    info.GetReturnValue().Set(hasRetAttr);
+    return hasRetAttr;
 }
 
-NAN_METHOD(CallInstWrapper::paramHasAttr) {
-    if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32()) {
-        return Nan::ThrowTypeError("paramHasAttr needs to be called with: argNo: uint32, kind: AttrKind");
+Napi::Value CallInstWrapper::paramHasAttr(const Napi::CallbackInfo& info) {
+    if (info.Length() != 2 || !info[0].IsUint32() || !info[1].IsUint32()) {
+        Napi::TypeError::New(env, "paramHasAttr needs to be called with: argNo: uint32, kind: AttrKind").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     llvm::CallInst* call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
 
-    const auto index = Nan::To<uint32_t >(info[0]).FromJust();
-    const auto kind = static_cast<llvm::Attribute::AttrKind >(Nan::To<uint32_t>(info[1]).FromJust());
+    const auto index = Napi::To<uint32_t >(info[0]);
+    const auto kind = static_cast<llvm::Attribute::AttrKind >(info[1].As<Napi::Number>().Uint32Value());
     bool paramHasAttr = false;
 
 #if LLVM_VERSION_MAJOR == 4
@@ -103,28 +110,28 @@ NAN_METHOD(CallInstWrapper::paramHasAttr) {
 #else
     paramHasAttr = call->paramHasAttr(index, kind);
 #endif
-    info.GetReturnValue().Set(paramHasAttr);
+    return paramHasAttr;
 }
 
-NAN_METHOD(CallInstWrapper::getNumArgOperands) {
+Napi::Value CallInstWrapper::getNumArgOperands(const Napi::CallbackInfo& info) {
     auto* call = CallInstWrapper::FromValue(info.Holder())->getCallInst();
-    info.GetReturnValue().Set(Nan::New(call->getNumArgOperands()));
+    return Napi::New(env, call->getNumArgOperands());
 }
 
-Nan::Persistent<v8::FunctionTemplate>& CallInstWrapper::callInstTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+Napi::FunctionReference& CallInstWrapper::callInstTemplate() {
+    static Napi::FunctionReference functionTemplate {};
 
     if (functionTemplate.IsEmpty()) {
-        auto localTemplate = Nan::New<v8::FunctionTemplate>(CallInstWrapper::New);
-        localTemplate->SetClassName(Nan::New("CallInst").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        localTemplate->Inherit(Nan::New(valueTemplate()));
+        auto localTemplate = Napi::Function::New(env, CallInstWrapper::New);
+        localTemplate->SetClassName(Napi::String::New(env, "CallInst"));
 
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("callingConv").ToLocalChecked(), CallInstWrapper::getCallingConv, CallInstWrapper::setCallingConv);
-        Nan::SetPrototypeMethod(localTemplate, "addDereferenceableAttr", CallInstWrapper::addDereferenceableAttr);
-        Nan::SetPrototypeMethod(localTemplate, "paramHasAttr", CallInstWrapper::paramHasAttr);
-        Nan::SetPrototypeMethod(localTemplate, "hasRetAttr", CallInstWrapper::hasRetAttr);
-        Nan::SetPrototypeMethod(localTemplate, "getNumArgOperands", CallInstWrapper::getNumArgOperands);
+        localTemplate->Inherit(Napi::New(env, valueTemplate()));
+
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "callingConv"), CallInstWrapper::getCallingConv, CallInstWrapper::setCallingConv);
+        Napi::SetPrototypeMethod(localTemplate, "addDereferenceableAttr", CallInstWrapper::addDereferenceableAttr);
+        Napi::SetPrototypeMethod(localTemplate, "paramHasAttr", CallInstWrapper::paramHasAttr);
+        Napi::SetPrototypeMethod(localTemplate, "hasRetAttr", CallInstWrapper::hasRetAttr);
+        Napi::SetPrototypeMethod(localTemplate, "getNumArgOperands", CallInstWrapper::getNumArgOperands);
 
         functionTemplate.Reset(localTemplate);
     }

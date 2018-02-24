@@ -11,50 +11,52 @@
 
 FunctionWrapper::FunctionWrapper(llvm::Function *function) : ConstantWrapper { function } {}
 
-NAN_MODULE_INIT(FunctionWrapper::Init) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(functionTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("Function").ToLocalChecked(), constructorFunction);
+Napi::Object FunctionWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto constructorFunction = Napi::GetFunction(Napi::New(env, functionTemplate()));
+    (target).Set(Napi::String::New(env, "Function"), constructorFunction);
 }
 
-NAN_METHOD(FunctionWrapper::New) {
+Napi::Value FunctionWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("Class Constructor Function cannot be invoked without new");
+        Napi::TypeError::New(env, "Class Constructor Function cannot be invoked without new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() != 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("External Function Pointer required");
+    if (info.Length() != 1 || !info[0].IsExternal()) {
+        Napi::TypeError::New(env, "External Function Pointer required").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto * function = static_cast<llvm::Function*>(v8::External::Cast(*info[0])->Value());
+    auto * function = static_cast<llvm::Function*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new FunctionWrapper { function };
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-Nan::Persistent<v8::FunctionTemplate> &FunctionWrapper::functionTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> tmpl {};
+Napi::FunctionReference &FunctionWrapper::functionTemplate() {
+    static Napi::FunctionReference tmpl {};
 
     if (tmpl.IsEmpty()) {
-        v8::Local<v8::FunctionTemplate> localTemplate = Nan::New<v8::FunctionTemplate>(FunctionWrapper::New);
-        v8::Local<v8::FunctionTemplate> valueTemplate = Nan::New(ConstantWrapper::constantTemplate());
+        Napi::FunctionReference localTemplate = Napi::Function::New(env, FunctionWrapper::New);
+        Napi::FunctionReference valueTemplate = Napi::New(env, ConstantWrapper::constantTemplate());
 
-        localTemplate->SetClassName(Nan::New("Function").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+        localTemplate->SetClassName(Napi::String::New(env, "Function"));
+
         localTemplate->Inherit(valueTemplate);
 
-        Nan::SetMethod(localTemplate, "create", FunctionWrapper::Create);
-        Nan::SetPrototypeMethod(localTemplate, "addAttribute", FunctionWrapper::addAttribute);
-        Nan::SetPrototypeMethod(localTemplate, "addBasicBlock", FunctionWrapper::addBasicBlock);
-        Nan::SetPrototypeMethod(localTemplate, "addDereferenceableAttr", FunctionWrapper::addDereferenceableAttr);
-        Nan::SetPrototypeMethod(localTemplate, "addDereferenceableOrNullAttr", FunctionWrapper::addDereferenceableOrNullAttr);
-        Nan::SetPrototypeMethod(localTemplate, "addFnAttr", FunctionWrapper::addFnAttr);
-        Nan::SetPrototypeMethod(localTemplate, "getArguments", FunctionWrapper::getArguments);
-        Nan::SetPrototypeMethod(localTemplate, "getEntryBlock", FunctionWrapper::getEntryBlock);
-        Nan::SetPrototypeMethod(localTemplate, "getBasicBlocks", FunctionWrapper::getBasicBlocks);
-        Nan::SetPrototypeMethod(localTemplate, "viewCFG", FunctionWrapper::viewCFG);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("callingConv").ToLocalChecked(), FunctionWrapper::getCallingConv, FunctionWrapper::setCallingConv);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("visibility").ToLocalChecked(), FunctionWrapper::getVisibility, FunctionWrapper::setVisibility);
+        Napi::SetMethod(localTemplate, "create", FunctionWrapper::Create);
+        Napi::SetPrototypeMethod(localTemplate, "addAttribute", FunctionWrapper::addAttribute);
+        Napi::SetPrototypeMethod(localTemplate, "addBasicBlock", FunctionWrapper::addBasicBlock);
+        Napi::SetPrototypeMethod(localTemplate, "addDereferenceableAttr", FunctionWrapper::addDereferenceableAttr);
+        Napi::SetPrototypeMethod(localTemplate, "addDereferenceableOrNullAttr", FunctionWrapper::addDereferenceableOrNullAttr);
+        Napi::SetPrototypeMethod(localTemplate, "addFnAttr", FunctionWrapper::addFnAttr);
+        Napi::SetPrototypeMethod(localTemplate, "getArguments", FunctionWrapper::getArguments);
+        Napi::SetPrototypeMethod(localTemplate, "getEntryBlock", FunctionWrapper::getEntryBlock);
+        Napi::SetPrototypeMethod(localTemplate, "getBasicBlocks", FunctionWrapper::getBasicBlocks);
+        Napi::SetPrototypeMethod(localTemplate, "viewCFG", FunctionWrapper::viewCFG);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "callingConv"), FunctionWrapper::getCallingConv, FunctionWrapper::setCallingConv);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "visibility"), FunctionWrapper::getVisibility, FunctionWrapper::setVisibility);
 
         tmpl.Reset(localTemplate);
     }
@@ -62,33 +64,34 @@ Nan::Persistent<v8::FunctionTemplate> &FunctionWrapper::functionTemplate() {
     return tmpl;
 }
 
-v8::Local<v8::Object> FunctionWrapper::of(llvm::Function *function) {
-    v8::Local<v8::FunctionTemplate> localTemplate = Nan::New(functionTemplate());
-    v8::Local<v8::Function> constructor = Nan::GetFunction(localTemplate).ToLocalChecked();
+Napi::Object FunctionWrapper::of(llvm::Function *function) {
+    Napi::FunctionReference localTemplate = Napi::New(env, functionTemplate());
+    Napi::Function constructor = Napi::GetFunction(localTemplate);
 
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(function) };
+    Napi::Value args[1] = { Napi::External::New(env, function) };
 
-    v8::Local<v8::Object> instance = Nan::NewInstance(constructor, 1, args ).ToLocalChecked();
+    Napi::Object instance = Napi::NewInstance(constructor, 1, args );
 
-    Nan::EscapableHandleScope escapeScope {};
+    Napi::EscapableHandleScope escapeScope {};
     return escapeScope.Escape(instance);
 }
 
-NAN_METHOD(FunctionWrapper::Create) {
-    if (info.Length() < 2 || !FunctionTypeWrapper::isInstance(info[0]) || !info[1]->IsUint32()
-        || (info.Length() > 2 && !(info[2]->IsUndefined() || info[2]->IsString()))
+Napi::Value FunctionWrapper::Create(const Napi::CallbackInfo& info) {
+    if (info.Length() < 2 || !FunctionTypeWrapper::isInstance(info[0]) || !info[1].IsUint32()
+        || (info.Length() > 2 && !(info[2].IsUndefined() || info[2].IsString()))
         || (info.Length() > 3 && !ModuleWrapper::isInstance(info[3]))) {
-        return Nan::ThrowTypeError("Create needs to be called with: functionType: FunctionType, linkageTypes: uint32, name: string?, module?: Module");
+        Napi::TypeError::New(env, "Create needs to be called with: functionType: FunctionType, linkageTypes: uint32, name: string?, module?: Module").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* functionType = FunctionTypeWrapper::FromValue(info[0])->getFunctionType();
-    auto linkageType = static_cast<llvm::GlobalValue::LinkageTypes>(Nan::To<uint32_t>(info[1]).FromJust());
+    auto linkageType = static_cast<llvm::GlobalValue::LinkageTypes>(info[1].As<Napi::Number>().Uint32Value());
 
     std::string name = {};
     llvm::Module* module = nullptr;
 
-    if (info.Length() > 2 && !info[2]->IsUndefined()) {
-        name = ToString(Nan::To<v8::String>(info[2]).ToLocalChecked());
+    if (info.Length() > 2 && !info[2].IsUndefined()) {
+        name = ToString(info[2].To<Napi::String>());
     }
 
     if (info.Length() == 4) {
@@ -97,12 +100,13 @@ NAN_METHOD(FunctionWrapper::Create) {
 
     auto* function = llvm::Function::Create(functionType, linkageType, name, module);
     auto wrapper = of(function);
-    info.GetReturnValue().Set(wrapper);
+    return wrapper;
 }
 
-NAN_METHOD(FunctionWrapper::addBasicBlock) {
+Napi::Value FunctionWrapper::addBasicBlock(const Napi::CallbackInfo& info) {
     if (info.Length() != 1 || !BasicBlockWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("addBasicBlock needs to be called with: block: BasicBlock");
+        Napi::TypeError::New(env, "addBasicBlock needs to be called with: block: BasicBlock").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* block = BasicBlockWrapper::FromValue(info[0])->getBasicBlock();
@@ -110,126 +114,132 @@ NAN_METHOD(FunctionWrapper::addBasicBlock) {
     wrapper->getFunction()->getBasicBlockList().push_back(block);
 }
 
-NAN_METHOD(FunctionWrapper::addFnAttr) {
-    if (info.Length() != 1 || !info[0]->IsUint32()) {
-        return Nan::ThrowTypeError("addFnAttr needs to be called with: attribute: Attribute.AttrKind");
+Napi::Value FunctionWrapper::addFnAttr(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1 || !info[0].IsUint32()) {
+        Napi::TypeError::New(env, "addFnAttr needs to be called with: attribute: Attribute.AttrKind").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
 
     auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
-    auto attribute = static_cast<llvm::Attribute::AttrKind>(Nan::To<uint32_t>(info[0]).FromJust());
+    auto attribute = static_cast<llvm::Attribute::AttrKind>(info[0].As<Napi::Number>().Uint32Value());
 
     function->addFnAttr(attribute);
 }
 
-NAN_METHOD(FunctionWrapper::addAttribute) {
-    if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32()) {
-        return Nan::ThrowTypeError("addAttr needs to be called with: i: uint32, attribute: Attribute.AttrKind");
+Napi::Value FunctionWrapper::addAttribute(const Napi::CallbackInfo& info) {
+    if (info.Length() != 2 || !info[0].IsUint32() || !info[1].IsUint32()) {
+        Napi::TypeError::New(env, "addAttr needs to be called with: i: uint32, attribute: Attribute.AttrKind").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
 
     auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
-    auto i = Nan::To<uint32_t>(info[0]).FromJust();
-    auto attribute = static_cast<llvm::Attribute::AttrKind>(Nan::To<uint32_t>(info[1]).FromJust());
+    auto i = info[0].As<Napi::Number>().Uint32Value();
+    auto attribute = static_cast<llvm::Attribute::AttrKind>(info[1].As<Napi::Number>().Uint32Value());
 
     function->addAttribute(i, attribute);
 }
 
-NAN_METHOD(FunctionWrapper::addDereferenceableAttr) {
-    if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32()) {
-        return Nan::ThrowTypeError("addDereferenceableAttr needs to be called with: argumentIndex: uint32, bytes: uint32");
+Napi::Value FunctionWrapper::addDereferenceableAttr(const Napi::CallbackInfo& info) {
+    if (info.Length() != 2 || !info[0].IsUint32() || !info[1].IsUint32()) {
+        Napi::TypeError::New(env, "addDereferenceableAttr needs to be called with: argumentIndex: uint32, bytes: uint32").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
-    auto index = Nan::To<uint32_t>(info[0]).FromJust();
-    auto bytes = Nan::To<uint32_t>(info[1]).FromJust();
+    auto index = info[0].As<Napi::Number>().Uint32Value();
+    auto bytes = info[1].As<Napi::Number>().Uint32Value();
 
     function->addDereferenceableAttr(index, bytes);
 }
 
-NAN_METHOD(FunctionWrapper::addDereferenceableOrNullAttr) {
-    if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32()) {
-        return Nan::ThrowTypeError("addDereferenceableOrNullAttr needs to be called with: argumentIndex: uint32, bytes: uint32");
+Napi::Value FunctionWrapper::addDereferenceableOrNullAttr(const Napi::CallbackInfo& info) {
+    if (info.Length() != 2 || !info[0].IsUint32() || !info[1].IsUint32()) {
+        Napi::TypeError::New(env, "addDereferenceableOrNullAttr needs to be called with: argumentIndex: uint32, bytes: uint32").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
-    auto index = Nan::To<uint32_t>(info[0]).FromJust();
-    auto bytes = Nan::To<uint32_t>(info[1]).FromJust();
+    auto index = info[0].As<Napi::Number>().Uint32Value();
+    auto bytes = info[1].As<Napi::Number>().Uint32Value();
 
     function->addDereferenceableOrNullAttr(index, bytes);
 }
 
-NAN_METHOD(FunctionWrapper::getArguments) {
+Napi::Value FunctionWrapper::getArguments(const Napi::CallbackInfo& info) {
     auto* wrapper = FunctionWrapper::FromValue(info.Holder());
-    auto result = Nan::New<v8::Array>(wrapper->getFunction()->arg_size());
+    auto result = Napi::Array::New(env, wrapper->getFunction()->arg_size());
 
     uint32_t i = 0;
     for (auto &arg : wrapper->getFunction()->args()) {
-        result->Set(i, ArgumentWrapper::of(&arg));
+        result.Set(i, ArgumentWrapper::of(&arg));
         ++i;
     }
 
-    info.GetReturnValue().Set(result);
+    return result;
 }
 
-NAN_METHOD(FunctionWrapper::getEntryBlock) {
+Napi::Value FunctionWrapper::getEntryBlock(const Napi::CallbackInfo& info) {
     auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
 
     if (function->empty()) {
-        return info.GetReturnValue().Set(Nan::Null());
+        return return env.Null();
     }
 
     auto& entryBlock = function->getEntryBlock();
-    info.GetReturnValue().Set(BasicBlockWrapper::of(&entryBlock));
+    return BasicBlockWrapper::of(&entryBlock);
 }
 
-NAN_METHOD(FunctionWrapper::getBasicBlocks) {
+Napi::Value FunctionWrapper::getBasicBlocks(const Napi::CallbackInfo& info) {
     auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
-    auto result = Nan::New<v8::Array>(function->size());
+    auto result = Napi::Array::New(env, function->size());
 
     uint32_t i = 0;
     for (auto &arg : *function) {
-        result->Set(i, BasicBlockWrapper::of(&arg));
+        result.Set(i, BasicBlockWrapper::of(&arg));
         ++i;
     }
 
-    info.GetReturnValue().Set(result);
+    return result;
 }
 
-NAN_GETTER(FunctionWrapper::getCallingConv) {
+Napi::Value FunctionWrapper::getCallingConv(const Napi::CallbackInfo& info) {
     auto callingConv = FunctionWrapper::FromValue(info.Holder())->getFunction()->getCallingConv();
-    info.GetReturnValue().Set(Nan::New(callingConv));
+    return Napi::New(env, callingConv);
 }
 
-NAN_SETTER(FunctionWrapper::setCallingConv) {
+void FunctionWrapper::setCallingConv(const Napi::CallbackInfo& info, const Napi::Value& value) {
     if (!value->IsUint32()) {
-        return Nan::ThrowTypeError("callingConv needs to be a value of llvm.CallingConv");
+        Napi::TypeError::New(env, "callingConv needs to be a value of llvm.CallingConv").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    uint32_t callingConvention = Nan::To<uint32_t>(value).FromJust();
+    uint32_t callingConvention = value.As<Napi::Number>().Uint32Value();
 
     FunctionWrapper::FromValue(info.Holder())->getFunction()->setCallingConv(callingConvention);
 }
 
-NAN_GETTER(FunctionWrapper::getVisibility) {
+Napi::Value FunctionWrapper::getVisibility(const Napi::CallbackInfo& info) {
     auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
     auto visibility = function->getVisibility();
 
-    info.GetReturnValue().Set(Nan::New(visibility));
+    return Napi::New(env, visibility);
 }
 
-NAN_SETTER(FunctionWrapper::setVisibility) {
+void FunctionWrapper::setVisibility(const Napi::CallbackInfo& info, const Napi::Value& value) {
     if (!value->IsUint32()) {
-        return Nan::ThrowTypeError("visibility needs to be an uint32");
+        Napi::TypeError::New(env, "visibility needs to be an uint32").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
-    auto visibility = static_cast<llvm::GlobalValue::VisibilityTypes>(Nan::To<uint32_t>(value).FromJust());
+    auto visibility = static_cast<llvm::GlobalValue::VisibilityTypes>(value.As<Napi::Number>().Uint32Value());
 
     function->setVisibility(visibility);
 }
 
-NAN_METHOD(FunctionWrapper::viewCFG) {
+Napi::Value FunctionWrapper::viewCFG(const Napi::CallbackInfo& info) {
     FunctionWrapper::FromValue(info.Holder())->getFunction()->viewCFG();
 }
 
@@ -237,6 +247,7 @@ llvm::Function *FunctionWrapper::getFunction() {
     return static_cast<llvm::Function*>(getValue());
 }
 
-bool FunctionWrapper::isInstance(v8::Local<v8::Value> value) {
-    return Nan::New(functionTemplate())->HasInstance(value);
+bool FunctionWrapper::isInstance(Napi::Value value) {
+    Napi::Env env = value.Env();
+    return Napi::New(env, functionTemplate())->HasInstance(value);
 }

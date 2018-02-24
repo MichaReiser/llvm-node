@@ -9,45 +9,48 @@ llvm::PHINode *PhiNodeWrapper::getPhiNode() {
     return static_cast<llvm::PHINode*>(getValue());
 }
 
-v8::Local<v8::Object> PhiNodeWrapper::of(llvm::PHINode *phiNode) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(phiNodeTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(phiNode) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+Napi::Object PhiNodeWrapper::of(llvm::PHINode *phiNode) {
+    auto constructorFunction = Napi::GetFunction(Napi::New(env, phiNodeTemplate()));
+    Napi::Value args[1] = { Napi::External::New(env, phiNode) };
+    auto instance = Napi::NewInstance(constructorFunction, 1, args);
 
-    Nan::EscapableHandleScope escapeScope {};
+    Napi::EscapableHandleScope escapeScope {};
     return escapeScope.Escape(instance);
 }
 
-NAN_MODULE_INIT(PhiNodeWrapper::Init) {
-    auto functionTemplate = Nan::New<v8::FunctionTemplate>(PhiNodeWrapper::New);
+Napi::Object PhiNodeWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto functionTemplate = Napi::Function::New(env, PhiNodeWrapper::New);
 
-    functionTemplate->SetClassName(Nan::New("PHINode").ToLocalChecked());
-    functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-    functionTemplate->Inherit(Nan::New(valueTemplate()));
+    functionTemplate->SetClassName(Napi::String::New(env, "PHINode"));
 
-    Nan::SetPrototypeMethod(functionTemplate, "addIncoming", PhiNodeWrapper::addIncoming);
+    functionTemplate->Inherit(Napi::New(env, valueTemplate()));
+
+    Napi::SetPrototypeMethod(functionTemplate, "addIncoming", PhiNodeWrapper::addIncoming);
 
     phiNodeTemplate().Reset(functionTemplate);
 }
 
-NAN_METHOD(PhiNodeWrapper::New) {
+Napi::Value PhiNodeWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("Class Constructor PhiNode cannot be invoked without new");
+        Napi::TypeError::New(env, "Class Constructor PhiNode cannot be invoked without new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() != 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("PhiNode constructor needs be called with external pointer to PHINode");
+    if (info.Length() != 1 || !info[0].IsExternal()) {
+        Napi::TypeError::New(env, "PhiNode constructor needs be called with external pointer to PHINode").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto* phiNode = static_cast<llvm::PHINode*>(v8::External::Cast(*info[0])->Value());
+    auto* phiNode = static_cast<llvm::PHINode*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new PhiNodeWrapper { phiNode };
     wrapper->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_METHOD(PhiNodeWrapper::addIncoming) {
+Napi::Value PhiNodeWrapper::addIncoming(const Napi::CallbackInfo& info) {
     if (info.Length() != 2 || !ValueWrapper::isInstance(info[0]) || !BasicBlockWrapper::isInstance(info[1])) {
-        return Nan::ThrowTypeError("addIncome needs to be called with: value: Value, basicBlock: BasicBlock");
+        Napi::TypeError::New(env, "addIncome needs to be called with: value: Value, basicBlock: BasicBlock").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* value = ValueWrapper::FromValue(info[0])->getValue();

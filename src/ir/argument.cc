@@ -9,43 +9,45 @@
 #include "../util/string.h"
 #include "function.h"
 
-NAN_MODULE_INIT(ArgumentWrapper::Init) {
-    v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New<v8::FunctionTemplate>(ArgumentWrapper::New);
-    functionTemplate->SetClassName(Nan::New("Argument").ToLocalChecked());
-    functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-    functionTemplate->Inherit(Nan::New(ValueWrapper::valueTemplate()));
+Napi::Object ArgumentWrapper::Init(Napi::Env env, Napi::Object exports) {
+    Napi::FunctionReference functionTemplate = Napi::Function::New(env, ArgumentWrapper::New);
+    functionTemplate->SetClassName(Napi::String::New(env, "Argument"));
 
-    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("argumentNumber").ToLocalChecked(), ArgumentWrapper::getArgNo);
-    Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("parent").ToLocalChecked(), ArgumentWrapper::getParent);
-    Nan::SetPrototypeMethod(functionTemplate, "addAttr", ArgumentWrapper::addAttr);
-    Nan::SetPrototypeMethod(functionTemplate, "hasAttribute", ArgumentWrapper::hasAttribute);
-    Nan::SetPrototypeMethod(functionTemplate, "addDereferenceableAttr", ArgumentWrapper::addDereferenceableAttr);
+    functionTemplate->Inherit(Napi::New(env, ValueWrapper::valueTemplate()));
+
+    Napi::SetAccessor(functionTemplate->InstanceTemplate(), Napi::String::New(env, "argumentNumber"), ArgumentWrapper::getArgNo);
+    Napi::SetAccessor(functionTemplate->InstanceTemplate(), Napi::String::New(env, "parent"), ArgumentWrapper::getParent);
+    Napi::SetPrototypeMethod(functionTemplate, "addAttr", ArgumentWrapper::addAttr);
+    Napi::SetPrototypeMethod(functionTemplate, "hasAttribute", ArgumentWrapper::hasAttribute);
+    Napi::SetPrototypeMethod(functionTemplate, "addDereferenceableAttr", ArgumentWrapper::addDereferenceableAttr);
 
     argumentTemplate().Reset(functionTemplate);
 
-    Nan::Set(target, Nan::New("Argument").ToLocalChecked(), Nan::GetFunction(functionTemplate).ToLocalChecked());
+    (target).Set(Napi::String::New(env, "Argument"), Napi::GetFunction(functionTemplate));
 }
 
-NAN_METHOD(ArgumentWrapper::New) {
+Napi::Value ArgumentWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("Class Constructor Argument cannot be invoked without new");
+        Napi::TypeError::New(env, "Class Constructor Argument cannot be invoked without new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     // Created using of
-    if (info.Length() == 1 && info[0]->IsExternal()) {
-        llvm::Argument* argument = static_cast<llvm::Argument*>(v8::External::Cast(*info[0])->Value());
+    if (info.Length() == 1 && info[0].IsExternal()) {
+        llvm::Argument* argument = static_cast<llvm::Argument*>(*info[0].As<Napi::External>()->Value());
         auto* wrapper = new ArgumentWrapper { argument };
         wrapper->Wrap(info.This());
 
-        return info.GetReturnValue().Set(info.This());
+        return return info.This();
     }
 
     if (info.Length() < 1 || !TypeWrapper::isInstance(info[0])
-        || (info.Length() > 1 && !info[1]->IsString())
+        || (info.Length() > 1 && !info[1].IsString())
         || (info.Length() > 2 && !FunctionWrapper::isInstance(info[2]))
-        || (info.Length() == 4 && !info[3]->IsUint32())
+        || (info.Length() == 4 && !info[3].IsUint32())
         || info.Length() > 4) {
-        return Nan::ThrowTypeError("Argument constructor requires: type: Type, name: string?, function: Function?, argNo: uint32");
+        Napi::TypeError::New(env, "Argument constructor requires: type: Type, name: string?, function: Function?, argNo: uint32").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* type = TypeWrapper::FromValue(info[0])->getType();
@@ -62,7 +64,7 @@ NAN_METHOD(ArgumentWrapper::New) {
     }
 
     if (info.Length() == 4) {
-        argNo = Nan::To<uint32_t>(info[3]).FromJust();
+        argNo = info[3].As<Napi::Number>().Uint32Value();
     }
 
 #if LLVM_VERSION_MAJOR == 4
@@ -73,55 +75,58 @@ NAN_METHOD(ArgumentWrapper::New) {
     auto* wrapper = new ArgumentWrapper { argument };
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_GETTER(ArgumentWrapper::getArgNo) {
+Napi::Value ArgumentWrapper::getArgNo(const Napi::CallbackInfo& info) {
     auto* wrapper = ArgumentWrapper::FromValue(info.Holder());
-    auto number = Nan::New(wrapper->getArgument()->getArgNo());
+    auto number = Napi::New(env, wrapper->getArgument()->getArgNo());
 
-    info.GetReturnValue().Set(number);
+    return number;
 }
 
-NAN_GETTER(ArgumentWrapper::getParent) {
+Napi::Value ArgumentWrapper::getParent(const Napi::CallbackInfo& info) {
     auto* wrapper = ArgumentWrapper::FromValue(info.Holder());
     auto* function = wrapper->getArgument()->getParent();
 
     if (function) {
-        return info.GetReturnValue().Set(FunctionWrapper::of(function));
+        return return FunctionWrapper::of(function);
     }
-    return info.GetReturnValue().Set(Nan::Undefined());
+    return return env.Undefined();
 }
 
-NAN_METHOD(ArgumentWrapper::addAttr) {
-    if (info.Length() != 1 || !info[0]->IsUint32()) {
-        return Nan::ThrowTypeError("addAttr needs to be called with: attributeKind: Attribute.AttrKind");
+Napi::Value ArgumentWrapper::addAttr(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1 || !info[0].IsUint32()) {
+        Napi::TypeError::New(env, "addAttr needs to be called with: attributeKind: Attribute.AttrKind").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* argument = ArgumentWrapper::FromValue(info.Holder())->getArgument();
-    auto attributeKind = static_cast<llvm::Attribute::AttrKind>(Nan::To<uint32_t>(info[0]).FromJust());
+    auto attributeKind = static_cast<llvm::Attribute::AttrKind>(info[0].As<Napi::Number>().Uint32Value());
 
     argument->addAttr(attributeKind);
 }
 
-NAN_METHOD(ArgumentWrapper::hasAttribute) {
-    if (info.Length() != 1 || !info[0]->IsUint32()) {
-        return Nan::ThrowTypeError("hasAttr needs to be called with: attributeKind: Attribute.AttrKind");
+Napi::Value ArgumentWrapper::hasAttribute(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1 || !info[0].IsUint32()) {
+        Napi::TypeError::New(env, "hasAttr needs to be called with: attributeKind: Attribute.AttrKind").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* argument = ArgumentWrapper::FromValue(info.Holder())->getArgument();
-    auto attributeKind = static_cast<llvm::Attribute::AttrKind>(Nan::To<uint32_t>(info[0]).FromJust());
+    auto attributeKind = static_cast<llvm::Attribute::AttrKind>(info[0].As<Napi::Number>().Uint32Value());
 
-    info.GetReturnValue().Set(argument->hasAttribute(attributeKind));
+    return argument->hasAttribute(attributeKind);
 }
 
-NAN_METHOD(ArgumentWrapper::addDereferenceableAttr) {
-    if (info.Length() != 1 || !info[0]->IsUint32()) {
-        return Nan::ThrowTypeError("addDereferenceableAttr needs to be called with: bytes: uint32");
+Napi::Value ArgumentWrapper::addDereferenceableAttr(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1 || !info[0].IsUint32()) {
+        Napi::TypeError::New(env, "addDereferenceableAttr needs to be called with: bytes: uint32").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* argument = ArgumentWrapper::FromValue(info.Holder())->getArgument();
-    auto bytes = Nan::To<uint32_t>(info[0]).FromJust();
+    auto bytes = info[0].As<Napi::Number>().Uint32Value();
 
     llvm::AttrBuilder builder {};
     builder.addDereferenceableAttr(bytes);
@@ -138,13 +143,13 @@ llvm::Argument *ArgumentWrapper::getArgument() {
     return static_cast<llvm::Argument*>(ValueWrapper::getValue());
 }
 
-v8::Local<v8::Object> ArgumentWrapper::of(llvm::Argument *argument) {
-    Nan::EscapableHandleScope escapeScope {};
+Napi::Object ArgumentWrapper::of(llvm::Argument *argument) {
+    Napi::EscapableHandleScope escapeScope {};
 
-    auto functionTemplate = Nan::New(argumentTemplate());
-    auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(argument) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+    auto functionTemplate = Napi::New(env, argumentTemplate());
+    auto constructorFunction = Napi::GetFunction(functionTemplate);
+    Napi::Value args[1] = { Napi::External::New(env, argument) };
+    auto instance = Napi::NewInstance(constructorFunction, 1, args);
 
     return escapeScope.Escape(instance);
 }

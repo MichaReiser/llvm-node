@@ -5,17 +5,17 @@
 #include "alloca-inst.h"
 #include "type.h"
 
-NAN_MODULE_INIT(AllocaInstWrapper::Init) {
-    auto allocaInst = Nan::GetFunction(Nan::New(allocaInstTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("AllocaInst").ToLocalChecked(), allocaInst);
+Napi::Object AllocaInstWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto allocaInst = Napi::GetFunction(Napi::New(env, allocaInstTemplate()));
+    (target).Set(Napi::String::New(env, "AllocaInst"), allocaInst);
 }
 
-v8::Local<v8::Object> AllocaInstWrapper::of(llvm::AllocaInst* inst) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(allocaInstTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(inst) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+Napi::Object AllocaInstWrapper::of(llvm::AllocaInst* inst) {
+    auto constructorFunction = Napi::GetFunction(Napi::New(env, allocaInstTemplate()));
+    Napi::Value args[1] = { Napi::External::New(env, inst) };
+    auto instance = Napi::NewInstance(constructorFunction, 1, args);
 
-    Nan::EscapableHandleScope escapeScope {};
+    Napi::EscapableHandleScope escapeScope {};
     return escapeScope.Escape(instance);
 }
 
@@ -23,32 +23,35 @@ llvm::AllocaInst* AllocaInstWrapper::getAllocaInst() {
     return static_cast<llvm::AllocaInst*>(getValue());
 }
 
-NAN_METHOD(AllocaInstWrapper::New) {
+Napi::Value AllocaInstWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("Class Constructor AllocaInst cannot be invoked without new");
+        Napi::TypeError::New(env, "Class Constructor AllocaInst cannot be invoked without new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() != 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("AllocaInst constructor needs to be called with: inst: External");
+    if (info.Length() != 1 || !info[0].IsExternal()) {
+        Napi::TypeError::New(env, "AllocaInst constructor needs to be called with: inst: External").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto* inst = static_cast<llvm::AllocaInst*>(v8::External::Cast(*info[0])->Value());
+    auto* inst = static_cast<llvm::AllocaInst*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new AllocaInstWrapper { inst };
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_GETTER(AllocaInstWrapper::getAllocatedType) {
+Napi::Value AllocaInstWrapper::getAllocatedType(const Napi::CallbackInfo& info) {
     auto* wrapper = AllocaInstWrapper::FromValue(info.Holder());
     auto* type = wrapper->getAllocaInst()->getAllocatedType();
 
-    info.GetReturnValue().Set(TypeWrapper::of(type));
+    return TypeWrapper::of(type);
 }
 
-NAN_SETTER(AllocaInstWrapper::setAllocatedType) {
+void AllocaInstWrapper::setAllocatedType(const Napi::CallbackInfo& info, const Napi::Value& value) {
     if (!TypeWrapper::isInstance(value)) {
-        return Nan::ThrowTypeError("allocatedType needs to be a Type");
+        Napi::TypeError::New(env, "allocatedType needs to be a Type").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* type = TypeWrapper::FromValue(value)->getType();
@@ -56,44 +59,45 @@ NAN_SETTER(AllocaInstWrapper::setAllocatedType) {
     wrapper->getAllocaInst()->setAllocatedType(type);
 }
 
-NAN_GETTER(AllocaInstWrapper::getAlignment) {
+Napi::Value AllocaInstWrapper::getAlignment(const Napi::CallbackInfo& info) {
     auto* wrapper = AllocaInstWrapper::FromValue(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(wrapper->getAllocaInst()->getAlignment()));
+    return Napi::New(env, wrapper->getAllocaInst()->getAlignment());
 }
 
-NAN_SETTER(AllocaInstWrapper::setAlignment) {
+void AllocaInstWrapper::setAlignment(const Napi::CallbackInfo& info, const Napi::Value& value) {
     if (!value->IsUint32()) {
-        return Nan::ThrowTypeError("alignment needs to be an uint32");
+        Napi::TypeError::New(env, "alignment needs to be an uint32").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* wrapper = AllocaInstWrapper::FromValue(info.Holder());
-    wrapper->getAllocaInst()->setAlignment(Nan::To<uint32_t>(value).FromJust());
+    wrapper->getAllocaInst()->setAlignment(value.As<Napi::Number>().Uint32Value());
 }
 
-NAN_GETTER(AllocaInstWrapper::getArraySize) {
+Napi::Value AllocaInstWrapper::getArraySize(const Napi::CallbackInfo& info) {
     auto* wrapper = AllocaInstWrapper::FromValue(info.Holder());
 
     llvm::Value* arraySize = wrapper->getAllocaInst()->getArraySize();
     if (arraySize == nullptr) {
-        info.GetReturnValue().Set(Nan::Null());
+        return env.Null();
     } else {
-        info.GetReturnValue().Set(ValueWrapper::of(arraySize));
+        return ValueWrapper::of(arraySize);
     }
 }
 
-Nan::Persistent<v8::FunctionTemplate>& AllocaInstWrapper::allocaInstTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+Napi::FunctionReference& AllocaInstWrapper::allocaInstTemplate() {
+    static Napi::FunctionReference functionTemplate {};
 
     if (functionTemplate.IsEmpty()) {
-        auto localTemplate = Nan::New<v8::FunctionTemplate>(AllocaInstWrapper::New);
-        localTemplate->SetClassName(Nan::New("AllocaInst").ToLocalChecked());
-        localTemplate->Inherit(Nan::New(valueTemplate()));
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+        auto localTemplate = Napi::Function::New(env, AllocaInstWrapper::New);
+        localTemplate->SetClassName(Napi::String::New(env, "AllocaInst"));
+        localTemplate->Inherit(Napi::New(env, valueTemplate()));
 
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("allocatedType").ToLocalChecked(), AllocaInstWrapper::getAllocatedType, AllocaInstWrapper::setAllocatedType);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("alignment").ToLocalChecked(), AllocaInstWrapper::getAlignment, AllocaInstWrapper::setAlignment);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("arraySize").ToLocalChecked(), AllocaInstWrapper::getArraySize);
+
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "allocatedType"), AllocaInstWrapper::getAllocatedType, AllocaInstWrapper::setAllocatedType);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "alignment"), AllocaInstWrapper::getAlignment, AllocaInstWrapper::setAlignment);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "arraySize"), AllocaInstWrapper::getArraySize);
 
         functionTemplate.Reset(localTemplate);
     }

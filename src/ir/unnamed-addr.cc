@@ -1,11 +1,11 @@
 #include "unnamed-addr.h"
 #include <llvm/IR/GlobalValue.h>
 
-NAN_MODULE_INIT(InitUnnamedAddr) {
-    auto unnamedAddr = Nan::New<v8::Object>();
-    Nan::Set(unnamedAddr, Nan::New("None").ToLocalChecked(), Nan::New(static_cast<uint32_t>(llvm::GlobalValue::UnnamedAddr::None)));
-    Nan::Set(unnamedAddr, Nan::New("Local").ToLocalChecked(), Nan::New(static_cast<uint32_t>(llvm::GlobalValue::UnnamedAddr::Local)));
-    Nan::Set(unnamedAddr, Nan::New("Global").ToLocalChecked(), Nan::New(static_cast<uint32_t>(llvm::GlobalValue::UnnamedAddr::Global)));
+Napi::Object InitUnnamedAddr(Napi::Env env, Napi::Object exports) {
+    auto unnamedAddr = Napi::Object::New(env);
+    (unnamedAddr).Set(Napi::String::New(env, "None"), Napi::New(env, static_cast<uint32_t>(llvm::GlobalValue::UnnamedAddr::None)));
+    (unnamedAddr).Set(Napi::String::New(env, "Local"), Napi::New(env, static_cast<uint32_t>(llvm::GlobalValue::UnnamedAddr::Local)));
+    (unnamedAddr).Set(Napi::String::New(env, "Global"), Napi::New(env, static_cast<uint32_t>(llvm::GlobalValue::UnnamedAddr::Global)));
 
-    Nan::Set(target, Nan::New("UnnamedAddr").ToLocalChecked(), unnamedAddr);
+    (target).Set(Napi::String::New(env, "UnnamedAddr"), unnamedAddr);
 }

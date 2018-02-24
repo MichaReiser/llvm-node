@@ -6,83 +6,87 @@
 #include "llvm-context.h"
 #include "type.h"
 
-NAN_MODULE_INIT(ConstantFPWrapper::Init) {
-        auto constantFp = Nan::GetFunction(Nan::New(constantFpTemplate())).ToLocalChecked();
-        Nan::Set(target, Nan::New("ConstantFP").ToLocalChecked(), constantFp);
+Napi::Object ConstantFPWrapper::Init(Napi::Env env, Napi::Object exports) {
+        auto constantFp = Napi::GetFunction(Napi::New(env, constantFpTemplate()));
+        (target).Set(Napi::String::New(env, "ConstantFP"), constantFp);
 }
 
-NAN_METHOD(ConstantFPWrapper::New) {
+Napi::Value ConstantFPWrapper::New(const Napi::CallbackInfo& info) {
         if (!info.IsConstructCall()) {
-            return Nan::ThrowTypeError("Class Constructor ConstantFP cannot be invoked without new");
+            Napi::TypeError::New(env, "Class Constructor ConstantFP cannot be invoked without new").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
-        if (info.Length() != 1 || !info[0]->IsExternal()) {
-            return Nan::ThrowTypeError("ConstantFP constructor needs to be called with: constantFP: external");
+        if (info.Length() != 1 || !info[0].IsExternal()) {
+            Napi::TypeError::New(env, "ConstantFP constructor needs to be called with: constantFP: external").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
-        auto* constantFp = static_cast<llvm::ConstantFP*>(v8::External::Cast(*info[0])->Value());
+        auto* constantFp = static_cast<llvm::ConstantFP*>(*info[0].As<Napi::External>()->Value());
         auto* wrapper = new ConstantFPWrapper { constantFp };
         wrapper->Wrap(info.This());
 
-        info.GetReturnValue().Set(info.This());
+        return info.This();
 }
 
-NAN_METHOD(ConstantFPWrapper::get) {
-        if (info.Length() != 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsNumber()) {
-            return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number");
+Napi::Value ConstantFPWrapper::get(const Napi::CallbackInfo& info) {
+        if (info.Length() != 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1].IsNumber()) {
+            Napi::TypeError::New(env, "get needs to be called with: context: LLVMContext, value: number").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
         auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
-        double number = Nan::To<double>(info[1]).FromJust();
+        double number = info[1].As<Napi::Number>().DoubleValue();
 
         auto* constant = llvm::ConstantFP::get(context, llvm::APFloat { number } );
 
-        info.GetReturnValue().Set(ConstantFPWrapper::of(constant));
+        return ConstantFPWrapper::of(constant);
 }
 
-NAN_METHOD(ConstantFPWrapper::getNaN) {
+Napi::Value ConstantFPWrapper::getNaN(const Napi::CallbackInfo& info) {
     if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("getNaN needs to be called with: type: Type");
+        Napi::TypeError::New(env, "getNaN needs to be called with: type: Type").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* type = TypeWrapper::FromValue(info[0])->getType();
     llvm::Constant* nan = llvm::ConstantFP::getNaN(type);
 
-    info.GetReturnValue().Set(ConstantWrapper::of(nan));
+    return ConstantWrapper::of(nan);
 }
 
-NAN_GETTER(ConstantFPWrapper::getValueAPF) {
+Napi::Value ConstantFPWrapper::getValueAPF(const Napi::CallbackInfo& info) {
         auto* wrapper = ConstantFPWrapper::FromValue(info.Holder());
         auto value = wrapper->getConstantFP()->getValueAPF();
 
-        info.GetReturnValue().Set(Nan::New(value.convertToDouble()));
+        return Napi::New(env, value.convertToDouble());
 }
 
 llvm::ConstantFP *ConstantFPWrapper::getConstantFP() {
     return static_cast<llvm::ConstantFP*>(getValue());
 }
 
-v8::Local<v8::Object> ConstantFPWrapper::of(llvm::ConstantFP *constantFP) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(constantFpTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantFP) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+Napi::Object ConstantFPWrapper::of(llvm::ConstantFP *constantFP) {
+    auto constructorFunction = Napi::GetFunction(Napi::New(env, constantFpTemplate()));
+    Napi::Value args[1] = { Napi::External::New(env, constantFP) };
+    auto instance = Napi::NewInstance(constructorFunction, 1, args);
 
-    Nan::EscapableHandleScope escapeScpoe {};
+    Napi::EscapableHandleScope escapeScpoe {};
     return escapeScpoe.Escape(instance);
 }
 
-Nan::Persistent<v8::FunctionTemplate>& ConstantFPWrapper::constantFpTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+Napi::FunctionReference& ConstantFPWrapper::constantFpTemplate() {
+    static Napi::FunctionReference functionTemplate {};
 
     if (functionTemplate.IsEmpty()) {
-        auto localTemplate = Nan::New<v8::FunctionTemplate>(ConstantFPWrapper::New);
-        localTemplate->SetClassName(Nan::New("ConstantFP").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        localTemplate->Inherit(Nan::New(constantTemplate()));
+        auto localTemplate = Napi::Function::New(env, ConstantFPWrapper::New);
+        localTemplate->SetClassName(Napi::String::New(env, "ConstantFP"));
 
-        Nan::SetMethod(localTemplate, "get", ConstantFPWrapper::get);
-        Nan::SetMethod(localTemplate, "getNaN", ConstantFPWrapper::getNaN);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("value").ToLocalChecked(), ConstantFPWrapper::getValueAPF);
+        localTemplate->Inherit(Napi::New(env, constantTemplate()));
+
+        Napi::SetMethod(localTemplate, "get", ConstantFPWrapper::get);
+        Napi::SetMethod(localTemplate, "getNaN", ConstantFPWrapper::getNaN);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "value"), ConstantFPWrapper::getValueAPF);
 
         functionTemplate.Reset(localTemplate);
     }

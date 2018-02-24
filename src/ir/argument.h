@@ -5,7 +5,8 @@
 #ifndef LLVM_NODE_ARGUMENT_H
 #define LLVM_NODE_ARGUMENT_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include <llvm/IR/Argument.h>
 #include "value.h"
 #include "../util/from-value-mixin.h"
@@ -14,8 +15,8 @@ class ArgumentWrapper: public ValueWrapper, public FromValueMixin<ArgumentWrappe
 public:
     llvm::Argument* getArgument();
 
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::Argument* argument);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    static Napi::Object of(llvm::Argument* argument);
     using FromValueMixin<ArgumentWrapper>::FromValue;
 
 private:
@@ -23,15 +24,15 @@ private:
         : ValueWrapper { argument }
     {}
 
-    static NAN_METHOD(New);
-    static NAN_GETTER(getArgNo);
-    static NAN_GETTER(getParent);
-    static NAN_METHOD(addAttr);
-    static NAN_METHOD(hasAttribute);
-    static NAN_METHOD(addDereferenceableAttr);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    Napi::Value getArgNo(const Napi::CallbackInfo& info);
+    Napi::Value getParent(const Napi::CallbackInfo& info);
+    static Napi::Value addAttr(const Napi::CallbackInfo& info);
+    static Napi::Value hasAttribute(const Napi::CallbackInfo& info);
+    static Napi::Value addDereferenceableAttr(const Napi::CallbackInfo& info);
 
-    static inline Nan::Persistent<v8::FunctionTemplate>& argumentTemplate() {
-        static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+    static inline Napi::FunctionReference& argumentTemplate() {
+        static Napi::FunctionReference functionTemplate {};
         return functionTemplate;
     }
 };

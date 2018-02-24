@@ -5,60 +5,65 @@
 #include "struct-type.h"
 #include "../util/string.h"
 
-NAN_MODULE_INIT(StructTypeWrapper::Init) {
-    auto structType = Nan::GetFunction(Nan::New(structTypeTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("StructType").ToLocalChecked(), structType);
+Napi::Object StructTypeWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto structType = Napi::GetFunction(Napi::New(env, structTypeTemplate()));
+    (target).Set(Napi::String::New(env, "StructType"), structType);
 }
 
-v8::Local<v8::Object> StructTypeWrapper::of(llvm::StructType *type) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(structTypeTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(type) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+Napi::Object StructTypeWrapper::of(llvm::StructType *type) {
+    auto constructorFunction = Napi::GetFunction(Napi::New(env, structTypeTemplate()));
+    Napi::Value args[1] = { Napi::External::New(env, type) };
+    auto instance = Napi::NewInstance(constructorFunction, 1, args);
 
-    Nan::EscapableHandleScope escapeScope {};
+    Napi::EscapableHandleScope escapeScope {};
     return escapeScope.Escape(instance);
 }
 
-bool StructTypeWrapper::isInstance(v8::Local<v8::Value> value) {
-    return Nan::New(structTypeTemplate())->HasInstance(value);
+bool StructTypeWrapper::isInstance(Napi::Value value) {
+    Napi::Env env = value.Env();
+    return Napi::New(env, structTypeTemplate())->HasInstance(value);
 }
 
 llvm::StructType* StructTypeWrapper::getStructType() {
     return static_cast<llvm::StructType*>(getType());
 }
 
-NAN_METHOD(StructTypeWrapper::New) {
+Napi::Value StructTypeWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("The StructType constructor needs to be called with new");
+        Napi::TypeError::New(env, "The StructType constructor needs to be called with new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() != 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("The StructType constructor needs to be called with: structType: External");
+    if (info.Length() != 1 || !info[0].IsExternal()) {
+        Napi::TypeError::New(env, "The StructType constructor needs to be called with: structType: External").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto* structType = static_cast<llvm::StructType*>(v8::External::Cast(*info[0])->Value());
+    auto* structType = static_cast<llvm::StructType*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new StructTypeWrapper { structType };
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_METHOD(StructTypeWrapper::get) {
-    if (info.Length() < 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsArray() ||
-            (info.Length() == 3 && !info[2]->IsBoolean()) ||
+Napi::Value StructTypeWrapper::get(const Napi::CallbackInfo& info) {
+    if (info.Length() < 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1].IsArray() ||
+            (info.Length() == 3 && !info[2].IsBoolean()) ||
             info.Length() > 3) {
-        return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, elements: Type[], isPacked?: boolean");
+        Napi::TypeError::New(env, "get needs to be called with: context: LLVMContext, elements: Type[], isPacked?: boolean").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
-    auto array = v8::Array::Cast(*info[1]);
+    auto array = *info[1].As<Napi::Array>();
     std::vector<llvm::Type*> elements { array->Length() };
 
     for (size_t i = 0; i < array->Length(); ++i) {
         auto element = array->Get(i);
 
         if (!TypeWrapper::isInstance(element)) {
-            return Nan::ThrowTypeError("expected Type");
+            Napi::TypeError::New(env, "expected Type").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
         elements[i] = TypeWrapper::FromValue(element)->getType();
@@ -66,19 +71,20 @@ NAN_METHOD(StructTypeWrapper::get) {
 
     bool isPacked = false;
     if (info.Length() == 3) {
-        isPacked = Nan::To<bool>(info[2]).FromJust();
+        isPacked = info[2].As<Napi::Boolean>().Value();
     }
 
     auto* result = llvm::StructType::get(context, elements, isPacked);
 
-    info.GetReturnValue().Set(StructTypeWrapper::of(result));
+    return StructTypeWrapper::of(result);
 }
 
-NAN_METHOD(StructTypeWrapper::create) {
+Napi::Value StructTypeWrapper::create(const Napi::CallbackInfo& info) {
     if (info.Length() < 1 || !LLVMContextWrapper::isInstance(info[0]) ||
-            (info.Length() > 1 && !info[1]->IsString()) ||
+            (info.Length() > 1 && !info[1].IsString()) ||
             info.Length() > 2) {
-        return Nan::ThrowTypeError("create needs to be called with: context: LLVMContext, name?: string");
+        Napi::TypeError::New(env, "create needs to be called with: context: LLVMContext, name?: string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
@@ -89,61 +95,65 @@ NAN_METHOD(StructTypeWrapper::create) {
 
     auto* result = llvm::StructType::create(context, name);
 
-    info.GetReturnValue().Set(StructTypeWrapper::of(result));
+    return StructTypeWrapper::of(result);
 }
 
-NAN_GETTER(StructTypeWrapper::getName) {
+Napi::Value StructTypeWrapper::getName(const Napi::CallbackInfo& info) {
     auto* structType = StructTypeWrapper::FromValue(info.Holder())->getStructType();
     if (structType->isLiteral()) {
-        info.GetReturnValue().Set(Nan::Undefined()); // Struct Types never have names;
+        return env.Undefined(); // Struct Types never have names;
     } else {
         std::string name = structType->getName().str();
-        info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
+        return Napi::New(env, name);
     }
 }
 
-NAN_SETTER(StructTypeWrapper::setName) {
-    if (!value->IsString()) {
-        return Nan::ThrowTypeError("name needs to be a string");
+void StructTypeWrapper::setName(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    if (!value.IsString()) {
+        Napi::TypeError::New(env, "name needs to be a string").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* structType = StructTypeWrapper::FromValue(info.Holder())->getStructType();
     structType->setName(ToString(value));
 }
 
-NAN_GETTER(StructTypeWrapper::getNumElements) {
+Napi::Value StructTypeWrapper::getNumElements(const Napi::CallbackInfo& info) {
     auto* structType = StructTypeWrapper::FromValue(info.Holder())->getStructType();
-    info.GetReturnValue().Set(Nan::New(structType->getNumElements()));
+    return Napi::New(env, structType->getNumElements());
 }
 
-NAN_METHOD(StructTypeWrapper::getElementType) {
-    if (info.Length() != 1 || !info[0]->IsUint32()) {
-        return Nan::ThrowTypeError("getElementType needs to be called with: index: uint32");
+Napi::Value StructTypeWrapper::getElementType(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1 || !info[0].IsUint32()) {
+        Napi::TypeError::New(env, "getElementType needs to be called with: index: uint32").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto index = Nan::To<uint32_t>(info[0]).FromJust();
+    auto index = info[0].As<Napi::Number>().Uint32Value();
     auto* type = StructTypeWrapper::FromValue(info.Holder())->getStructType()->getElementType(index);
 
-    info.GetReturnValue().Set(TypeWrapper::of(type));
+    return TypeWrapper::of(type);
 }
 
-NAN_METHOD(StructTypeWrapper::setBody) {
-    if (info.Length() < 1 || !info[0]->IsArray() ||
-            (info.Length() > 1 && !info[1]->IsBoolean()) ||
+Napi::Value StructTypeWrapper::setBody(const Napi::CallbackInfo& info) {
+    if (info.Length() < 1 || !info[0].IsArray() ||
+            (info.Length() > 1 && !info[1].IsBoolean()) ||
             info.Length() > 2) {
-        return Nan::ThrowTypeError("setBody needs to be called with: elements: Type[], packed?: boolean");
+        Napi::TypeError::New(env, "setBody needs to be called with: elements: Type[], packed?: boolean").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* structType = StructTypeWrapper::FromValue(info.This())->getStructType();
 
-    auto array = v8::Array::Cast(*info[0]);
+    auto array = *info[0].As<Napi::Array>();
     std::vector<llvm::Type*> elements { array->Length() };
 
     for (size_t i = 0; i < array->Length(); ++i) {
         auto element = array->Get(i);
 
         if (!TypeWrapper::isInstance(element)) {
-            return Nan::ThrowTypeError("expected Type");
+            Napi::TypeError::New(env, "expected Type").ThrowAsJavaScriptException();
+            return env.Null();
         }
 
         elements[i] = TypeWrapper::FromValue(element)->getType();
@@ -152,27 +162,27 @@ NAN_METHOD(StructTypeWrapper::setBody) {
     bool packed = false;
 
     if (info.Length() > 1) {
-        packed = Nan::To<bool>(info[1]).FromJust();
+        packed = info[1].As<Napi::Boolean>().Value();
     }
 
     structType->setBody(elements, packed);
 }
 
-Nan::Persistent<v8::FunctionTemplate>& StructTypeWrapper::structTypeTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+Napi::FunctionReference& StructTypeWrapper::structTypeTemplate() {
+    static Napi::FunctionReference functionTemplate {};
 
     if (functionTemplate.IsEmpty()) {
-        v8::Local<v8::FunctionTemplate> localTemplate = Nan::New<v8::FunctionTemplate>(StructTypeWrapper::New);
-        localTemplate->SetClassName(Nan::New("StructType").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        localTemplate->Inherit(Nan::New(typeTemplate()));
+        Napi::FunctionReference localTemplate = Napi::Function::New(env, StructTypeWrapper::New);
+        localTemplate->SetClassName(Napi::String::New(env, "StructType"));
 
-        Nan::SetMethod(localTemplate, "create", StructTypeWrapper::create);
-        Nan::SetMethod(localTemplate, "get", StructTypeWrapper::get);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), StructTypeWrapper::getName, StructTypeWrapper::setName);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("numElements").ToLocalChecked(), StructTypeWrapper::getNumElements);
-        Nan::SetPrototypeMethod(localTemplate, "getElementType", StructTypeWrapper::getElementType);
-        Nan::SetPrototypeMethod(localTemplate, "setBody", StructTypeWrapper::setBody);
+        localTemplate->Inherit(Napi::New(env, typeTemplate()));
+
+        Napi::SetMethod(localTemplate, "create", StructTypeWrapper::create);
+        Napi::SetMethod(localTemplate, "get", StructTypeWrapper::get);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "name"), StructTypeWrapper::getName, StructTypeWrapper::setName);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "numElements"), StructTypeWrapper::getNumElements);
+        Napi::SetPrototypeMethod(localTemplate, "getElementType", StructTypeWrapper::getElementType);
+        Napi::SetPrototypeMethod(localTemplate, "setBody", StructTypeWrapper::setBody);
 
         functionTemplate.Reset(localTemplate);
     }

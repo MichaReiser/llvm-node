@@ -5,11 +5,11 @@
 #include <llvm/IR/GlobalValue.h>
 #include "visibility-types.h"
 
-NAN_MODULE_INIT(InitVisibilityTypes) {
-    auto visibilityTypes = Nan::New<v8::Object>();
-    Nan::Set(visibilityTypes, Nan::New("Hidden").ToLocalChecked(), Nan::New(static_cast<uint32_t>(llvm::GlobalValue::VisibilityTypes::HiddenVisibility)));
-    Nan::Set(visibilityTypes, Nan::New("Default").ToLocalChecked(), Nan::New(static_cast<uint32_t>(llvm::GlobalValue::VisibilityTypes::DefaultVisibility)));
-    Nan::Set(visibilityTypes, Nan::New("Protected").ToLocalChecked(), Nan::New(static_cast<uint32_t>(llvm::GlobalValue::VisibilityTypes::ProtectedVisibility)));
+Napi::Object InitVisibilityTypes(Napi::Env env, Napi::Object exports) {
+    auto visibilityTypes = Napi::Object::New(env);
+    (visibilityTypes).Set(Napi::String::New(env, "Hidden"), Napi::New(env, static_cast<uint32_t>(llvm::GlobalValue::VisibilityTypes::HiddenVisibility)));
+    (visibilityTypes).Set(Napi::String::New(env, "Default"), Napi::New(env, static_cast<uint32_t>(llvm::GlobalValue::VisibilityTypes::DefaultVisibility)));
+    (visibilityTypes).Set(Napi::String::New(env, "Protected"), Napi::New(env, static_cast<uint32_t>(llvm::GlobalValue::VisibilityTypes::ProtectedVisibility)));
 
-    Nan::Set(target, Nan::New("VisibilityTypes").ToLocalChecked(), visibilityTypes);
+    (target).Set(Napi::String::New(env, "VisibilityTypes"), visibilityTypes);
 }

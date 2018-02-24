@@ -4,84 +4,88 @@
 
 #include "array-type.h"
 
-NAN_MODULE_INIT(ArrayTypeWrapper::Init) {
-    auto arrayType = Nan::GetFunction(Nan::New(arrayTypeTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("ArrayType").ToLocalChecked(), arrayType);
+Napi::Object ArrayTypeWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto arrayType = Napi::GetFunction(Napi::New(env, arrayTypeTemplate()));
+    (target).Set(Napi::String::New(env, "ArrayType"), arrayType);
 }
 
-v8::Local<v8::Object> ArrayTypeWrapper::of(llvm::ArrayType* arrayType) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(arrayTypeTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External> (arrayType) };
+Napi::Object ArrayTypeWrapper::of(llvm::ArrayType* arrayType) {
+    auto constructorFunction = Napi::GetFunction(Napi::New(env, arrayTypeTemplate()));
+    Napi::Value args[1] = { Napi::New<v8::External> (arrayType) };
 
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+    auto instance = Napi::NewInstance(constructorFunction, 1, args);
 
-    Nan::EscapableHandleScope escapeScope {};
+    Napi::EscapableHandleScope escapeScope {};
     return escapeScope.Escape(instance);
 }
 
-bool ArrayTypeWrapper::isInstance(v8::Local<v8::Value> value) {
-    return Nan::New(arrayTypeTemplate())->HasInstance(value);
+bool ArrayTypeWrapper::isInstance(Napi::Value value) {
+    Napi::Env env = value.Env();
+    return Napi::New(env, arrayTypeTemplate())->HasInstance(value);
 }
 
 llvm::ArrayType* ArrayTypeWrapper::getArrayType() {
     return static_cast<llvm::ArrayType*>(getType());
 }
 
-NAN_METHOD(ArrayTypeWrapper::New) {
+Napi::Value ArrayTypeWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("Constructor needs to be called with new");
+        Napi::TypeError::New(env, "Constructor needs to be called with new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() != 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("ArrayType constructor needs to be called with: arrayType: external");
+    if (info.Length() != 1 || !info[0].IsExternal()) {
+        Napi::TypeError::New(env, "ArrayType constructor needs to be called with: arrayType: external").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto* arrayType = static_cast<llvm::ArrayType*>(v8::External::Cast(*info[0])->Value());
+    auto* arrayType = static_cast<llvm::ArrayType*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new ArrayTypeWrapper { arrayType };
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_METHOD(ArrayTypeWrapper::get) {
-    if (info.Length() != 2 || !TypeWrapper::isInstance(info[0]) || !info[1]->IsUint32()) {
-        return Nan::ThrowTypeError("get needs to be called with: elementType: Type, numElements: uint32");
+Napi::Value ArrayTypeWrapper::get(const Napi::CallbackInfo& info) {
+    if (info.Length() != 2 || !TypeWrapper::isInstance(info[0]) || !info[1].IsUint32()) {
+        Napi::TypeError::New(env, "get needs to be called with: elementType: Type, numElements: uint32").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* elementType = TypeWrapper::FromValue(info[0])->getType();
-    auto numElements = Nan::To<uint32_t>(info[1]).FromJust();
+    auto numElements = info[1].As<Napi::Number>().Uint32Value();
 
     auto* arrayType = llvm::ArrayType::get(elementType, numElements);
 
-    info.GetReturnValue().Set(ArrayTypeWrapper::of(arrayType));
+    return ArrayTypeWrapper::of(arrayType);
 }
 
-NAN_GETTER(ArrayTypeWrapper::getNumElements) {
+Napi::Value ArrayTypeWrapper::getNumElements(const Napi::CallbackInfo& info) {
     auto* arrayType = ArrayTypeWrapper::FromValue(info.Holder())->getArrayType();
     uint32_t numElements = arrayType->getNumElements();
 
-    info.GetReturnValue().Set(Nan::New(numElements));
+    return Napi::New(env, numElements);
 }
 
-NAN_GETTER(ArrayTypeWrapper::getElementType) {
+Napi::Value ArrayTypeWrapper::getElementType(const Napi::CallbackInfo& info) {
     auto* arrayType = ArrayTypeWrapper::FromValue(info.Holder())->getArrayType();
     auto* elementType = arrayType->getElementType();
 
-    info.GetReturnValue().Set(TypeWrapper::of(elementType));
+    return TypeWrapper::of(elementType);
 }
 
-v8::Persistent<v8::FunctionTemplate>& ArrayTypeWrapper::arrayTypeTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> tmpl {};
+v8::Persistent<Napi::FunctionReference>& ArrayTypeWrapper::arrayTypeTemplate() {
+    static Napi::FunctionReference tmpl {};
 
     if (tmpl.IsEmpty()) {
-        auto arrayTypeWrapperTemplate = Nan::New<v8::FunctionTemplate>(ArrayTypeWrapper::New);
-        arrayTypeWrapperTemplate->SetClassName(Nan::New("ArrayType").ToLocalChecked());
-        arrayTypeWrapperTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        arrayTypeWrapperTemplate->Inherit(Nan::New(typeTemplate()));
+        auto arrayTypeWrapperTemplate = Napi::Function::New(env, ArrayTypeWrapper::New);
+        arrayTypeWrapperTemplate->SetClassName(Napi::String::New(env, "ArrayType"));
 
-        Nan::SetMethod(arrayTypeWrapperTemplate, "get", ArrayTypeWrapper::get);
-        Nan::SetAccessor(arrayTypeWrapperTemplate->InstanceTemplate(), Nan::New("numElements").ToLocalChecked(), ArrayTypeWrapper::getNumElements);
-        Nan::SetAccessor(arrayTypeWrapperTemplate->InstanceTemplate(), Nan::New("elementType").ToLocalChecked(), ArrayTypeWrapper::getElementType);
+        arrayTypeWrapperTemplate->Inherit(Napi::New(env, typeTemplate()));
+
+        Napi::SetMethod(arrayTypeWrapperTemplate, "get", ArrayTypeWrapper::get);
+        Napi::SetAccessor(arrayTypeWrapperTemplate->InstanceTemplate(), Napi::String::New(env, "numElements"), ArrayTypeWrapper::getNumElements);
+        Napi::SetAccessor(arrayTypeWrapperTemplate->InstanceTemplate(), Napi::String::New(env, "elementType"), ArrayTypeWrapper::getElementType);
 
         tmpl.Reset(arrayTypeWrapperTemplate);
     }

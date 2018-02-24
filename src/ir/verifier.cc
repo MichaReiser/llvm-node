@@ -7,14 +7,15 @@
 #include "function.h"
 #include "module.h"
 
-NAN_MODULE_INIT(InitVerifier) {
-    Nan::SetMethod(target, "verifyFunction", verifyFunction);
-    Nan::SetMethod(target, "verifyModule", verifyModule);
+Napi::Object InitVerifier(Napi::Env env, Napi::Object exports) {
+    exports.Set(Napi::String::New(env, "verifyFunction"), Napi::Function::New(env, verifyFunction));
+    exports.Set(Napi::String::New(env, "verifyModule"), Napi::Function::New(env, verifyModule));
 }
 
-NAN_METHOD(verifyFunction) {
+Napi::Value verifyFunction(const Napi::CallbackInfo& info) {
     if (info.Length() != 1 || !FunctionWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("verifyFunction needs to be called with: fun: Function");
+        Napi::TypeError::New(env, "verifyFunction needs to be called with: fun: Function").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* function = FunctionWrapper::FromValue(info[0])->getFunction();
@@ -22,15 +23,17 @@ NAN_METHOD(verifyFunction) {
     llvm::raw_string_ostream output { msgPrefix };
 
     if (llvm::verifyFunction(*function, &output)) {
-        return Nan::ThrowError(output.str().c_str());
+        Napi::Error::New(env, output.str().c_str()).ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::New(false));
+    return Napi::New(env, false);
 }
 
-NAN_METHOD(verifyModule) {
+Napi::Value verifyModule(const Napi::CallbackInfo& info) {
     if (info.Length() != 1 || !ModuleWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("verifyModule needs to be called with: mod: Module");
+        Napi::TypeError::New(env, "verifyModule needs to be called with: mod: Module").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* module = ModuleWrapper::FromValue(info[0])->getModule();
@@ -38,8 +41,9 @@ NAN_METHOD(verifyModule) {
     llvm::raw_string_ostream output { msgPrefix };
 
     if (llvm::verifyModule(*module, &output)) {
-        return Nan::ThrowError(output.str().c_str());
+        Napi::Error::New(env, output.str().c_str()).ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    info.GetReturnValue().Set(Nan::New(false));
+    return Napi::New(env, false);
 }

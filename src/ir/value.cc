@@ -13,38 +13,38 @@
 #include "alloca-inst.h"
 #include "call-inst.h"
 
-NAN_MODULE_INIT(ValueWrapper::Init)
+Napi::Object ValueWrapper::Init(Napi::Env env, Napi::Object exports)
 {
-    auto value = Nan::GetFunction(Nan::New(valueTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("Value").ToLocalChecked(), value);
+    auto value = Napi::GetFunction(Napi::New(env, valueTemplate()));
+    (target).Set(Napi::String::New(env, "Value"), value);
 }
 
-Nan::Persistent<v8::FunctionTemplate> &ValueWrapper::valueTemplate()
+Napi::FunctionReference &ValueWrapper::valueTemplate()
 {
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate{};
+    static Napi::FunctionReference functionTemplate{};
 
     if (functionTemplate.IsEmpty())
     {
-        v8::Local<v8::FunctionTemplate> localTemplate = Nan::New<v8::FunctionTemplate>(ValueWrapper::New);
-        localTemplate->SetClassName(Nan::New("Value").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+        Napi::FunctionReference localTemplate = Napi::Function::New(env, ValueWrapper::New);
+        localTemplate->SetClassName(Napi::String::New(env, "Value"));
+
 
 #if defined(LLVM_NODE_DEBUG)
-        Nan::SetPrototypeMethod(localTemplate, "dump", ValueWrapper::dump);
+        Napi::SetPrototypeMethod(localTemplate, "dump", ValueWrapper::dump);
 #endif
 
-        Nan::SetPrototypeMethod(localTemplate, "hasName", ValueWrapper::hasName);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("type").ToLocalChecked(), ValueWrapper::getType);
-        Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), ValueWrapper::getName,
+        Napi::SetPrototypeMethod(localTemplate, "hasName", ValueWrapper::hasName);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "type"), ValueWrapper::getType);
+        Napi::SetAccessor(localTemplate->InstanceTemplate(), Napi::String::New(env, "name"), ValueWrapper::getName,
                          ValueWrapper::setName);
-        Nan::SetPrototypeMethod(localTemplate, "release", ValueWrapper::deleteValue);
-        Nan::SetPrototypeMethod(localTemplate, "deleteValue", ValueWrapper::deleteValue);
-        Nan::SetPrototypeMethod(localTemplate, "replaceAllUsesWith", ValueWrapper::replaceAllUsesWith);
-        Nan::SetPrototypeMethod(localTemplate, "useEmpty", ValueWrapper::useEmpty);
+        Napi::SetPrototypeMethod(localTemplate, "release", ValueWrapper::deleteValue);
+        Napi::SetPrototypeMethod(localTemplate, "deleteValue", ValueWrapper::deleteValue);
+        Napi::SetPrototypeMethod(localTemplate, "replaceAllUsesWith", ValueWrapper::replaceAllUsesWith);
+        Napi::SetPrototypeMethod(localTemplate, "useEmpty", ValueWrapper::useEmpty);
 
-        auto function = Nan::GetFunction(localTemplate).ToLocalChecked();
-        Nan::Set(function, Nan::New("MaxAlignmentExponent").ToLocalChecked(), Nan::New(llvm::Value::MaxAlignmentExponent));
-        Nan::Set(function, Nan::New("MaximumAlignment").ToLocalChecked(), Nan::New(llvm::Value::MaximumAlignment));
+        auto function = Napi::GetFunction(localTemplate);
+        (function).Set(Napi::String::New(env, "MaxAlignmentExponent"), Napi::New(env, llvm::Value::MaxAlignmentExponent));
+        (function).Set(Napi::String::New(env, "MaximumAlignment"), Napi::New(env, llvm::Value::MaximumAlignment));
 
         functionTemplate.Reset(localTemplate);
     }
@@ -52,66 +52,69 @@ Nan::Persistent<v8::FunctionTemplate> &ValueWrapper::valueTemplate()
     return functionTemplate;
 }
 
-NAN_METHOD(ValueWrapper::New)
+Napi::Value ValueWrapper::New(const Napi::CallbackInfo& info)
 {
     if (!info.IsConstructCall())
     {
-        return Nan::ThrowTypeError("Class Constructor Value cannot be invoked without new");
+        Napi::TypeError::New(env, "Class Constructor Value cannot be invoked without new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() != 1 || !info[0]->IsExternal())
+    if (info.Length() != 1 || !info[0].IsExternal())
     {
-        return Nan::ThrowTypeError("External Value Pointer required");
+        Napi::TypeError::New(env, "External Value Pointer required").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    llvm::Value *value = static_cast<llvm::Value *>(v8::External::Cast(*info[0])->Value());
+    llvm::Value *value = static_cast<llvm::Value *>(*info[0].As<Napi::External>()->Value());
     auto *wrapper = new ValueWrapper{value};
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
 #if defined(LLVM_NODE_DEBUG)
-NAN_METHOD(ValueWrapper::dump)
+Napi::Value ValueWrapper::dump(const Napi::CallbackInfo& info)
 {
     ValueWrapper::FromValue(info.Holder())->value->dump();
 }
 #endif
 
-NAN_GETTER(ValueWrapper::getType)
+Napi::Value ValueWrapper::getType(const Napi::CallbackInfo& info)
 {
     auto *type = ValueWrapper::FromValue(info.Holder())->value->getType();
 
-    info.GetReturnValue().Set(TypeWrapper::of(type));
+    return TypeWrapper::of(type);
 }
 
-NAN_METHOD(ValueWrapper::hasName)
+Napi::Value ValueWrapper::hasName(const Napi::CallbackInfo& info)
 {
     auto *wrapper = ValueWrapper::FromValue(info.Holder());
 
-    info.GetReturnValue().Set(Nan::New(wrapper->value->hasName()));
+    return Napi::New(env, wrapper->value->hasName());
 }
 
-NAN_GETTER(ValueWrapper::getName)
+Napi::Value ValueWrapper::getName(const Napi::CallbackInfo& info)
 {
     auto *wrapper = ValueWrapper::FromValue(info.Holder());
 
-    v8::Local<v8::String> name = Nan::New(wrapper->value->getName().str()).ToLocalChecked();
-    info.GetReturnValue().Set(name);
+    Napi::String name = Napi::New(env, wrapper->value->getName().str());
+    return name;
 }
 
-NAN_SETTER(ValueWrapper::setName)
+void ValueWrapper::setName(const Napi::CallbackInfo& info, const Napi::Value& value)
 {
-    if (!value->IsString())
+    if (!value.IsString())
     {
-        return Nan::ThrowTypeError("String required");
+        Napi::TypeError::New(env, "String required").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto name = Nan::To<v8::String>(value).ToLocalChecked();
+    auto name = value.To<Napi::String>();
     ValueWrapper::FromValue(info.Holder())->value->setName(ToString(name));
 }
 
-NAN_METHOD(ValueWrapper::deleteValue)
+Napi::Value ValueWrapper::deleteValue(const Napi::CallbackInfo& info)
 {
     auto *wrapper = ValueWrapper::FromValue(info.Holder());
 #if LLVM_VERSION_MAJOR == 4
@@ -121,11 +124,12 @@ NAN_METHOD(ValueWrapper::deleteValue)
 #endif
 }
 
-NAN_METHOD(ValueWrapper::replaceAllUsesWith)
+Napi::Value ValueWrapper::replaceAllUsesWith(const Napi::CallbackInfo& info)
 {
     if (info.Length() != 1 || !ValueWrapper::isInstance(info[0]))
     {
-        return Nan::ThrowTypeError("replaceAllUsesWith needs to be called with: value: Value");
+        Napi::TypeError::New(env, "replaceAllUsesWith needs to be called with: value: Value").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto *self = ValueWrapper::FromValue(info.Holder())->getValue();
@@ -134,15 +138,15 @@ NAN_METHOD(ValueWrapper::replaceAllUsesWith)
     self->replaceAllUsesWith(value);
 }
 
-NAN_METHOD(ValueWrapper::useEmpty)
+Napi::Value ValueWrapper::useEmpty(const Napi::CallbackInfo& info)
 {
     auto *value = ValueWrapper::FromValue(info.Holder())->getValue();
-    info.GetReturnValue().Set(Nan::New(value->use_empty()));
+    return Napi::New(env, value->use_empty());
 }
 
-v8::Local<v8::Object> ValueWrapper::of(llvm::Value *value)
+Napi::Object ValueWrapper::of(llvm::Value *value)
 {
-    v8::Local<v8::Object> result{};
+    Napi::Object result{};
 
     if (llvm::Constant::classof(value))
     {
@@ -166,18 +170,18 @@ v8::Local<v8::Object> ValueWrapper::of(llvm::Value *value)
     }
     else
     {
-        auto constructorFunction = Nan::GetFunction(Nan::New(valueTemplate())).ToLocalChecked();
-        v8::Local<v8::Value> args[1] = {Nan::New<v8::External>(value)};
-        result = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+        auto constructorFunction = Napi::GetFunction(Napi::New(env, valueTemplate()));
+        Napi::Value args[1] = {Napi::External::New(env, value)};
+        result = Napi::NewInstance(constructorFunction, 1, args);
     }
 
-    Nan::EscapableHandleScope escapeScope{};
+    Napi::EscapableHandleScope escapeScope{};
     return escapeScope.Escape(result);
 }
 
-bool ValueWrapper::isInstance(v8::Local<v8::Value> value)
-{
-    return Nan::New(valueTemplate())->HasInstance(value);
+bool ValueWrapper::isInstance(Napi::Value value) {
+    Napi::Env env = value.Env();
+    return Napi::New(env, valueTemplate())->HasInstance(value);
 }
 
 llvm::Value *ValueWrapper::getValue()

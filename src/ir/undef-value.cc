@@ -6,60 +6,63 @@
 #include "llvm-context.h"
 #include "type.h"
 
-NAN_MODULE_INIT(UndefValueWrapper::Init) {
-    auto undefValue = Nan::GetFunction(Nan::New(undefValueTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("UndefValue").ToLocalChecked(), undefValue);
+Napi::Object UndefValueWrapper::Init(Napi::Env env, Napi::Object exports) {
+    auto undefValue = Napi::GetFunction(Napi::New(env, undefValueTemplate()));
+    (target).Set(Napi::String::New(env, "UndefValue"), undefValue);
 }
 
-NAN_METHOD(UndefValueWrapper::New) {
+Napi::Value UndefValueWrapper::New(const Napi::CallbackInfo& info) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("Class Constructor UndefValueWrapper cannot be invoked without new");
+        Napi::TypeError::New(env, "Class Constructor UndefValueWrapper cannot be invoked without new").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    if (info.Length() != 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("UndefValueWrapper constructor needs to be called with: undefValueWrapper: external");
+    if (info.Length() != 1 || !info[0].IsExternal()) {
+        Napi::TypeError::New(env, "UndefValueWrapper constructor needs to be called with: undefValueWrapper: external").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
-    auto* undefValue = static_cast<llvm::UndefValue*>(v8::External::Cast(*info[0])->Value());
+    auto* undefValue = static_cast<llvm::UndefValue*>(*info[0].As<Napi::External>()->Value());
     auto* wrapper = new UndefValueWrapper { undefValue };
     wrapper->Wrap(info.This());
 
-    info.GetReturnValue().Set(info.This());
+    return info.This();
 }
 
-NAN_METHOD(UndefValueWrapper::get) {
+Napi::Value UndefValueWrapper::get(const Napi::CallbackInfo& info) {
     if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("get needs to be called with: type: Type");
+        Napi::TypeError::New(env, "get needs to be called with: type: Type").ThrowAsJavaScriptException();
+        return env.Null();
     }
 
     auto* type = TypeWrapper::FromValue(info[0])->getType();
     auto* undefValue = llvm::UndefValue::get(type);
-    info.GetReturnValue().Set(UndefValueWrapper::of(undefValue));
+    return UndefValueWrapper::of(undefValue);
 }
 
 llvm::UndefValue* UndefValueWrapper::getUndefValue() {
     return static_cast<llvm::UndefValue*>(getValue());
 }
 
-v8::Local<v8::Object> UndefValueWrapper::of(llvm::UndefValue* undefValue) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(undefValueTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(undefValue) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+Napi::Object UndefValueWrapper::of(llvm::UndefValue* undefValue) {
+    auto constructorFunction = Napi::GetFunction(Napi::New(env, undefValueTemplate()));
+    Napi::Value args[1] = { Napi::External::New(env, undefValue) };
+    auto instance = Napi::NewInstance(constructorFunction, 1, args);
 
-    Nan::EscapableHandleScope escapeScpoe {};
+    Napi::EscapableHandleScope escapeScpoe {};
     return escapeScpoe.Escape(instance);
 }
 
-Nan::Persistent<v8::FunctionTemplate>& UndefValueWrapper::undefValueTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+Napi::FunctionReference& UndefValueWrapper::undefValueTemplate() {
+    static Napi::FunctionReference functionTemplate {};
 
     if (functionTemplate.IsEmpty()) {
-        auto localTemplate = Nan::New<v8::FunctionTemplate>(UndefValueWrapper::New);
-        localTemplate->SetClassName(Nan::New("UndefValue").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        localTemplate->Inherit(Nan::New(constantTemplate()));
+        auto localTemplate = Napi::Function::New(env, UndefValueWrapper::New);
+        localTemplate->SetClassName(Napi::String::New(env, "UndefValue"));
 
-        Nan::SetMethod(localTemplate, "get", UndefValueWrapper::get);
+        localTemplate->Inherit(Napi::New(env, constantTemplate()));
+
+        Napi::SetMethod(localTemplate, "get", UndefValueWrapper::get);
 
         functionTemplate.Reset(localTemplate);
     }

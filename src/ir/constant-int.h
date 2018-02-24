@@ -5,14 +5,15 @@
 #ifndef LLVM_NODE_CONSTANT_INT_H
 #define LLVM_NODE_CONSTANT_INT_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include <llvm/IR/Constants.h>
 #include "constant.h"
 
 class ConstantIntWrapper: public ConstantWrapper, public FromValueMixin<ConstantIntWrapper> {
 public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::ConstantInt* constantInt);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    static Napi::Object of(llvm::ConstantInt* constantInt);
     using FromValueMixin<ConstantIntWrapper>::FromValue;
     llvm::ConstantInt* getConstantInt();
 
@@ -21,16 +22,16 @@ private:
             : ConstantWrapper { constant }
     {}
 
-    static Nan::Persistent<v8::FunctionTemplate>& constantIntTemplate();
+    static Napi::FunctionReference& constantIntTemplate();
 
     // static
-    static NAN_METHOD(New);
-    static NAN_METHOD(get);
-    static NAN_METHOD(getTrue);
-    static NAN_METHOD(getFalse);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value get(const Napi::CallbackInfo& info);
+    static Napi::Value getTrue(const Napi::CallbackInfo& info);
+    static Napi::Value getFalse(const Napi::CallbackInfo& info);
 
     // instance
-    static NAN_GETTER(getValueApf);
+    Napi::Value getValueApf(const Napi::CallbackInfo& info);
 };
 
 #endif //LLVM_NODE_CONSTANT_INT_H

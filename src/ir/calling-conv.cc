@@ -6,57 +6,57 @@
 #include <llvm/Config/llvm-config.h>
 #include <llvm/IR/CallingConv.h>
 
-NAN_MODULE_INIT(InitCallingConv) {
-    auto object = Nan::New<v8::Object>();
+Napi::Object InitCallingConv(Napi::Env env, Napi::Object exports) {
+    auto object = Napi::Object::New(env);
 
-    Nan::Set(object, Nan::New("C").ToLocalChecked(), Nan::New(llvm::CallingConv::C));
-    Nan::Set(object, Nan::New("Fast").ToLocalChecked(), Nan::New(llvm::CallingConv::Fast));
-    Nan::Set(object, Nan::New("Cold").ToLocalChecked(), Nan::New(llvm::CallingConv::Cold));
-    Nan::Set(object, Nan::New("GHC").ToLocalChecked(), Nan::New(llvm::CallingConv::GHC));
-    Nan::Set(object, Nan::New("HiPE").ToLocalChecked(), Nan::New(llvm::CallingConv::HiPE));
-    Nan::Set(object, Nan::New("WebKit_JS").ToLocalChecked(), Nan::New(llvm::CallingConv::WebKit_JS));
-    Nan::Set(object, Nan::New("AnyReg").ToLocalChecked(), Nan::New(llvm::CallingConv::AnyReg));
-    Nan::Set(object, Nan::New("PreserveMost").ToLocalChecked(), Nan::New(llvm::CallingConv::PreserveMost));
-    Nan::Set(object, Nan::New("PreserveAll").ToLocalChecked(), Nan::New(llvm::CallingConv::PreserveAll));
-    Nan::Set(object, Nan::New("Swift").ToLocalChecked(), Nan::New(llvm::CallingConv::Swift));
-    Nan::Set(object, Nan::New("CXX_FAST_TLS").ToLocalChecked(), Nan::New(llvm::CallingConv::CXX_FAST_TLS));
-    Nan::Set(object, Nan::New("FirstTargetCC").ToLocalChecked(), Nan::New(llvm::CallingConv::FirstTargetCC));
-    Nan::Set(object, Nan::New("X86_StdCall").ToLocalChecked(), Nan::New(llvm::CallingConv::X86_StdCall));
-    Nan::Set(object, Nan::New("X86_FastCall").ToLocalChecked(), Nan::New(llvm::CallingConv::X86_FastCall));
-    Nan::Set(object, Nan::New("ARM_APCS").ToLocalChecked(), Nan::New(llvm::CallingConv::ARM_APCS));
-    Nan::Set(object, Nan::New("ARM_AAPCS").ToLocalChecked(), Nan::New(llvm::CallingConv::ARM_AAPCS));
-    Nan::Set(object, Nan::New("ARM_AAPCS_VFP").ToLocalChecked(), Nan::New(llvm::CallingConv::ARM_AAPCS_VFP));
-    Nan::Set(object, Nan::New("MSP430_INTR").ToLocalChecked(), Nan::New(llvm::CallingConv::MSP430_INTR));
-    Nan::Set(object, Nan::New("X86_ThisCall").ToLocalChecked(), Nan::New(llvm::CallingConv::X86_ThisCall));
-    Nan::Set(object, Nan::New("PTX_Kernel").ToLocalChecked(), Nan::New(llvm::CallingConv::PTX_Kernel));
-    Nan::Set(object, Nan::New("PTX_Device").ToLocalChecked(), Nan::New(llvm::CallingConv::PTX_Device));
-    Nan::Set(object, Nan::New("SPIR_FUNC").ToLocalChecked(), Nan::New(llvm::CallingConv::SPIR_FUNC));
-    Nan::Set(object, Nan::New("SPIR_KERNEL").ToLocalChecked(), Nan::New(llvm::CallingConv::SPIR_KERNEL));
-    Nan::Set(object, Nan::New("Intel_OCL_BI").ToLocalChecked(), Nan::New(llvm::CallingConv::Intel_OCL_BI));
-    Nan::Set(object, Nan::New("X86_64_SysV").ToLocalChecked(), Nan::New(llvm::CallingConv::X86_64_SysV));
+    (object).Set(Napi::String::New(env, "C"), Napi::New(env, llvm::CallingConv::C));
+    (object).Set(Napi::String::New(env, "Fast"), Napi::New(env, llvm::CallingConv::Fast));
+    (object).Set(Napi::String::New(env, "Cold"), Napi::New(env, llvm::CallingConv::Cold));
+    (object).Set(Napi::String::New(env, "GHC"), Napi::New(env, llvm::CallingConv::GHC));
+    (object).Set(Napi::String::New(env, "HiPE"), Napi::New(env, llvm::CallingConv::HiPE));
+    (object).Set(Napi::String::New(env, "WebKit_JS"), Napi::New(env, llvm::CallingConv::WebKit_JS));
+    (object).Set(Napi::String::New(env, "AnyReg"), Napi::New(env, llvm::CallingConv::AnyReg));
+    (object).Set(Napi::String::New(env, "PreserveMost"), Napi::New(env, llvm::CallingConv::PreserveMost));
+    (object).Set(Napi::String::New(env, "PreserveAll"), Napi::New(env, llvm::CallingConv::PreserveAll));
+    (object).Set(Napi::String::New(env, "Swift"), Napi::New(env, llvm::CallingConv::Swift));
+    (object).Set(Napi::String::New(env, "CXX_FAST_TLS"), Napi::New(env, llvm::CallingConv::CXX_FAST_TLS));
+    (object).Set(Napi::String::New(env, "FirstTargetCC"), Napi::New(env, llvm::CallingConv::FirstTargetCC));
+    (object).Set(Napi::String::New(env, "X86_StdCall"), Napi::New(env, llvm::CallingConv::X86_StdCall));
+    (object).Set(Napi::String::New(env, "X86_FastCall"), Napi::New(env, llvm::CallingConv::X86_FastCall));
+    (object).Set(Napi::String::New(env, "ARM_APCS"), Napi::New(env, llvm::CallingConv::ARM_APCS));
+    (object).Set(Napi::String::New(env, "ARM_AAPCS"), Napi::New(env, llvm::CallingConv::ARM_AAPCS));
+    (object).Set(Napi::String::New(env, "ARM_AAPCS_VFP"), Napi::New(env, llvm::CallingConv::ARM_AAPCS_VFP));
+    (object).Set(Napi::String::New(env, "MSP430_INTR"), Napi::New(env, llvm::CallingConv::MSP430_INTR));
+    (object).Set(Napi::String::New(env, "X86_ThisCall"), Napi::New(env, llvm::CallingConv::X86_ThisCall));
+    (object).Set(Napi::String::New(env, "PTX_Kernel"), Napi::New(env, llvm::CallingConv::PTX_Kernel));
+    (object).Set(Napi::String::New(env, "PTX_Device"), Napi::New(env, llvm::CallingConv::PTX_Device));
+    (object).Set(Napi::String::New(env, "SPIR_FUNC"), Napi::New(env, llvm::CallingConv::SPIR_FUNC));
+    (object).Set(Napi::String::New(env, "SPIR_KERNEL"), Napi::New(env, llvm::CallingConv::SPIR_KERNEL));
+    (object).Set(Napi::String::New(env, "Intel_OCL_BI"), Napi::New(env, llvm::CallingConv::Intel_OCL_BI));
+    (object).Set(Napi::String::New(env, "X86_64_SysV"), Napi::New(env, llvm::CallingConv::X86_64_SysV));
 
 #if LLVM_VERSION_MAJOR == 4
-    Nan::Set(object, Nan::New("X86_64_Win64").ToLocalChecked(), Nan::New(llvm::CallingConv::X86_64_Win64));
+    (object).Set(Napi::String::New(env, "X86_64_Win64"), Napi::New(env, llvm::CallingConv::X86_64_Win64));
 #else
-    Nan::Set(object, Nan::New("X86_64_Win64").ToLocalChecked(), Nan::New(llvm::CallingConv::Win64));
-    Nan::Set(object, Nan::New("Win64").ToLocalChecked(), Nan::New(llvm::CallingConv::Win64));
+    (object).Set(Napi::String::New(env, "X86_64_Win64"), Napi::New(env, llvm::CallingConv::Win64));
+    (object).Set(Napi::String::New(env, "Win64"), Napi::New(env, llvm::CallingConv::Win64));
 #endif
 
-    Nan::Set(object, Nan::New("X86_VectorCall").ToLocalChecked(), Nan::New(llvm::CallingConv::X86_VectorCall));
-    Nan::Set(object, Nan::New("HHVM").ToLocalChecked(), Nan::New(llvm::CallingConv::HHVM));
-    Nan::Set(object, Nan::New("HHVM_C").ToLocalChecked(), Nan::New(llvm::CallingConv::HHVM_C));
-    Nan::Set(object, Nan::New("X86_INTR").ToLocalChecked(), Nan::New(llvm::CallingConv::X86_INTR));
-    Nan::Set(object, Nan::New("AVR_INTR").ToLocalChecked(), Nan::New(llvm::CallingConv::AVR_INTR));
-    Nan::Set(object, Nan::New("AVR_SIGNAL").ToLocalChecked(), Nan::New(llvm::CallingConv::AVR_SIGNAL));
-    Nan::Set(object, Nan::New("AVR_BUILTIN").ToLocalChecked(), Nan::New(llvm::CallingConv::AVR_BUILTIN));
-    Nan::Set(object, Nan::New("AMDGPU_VS").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_VS));
-    Nan::Set(object, Nan::New("AMDGPU_GS").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_GS));
-    Nan::Set(object, Nan::New("AMDGPU_PS").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_PS));
-    Nan::Set(object, Nan::New("AMDGPU_CS").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_CS));
-    Nan::Set(object, Nan::New("AMDGPU_KERNEL").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_CS));
-    Nan::Set(object, Nan::New("X86_RegCall").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_CS));
-    Nan::Set(object, Nan::New("MSP430_BUILTIN").ToLocalChecked(), Nan::New(llvm::CallingConv::AMDGPU_CS));
-    Nan::Set(object, Nan::New("MaxID").ToLocalChecked(), Nan::New(llvm::CallingConv::MaxID));
+    (object).Set(Napi::String::New(env, "X86_VectorCall"), Napi::New(env, llvm::CallingConv::X86_VectorCall));
+    (object).Set(Napi::String::New(env, "HHVM"), Napi::New(env, llvm::CallingConv::HHVM));
+    (object).Set(Napi::String::New(env, "HHVM_C"), Napi::New(env, llvm::CallingConv::HHVM_C));
+    (object).Set(Napi::String::New(env, "X86_INTR"), Napi::New(env, llvm::CallingConv::X86_INTR));
+    (object).Set(Napi::String::New(env, "AVR_INTR"), Napi::New(env, llvm::CallingConv::AVR_INTR));
+    (object).Set(Napi::String::New(env, "AVR_SIGNAL"), Napi::New(env, llvm::CallingConv::AVR_SIGNAL));
+    (object).Set(Napi::String::New(env, "AVR_BUILTIN"), Napi::New(env, llvm::CallingConv::AVR_BUILTIN));
+    (object).Set(Napi::String::New(env, "AMDGPU_VS"), Napi::New(env, llvm::CallingConv::AMDGPU_VS));
+    (object).Set(Napi::String::New(env, "AMDGPU_GS"), Napi::New(env, llvm::CallingConv::AMDGPU_GS));
+    (object).Set(Napi::String::New(env, "AMDGPU_PS"), Napi::New(env, llvm::CallingConv::AMDGPU_PS));
+    (object).Set(Napi::String::New(env, "AMDGPU_CS"), Napi::New(env, llvm::CallingConv::AMDGPU_CS));
+    (object).Set(Napi::String::New(env, "AMDGPU_KERNEL"), Napi::New(env, llvm::CallingConv::AMDGPU_CS));
+    (object).Set(Napi::String::New(env, "X86_RegCall"), Napi::New(env, llvm::CallingConv::AMDGPU_CS));
+    (object).Set(Napi::String::New(env, "MSP430_BUILTIN"), Napi::New(env, llvm::CallingConv::AMDGPU_CS));
+    (object).Set(Napi::String::New(env, "MaxID"), Napi::New(env, llvm::CallingConv::MaxID));
 
-    Nan::Set(target, Nan::New("CallingConv").ToLocalChecked(), object);
+    (target).Set(Napi::String::New(env, "CallingConv"), object);
 }

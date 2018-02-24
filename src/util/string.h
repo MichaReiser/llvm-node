@@ -5,8 +5,9 @@
 #ifndef LLVM_NODE_UTIL_CC_H
 #define LLVM_NODE_UTIL_CC_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 
-std::string ToString(v8::Local<v8::Value> value);
+std::string ToString(Napi::Value value);
 
 #endif //LLVM_NODE_UTIL_CC_H

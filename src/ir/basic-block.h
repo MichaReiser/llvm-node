@@ -5,15 +5,16 @@
 #ifndef LLVM_NODE_BASICBLOCKWRAPPER_H
 #define LLVM_NODE_BASICBLOCKWRAPPER_H
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include <llvm/IR/BasicBlock.h>
 #include "value.h"
 
 class BasicBlockWrapper: public ValueWrapper, public FromValueMixin<BasicBlockWrapper> {
 public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::BasicBlock* basicBlock);
-    static bool isInstance(v8::Local<v8::Value> value);
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    static Napi::Object of(llvm::BasicBlock* basicBlock);
+    static bool isInstance(Napi::Value value);
     using FromValueMixin<BasicBlockWrapper>::FromValue;
     inline llvm::BasicBlock* getBasicBlock() {
         return static_cast<llvm::BasicBlock*>(getValue());
@@ -25,17 +26,17 @@ private:
     {}
 
     // static methods
-    static NAN_METHOD(New);
-    static NAN_METHOD(Create);
+    static Napi::Value New(const Napi::CallbackInfo& info);
+    static Napi::Value Create(const Napi::CallbackInfo& info);
 
     // instance methods
-    static NAN_METHOD(eraseFromParent);
-    static NAN_GETTER(empty);
-    static NAN_GETTER(getParent);
-    static NAN_METHOD(getTerminator);
-    static NAN_GETTER(getContext);
+    static Napi::Value eraseFromParent(const Napi::CallbackInfo& info);
+    Napi::Value empty(const Napi::CallbackInfo& info);
+    Napi::Value getParent(const Napi::CallbackInfo& info);
+    static Napi::Value getTerminator(const Napi::CallbackInfo& info);
+    Napi::Value getContext(const Napi::CallbackInfo& info);
 
-    static Nan::Persistent<v8::FunctionTemplate>& basicBlockTemplate();
+    static Napi::FunctionReference& basicBlockTemplate();
 };
 
 
