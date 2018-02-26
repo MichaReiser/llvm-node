@@ -10,6 +10,7 @@
 #include "function.h"
 #include "function-type.h"
 #include "global-variable.h"
+#include "struct-type.h"
 
 NAN_MODULE_INIT(ModuleWrapper::Init) {
     v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New<v8::FunctionTemplate>(New);
@@ -24,6 +25,7 @@ NAN_MODULE_INIT(ModuleWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "getFunction", getFunction);
     Nan::SetPrototypeMethod(functionTemplate, "getOrInsertFunction", getOrInsertFunction);
     Nan::SetPrototypeMethod(functionTemplate, "getGlobalVariable", getGlobalVariable);
+    Nan::SetPrototypeMethod(functionTemplate, "getTypeByName", getTypeByName);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("name").ToLocalChecked(), getName);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("dataLayout").ToLocalChecked(), getDataLayout, setDataLayout);
     Nan::SetAccessor(functionTemplate->InstanceTemplate(), Nan::New("moduleIdentifier").ToLocalChecked(), getModuleIdentifier, setModuleIdentifier);
@@ -112,6 +114,22 @@ NAN_METHOD(ModuleWrapper::getGlobalVariable) {
     auto* global = module->getGlobalVariable(name, allowInternal);
     if (global != nullptr) {
         info.GetReturnValue().Set(GlobalVariableWrapper::of(global));
+    }
+}
+
+NAN_METHOD(ModuleWrapper::getTypeByName) {
+    if (info.Length() < 1 || !info[0]->IsString()) {
+        return Nan::ThrowTypeError("getTypeByName needs to be called with: name: string");
+    }
+
+    const std::string name = ToString(info[0]);
+    const llvm::Module* module = ModuleWrapper::FromValue(info.Holder())->getModule();
+    llvm::StructType* type = module->getTypeByName(name);
+
+    if (type == nullptr) {
+        info.GetReturnValue().Set(Nan::Null());
+    } else {
+        info.GetReturnValue().Set(StructTypeWrapper::of(type));
     }
 }
 

@@ -657,6 +657,8 @@ declare namespace llvm {
     getOrInsertFunction(name: string, functionType: FunctionType): Constant;
 
     getGlobalVariable(name: string, allowInternal?: boolean): GlobalVariable;
+
+    getTypeByName(name: string): StructType | null;
   }
 
   // support

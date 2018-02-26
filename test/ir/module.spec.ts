@@ -206,4 +206,25 @@ describe("ir/module", () => {
       expect(module.getGlobalVariable("globalVar"));
     });
   });
+
+  describe("getTypeByName", () => {
+    test("returns null if a type with the given name does not exist", () => {
+      const {module, context} = createModule();
+
+      const type = module.getTypeByName("DoesNotExist");
+
+      expect(type).toBeNull();
+    });
+
+    test("returns the type with the given name if it exists", () => {
+        const {module, context} = createModule();
+        const structType = llvm.StructType.create(context, "IntTuple");
+        structType.setBody([llvm.Type.getInt32Ty(context), llvm.Type.getInt32Ty(context)]);
+
+        const retrieved = module.getTypeByName("IntTuple");
+
+        expect(retrieved).toBeInstanceOf(llvm.StructType);
+        expect(retrieved).toEqual(structType);
+    });
+  });
 });
