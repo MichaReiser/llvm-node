@@ -46,7 +46,7 @@ or for the current user only
 npm config set cmake_LLVM_DIR $(path-to-llvm/bin/llvm-config --cmakedir)
 ```
 
-If you fant to change the value just for a single project use an [.npmrc](https://docs.npmjs.com/files/npmrc) file in your project.
+If you want to change the value just for a single project use an [.npmrc](https://docs.npmjs.com/files/npmrc) file in your project.
 
 ## Debug Build
 If you want to use `Value.dump` or `Module.dump` you need to use the debug build of the library (and, as well, of LLVM).
