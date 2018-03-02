@@ -33,6 +33,7 @@
 #include "visibility-types.h"
 #include "attribute.h"
 #include "undef-value.h"
+#include "constant-expr.h"
 
 NAN_MODULE_INIT(InitIR) {
     AllocaInstWrapper::Init(target);
@@ -47,6 +48,7 @@ NAN_MODULE_INIT(InitIR) {
     ConstantWrapper::Init(target);
     ConstantArrayWrapper::Init(target);
     ConstantDataArrayWrapper::Init(target);
+    ConstantExprWrapper::Init(target);
     ConstantFPWrapper::Init(target);
     ConstantIntWrapper::Init(target);
     ConstantPointerNullWrapper::Init(target);
