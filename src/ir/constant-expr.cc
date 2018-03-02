@@ -38,6 +38,7 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantExprWrapper::constantExprTemplate
         Nan::SetMethod(localTemplate, "getPointerCast", ConstantExprWrapper::getPointerCast);
         Nan::SetMethod(localTemplate, "getIntegerCast", ConstantExprWrapper::getIntegerCast);
         Nan::SetMethod(localTemplate, "getFPCast", ConstantExprWrapper::getFPCast);
+        Nan::SetMethod(localTemplate, "getBitCast", ConstantExprWrapper::getBitCast);
 
         functionTemplate.Reset(localTemplate);
     }
@@ -92,6 +93,19 @@ NAN_METHOD(ConstantExprWrapper::getFPCast) {
     auto type = TypeWrapper::FromValue(info[1])->getType();
 
     auto constantCast = llvm::ConstantExpr::getFPCast(constant, type);
+
+    info.GetReturnValue().Set(ConstantWrapper::of(constantCast));
+}
+
+NAN_METHOD(ConstantExprWrapper::getBitCast) {
+    if (info.Length() != 2 || !ConstantWrapper::isInstance(info[0]) || !TypeWrapper::isInstance(info[1])) {
+        return Nan::ThrowTypeError("getBitCast needs to be called with: constant: Constant, type: Type");
+    }
+
+    auto constant = ConstantWrapper::FromValue(info[0])->getConstant();
+    auto type = TypeWrapper::FromValue(info[1])->getType();
+
+    auto constantCast = llvm::ConstantExpr::getBitCast(constant, type);
 
     info.GetReturnValue().Set(ConstantWrapper::of(constantCast));
 }

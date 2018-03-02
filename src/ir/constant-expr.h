@@ -26,6 +26,7 @@ private:
     static NAN_METHOD(getPointerCast);
     static NAN_METHOD(getIntegerCast);
     static NAN_METHOD(getFPCast);
+    static NAN_METHOD(getBitCast);
 };
 
 #endif //LLVM_NODE_CONSTANT_EXPR_H

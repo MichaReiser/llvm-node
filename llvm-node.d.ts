@@ -174,8 +174,12 @@ declare namespace llvm {
   }
 
   class ConstantExpr extends Constant {
+    static getBitCast(constant: Constant, type: Type): ConstantExpr
+
     static getOr(constant1: Constant, constant2: Constant): ConstantExpr
+
     static getPointerBitCastOrAddrSpaceCast(constant: Constant, type: Type): ConstantExpr
+
     static getPointerCast(constant: Constant, type: Type): ConstantExpr
   }
 
