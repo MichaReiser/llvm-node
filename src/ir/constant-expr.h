@@ -19,9 +19,13 @@ private:
     static Nan::Persistent<v8::FunctionTemplate>& constantExprTemplate();
 
     static NAN_METHOD(New);
+    static NAN_METHOD(getAlignOf);
+    static NAN_METHOD(getSizeOf);
     static NAN_METHOD(getOr);
     static NAN_METHOD(getPointerBitCastOrAddrSpaceCast);
     static NAN_METHOD(getPointerCast);
+    static NAN_METHOD(getIntegerCast);
+    static NAN_METHOD(getFPCast);
 };
 
 #endif //LLVM_NODE_CONSTANT_EXPR_H

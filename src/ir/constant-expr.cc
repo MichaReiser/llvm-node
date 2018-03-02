@@ -31,9 +31,13 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantExprWrapper::constantExprTemplate
         localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
         localTemplate->Inherit(Nan::New(constantTemplate()));
 
+        Nan::SetMethod(localTemplate, "getAlignOf", ConstantExprWrapper::getAlignOf);
+        Nan::SetMethod(localTemplate, "getSizeOf", ConstantExprWrapper::getSizeOf);
         Nan::SetMethod(localTemplate, "getOr", ConstantExprWrapper::getOr);
         Nan::SetMethod(localTemplate, "getPointerBitCastOrAddrSpaceCast", ConstantExprWrapper::getPointerBitCastOrAddrSpaceCast);
         Nan::SetMethod(localTemplate, "getPointerCast", ConstantExprWrapper::getPointerCast);
+        Nan::SetMethod(localTemplate, "getIntegerCast", ConstantExprWrapper::getIntegerCast);
+        Nan::SetMethod(localTemplate, "getFPCast", ConstantExprWrapper::getFPCast);
 
         functionTemplate.Reset(localTemplate);
     }
@@ -55,6 +59,55 @@ NAN_METHOD(ConstantExprWrapper::New) {
     wrapper->Wrap(info.This());
 
     info.GetReturnValue().Set(info.This());
+}
+
+NAN_METHOD(ConstantExprWrapper::getAlignOf) {
+    if (info.Length() != 1 || !TypeWrapper::isInstance(info[1])) {
+        return Nan::ThrowTypeError("getAlignOf needs to be called with: type: Type");
+    }
+
+    auto type = TypeWrapper::FromValue(info[0])->getType();
+    auto constantAlign = llvm::ConstantExpr::getAlignOf(type);
+
+    info.GetReturnValue().Set(ConstantWrapper::of(constantAlign));
+}
+
+NAN_METHOD(ConstantExprWrapper::getSizeOf) {
+    if (info.Length() != 1 || !TypeWrapper::isInstance(info[1])) {
+        return Nan::ThrowTypeError("getSizeOf needs to be called with: type: Type");
+    }
+
+    auto type = TypeWrapper::FromValue(info[0])->getType();
+    auto constantSize = llvm::ConstantExpr::getSizeOf(type);
+
+    info.GetReturnValue().Set(ConstantWrapper::of(constantSize));
+}
+
+NAN_METHOD(ConstantExprWrapper::getFPCast) {
+    if (info.Length() != 2 || !ConstantWrapper::isInstance(info[0]) || !TypeWrapper::isInstance(info[1])) {
+        return Nan::ThrowTypeError("getFPCast needs to be called with: constant: Constant, type: Type");
+    }
+
+    auto constant = ConstantWrapper::FromValue(info[0])->getConstant();
+    auto type = TypeWrapper::FromValue(info[1])->getType();
+
+    auto constantCast = llvm::ConstantExpr::getFPCast(constant, type);
+
+    info.GetReturnValue().Set(ConstantWrapper::of(constantCast));
+}
+
+NAN_METHOD(ConstantExprWrapper::getIntegerCast) {
+    if (info.Length() != 3 || !ConstantWrapper::isInstance(info[0]) || !TypeWrapper::isInstance(info[1]) || !info[2]->IsBoolean()) {
+        return Nan::ThrowTypeError("getIntegerCast needs to be called with: constant: Constant, type: Type, signed: Boolean");
+    }
+
+    auto constant = ConstantWrapper::FromValue(info[0])->getConstant();
+    auto type = TypeWrapper::FromValue(info[1])->getType();
+    bool isSigned = Nan::To<bool>(info[3]).FromJust();
+
+    auto constantCast = llvm::ConstantExpr::getIntegerCast(constant, type, isSigned);
+
+    info.GetReturnValue().Set(ConstantWrapper::of(constantCast));
 }
 
 NAN_METHOD(ConstantExprWrapper::getOr) {
