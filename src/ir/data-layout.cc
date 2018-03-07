@@ -27,6 +27,7 @@ NAN_MODULE_INIT(DataLayoutWrapper::Init) {
     Nan::SetPrototypeMethod(tpl, "getStringRepresentation", DataLayoutWrapper::getStringRepresentation);
     Nan::SetPrototypeMethod(tpl, "getPrefTypeAlignment", DataLayoutWrapper::getPrefTypeAlignment);
     Nan::SetPrototypeMethod(tpl, "getTypeStoreSize", DataLayoutWrapper::getTypeStoreSize);
+    Nan::SetPrototypeMethod(tpl, "getTypeAllocSize", DataLayoutWrapper::getTypeAllocSize);
     Nan::SetPrototypeMethod(tpl, "getPointerSize", DataLayoutWrapper::getPointerSize);
     Nan::SetPrototypeMethod(tpl, "getIntPtrType", DataLayoutWrapper::getIntPtrType);
 
@@ -87,6 +88,20 @@ NAN_METHOD(DataLayoutWrapper::getTypeStoreSize) {
     auto dataLayout = DataLayoutWrapper::FromValue(info.Holder())->getDataLayout();
 
     auto size = dataLayout.getTypeStoreSize(type);
+     assert (size < UINT32_MAX && "V8 does not support uint64 but size overflows uint32"); // v8 does not support uint64_t :(
+
+    info.GetReturnValue().Set(Nan::New(static_cast<uint32_t>(size)));
+}
+
+NAN_METHOD(DataLayoutWrapper::getTypeAllocSize) {
+    if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
+        return Nan::ThrowTypeError("getTypeAllocSize needs to be called with: type: Type");
+    }
+
+    auto* type = TypeWrapper::FromValue(info[0])->getType();
+    auto dataLayout = DataLayoutWrapper::FromValue(info.Holder())->getDataLayout();
+
+    auto size = dataLayout.getTypeAllocSize(type);
      assert (size < UINT32_MAX && "V8 does not support uint64 but size overflows uint32"); // v8 does not support uint64_t :(
 
     info.GetReturnValue().Set(Nan::New(static_cast<uint32_t>(size)));

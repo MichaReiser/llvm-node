@@ -368,6 +368,8 @@ declare namespace llvm {
 
     getTypeStoreSize(type: Type): number;
 
+    getTypeAllocSize(type: Type): number;
+
     getIntPtrType(context: LLVMContext, as: number): Type;
   }
 
