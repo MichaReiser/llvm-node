@@ -370,6 +370,8 @@ declare namespace llvm {
 
     getTypeAllocSize(type: Type): number;
 
+    getTypeAllocSizeInBits(type: Type): number;
+
     getIntPtrType(context: LLVMContext, as: number): Type;
   }
 
