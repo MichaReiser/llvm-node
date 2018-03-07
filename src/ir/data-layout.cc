@@ -5,6 +5,7 @@
 #include "../util/string.h"
 #include "data-layout.h"
 #include "type.h"
+#include "integer-type.h"
 
 Nan::Persistent<v8::FunctionTemplate> DataLayoutWrapper::functionTemplate {};
 
@@ -123,7 +124,7 @@ NAN_METHOD(DataLayoutWrapper::getIntPtrType) {
     }
 
     auto* type = dataLayout.getIntPtrType(context, addressSpace);
-    info.GetReturnValue().Set(TypeWrapper::of(type));
+    info.GetReturnValue().Set(IntegerTypeWrapper::of(type));
 }
 
 llvm::DataLayout DataLayoutWrapper::getDataLayout() {

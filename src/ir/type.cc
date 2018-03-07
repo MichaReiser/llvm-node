@@ -9,6 +9,7 @@
 #include "pointer-type.h"
 #include "array-type.h"
 #include "struct-type.h"
+#include "integer-type.h"
 
 NAN_MODULE_INIT(TypeWrapper::Init) {
     auto type = Nan::GetFunction(Nan::New(typeTemplate())).ToLocalChecked();
@@ -149,6 +150,8 @@ v8::Local<v8::Object> TypeWrapper::of(llvm::Type *type) {
         result = ArrayTypeWrapper::of(static_cast<llvm::ArrayType*>(type));
     } else if (type->isStructTy()) {
         result = StructTypeWrapper::of(static_cast<llvm::StructType*>(type));
+    } else if (type->isIntegerTy()) {
+        result = IntegerTypeWrapper::of(static_cast<llvm::IntegerType*>(type));
     } else {
         v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New(typeTemplate());
         auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
@@ -253,4 +256,3 @@ bool TypeWrapper::isInstance(v8::Local<v8::Value> object) {
 llvm::Type *TypeWrapper::getType() {
     return type;
 }
-
