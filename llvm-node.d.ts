@@ -173,6 +173,16 @@ declare namespace llvm {
     isAllOnesValue(): boolean;
   }
 
+  class ConstantExpr extends Constant {
+    static getBitCast(constant: Constant, type: Type): ConstantExpr
+
+    static getOr(constant1: Constant, constant2: Constant): ConstantExpr
+
+    static getPointerBitCastOrAddrSpaceCast(constant: Constant, type: Type): ConstantExpr
+
+    static getPointerCast(constant: Constant, type: Type): ConstantExpr
+  }
+
   class ConstantFP extends Constant {
     static get(context: LLVMContext, value: number): ConstantFP;
 
@@ -357,6 +367,8 @@ declare namespace llvm {
     getPrefTypeAlignment(type: Type): number;
 
     getTypeStoreSize(type: Type): number;
+
+    getTypeAllocSize(type: Type): number;
 
     getIntPtrType(context: LLVMContext, as: number): Type;
   }

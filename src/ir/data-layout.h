@@ -28,6 +28,7 @@ private:
     static NAN_METHOD(getPointerSize);
     static NAN_METHOD(getPrefTypeAlignment);
     static NAN_METHOD(getTypeStoreSize);
+    static NAN_METHOD(getTypeAllocSize);
     static NAN_METHOD(getIntPtrType);
 };
 
