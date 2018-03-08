@@ -173,6 +173,12 @@ declare namespace llvm {
     isAllOnesValue(): boolean;
   }
 
+  class ConstantAggregateZero extends Constant {
+      static get(type: Type): Constant;
+
+      private constructor();
+  }
+
   class ConstantExpr extends Constant {
     static getBitCast(constant: Constant, type: Type): ConstantExpr
 

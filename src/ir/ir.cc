@@ -31,6 +31,7 @@
 #include "constant-struct.h"
 #include "constant-array.h"
 #include "visibility-types.h"
+#include "constant-aggregate-zero.h"
 #include "attribute.h"
 #include "undef-value.h"
 #include "constant-expr.h"

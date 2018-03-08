@@ -13,6 +13,7 @@
 #include "constant-int.h"
 #include "constant-data-array.h"
 #include "constant-pointer-null.h"
+#include "constant-aggregate-zero.h"
 #include "global-variable.h"
 #include "constant-struct.h"
 #include "constant-array.h"
@@ -42,6 +43,8 @@ v8::Local<v8::Object> ConstantWrapper::of(llvm::Constant *constant) {
         result = ConstantStructWrapper::of(static_cast<llvm::ConstantStruct*>(constant));
     } else if (llvm::ConstantArray::classof(constant)) {
         result = ConstantArrayWrapper::of(static_cast<llvm::ConstantArray*>(constant));
+    } else if (llvm::ConstantAggregateZero::classof(constant)) {
+        result = ConstantAggregateZeroWrapper::of(static_cast<llvm::ConstantAggregateZero*>(constant));
     } else if (llvm::UndefValue::classof(constant)) {
         result = UndefValueWrapper::of(static_cast<llvm::UndefValue*>(constant));
     } else {
