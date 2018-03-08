@@ -56,7 +56,7 @@ NAN_METHOD(ConstantAggregateZeroWrapper::New) {
 
 
 NAN_METHOD(ConstantAggregateZeroWrapper::get) {
-    if (info.Length() != 2 || !TypeWrapper::isInstance(info[0])) {
+    if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
         return Nan::ThrowTypeError("get needs to be called with: type: Type");
     }
 
