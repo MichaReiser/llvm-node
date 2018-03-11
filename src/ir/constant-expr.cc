@@ -1,7 +1,6 @@
 #include "constant-expr.h"
 #include "type.h"
 
-
 NAN_MODULE_INIT(ConstantExprWrapper::Init) {
     auto constantExpr = Nan::GetFunction(Nan::New(constantExprTemplate())).ToLocalChecked();
 
@@ -35,6 +34,7 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantExprWrapper::constantExprTemplate
         Nan::SetMethod(localTemplate, "getSizeOf", ConstantExprWrapper::getSizeOf);
         Nan::SetMethod(localTemplate, "getOr", ConstantExprWrapper::getOr);
         Nan::SetMethod(localTemplate, "getPointerBitCastOrAddrSpaceCast", ConstantExprWrapper::getPointerBitCastOrAddrSpaceCast);
+        Nan::SetMethod(localTemplate, "getGetElementPtr", ConstantExprWrapper::getGetElementPtr);
         Nan::SetMethod(localTemplate, "getPointerCast", ConstantExprWrapper::getPointerCast);
         Nan::SetMethod(localTemplate, "getIntegerCast", ConstantExprWrapper::getIntegerCast);
         Nan::SetMethod(localTemplate, "getFPCast", ConstantExprWrapper::getFPCast);
@@ -122,6 +122,37 @@ NAN_METHOD(ConstantExprWrapper::getIntegerCast) {
     auto constantCast = llvm::ConstantExpr::getIntegerCast(constant, type, isSigned);
 
     info.GetReturnValue().Set(ConstantWrapper::of(constantCast));
+}
+
+NAN_METHOD(ConstantExprWrapper::getGetElementPtr) {
+    if (info.Length() < 3 || !TypeWrapper::isInstance(info[0]) || !ConstantWrapper::isInstance(info[1]) || !info[2]->IsArray() ||
+        (info.Length() == 4 && !info[3]->IsBoolean())) {
+        return Nan::ThrowTypeError("getGetElementPtr needs to be called with type: Type, constant: Constant, idxList: Value[], inBounds?: boolean");
+    }
+
+    auto* type = TypeWrapper::FromValue(info[0])->getType();
+    auto* ptr = ConstantWrapper::FromValue(info[1])->getConstant();
+    auto indexValues = v8::Array::Cast(*info[2]);
+    std::vector<llvm::Value*> idxList { indexValues->Length() };
+
+    for (uint32_t i = 0; i < indexValues->Length(); ++i) {
+        auto idx = indexValues->Get(i);
+
+        if (!ValueWrapper::isInstance(idx)) {
+            return Nan::ThrowTypeError("Value expected for idxList element");
+        }
+
+        idxList[i] = ValueWrapper::FromValue(idx)->getValue();
+    }
+
+    bool inBounds = false;
+
+    if (info.Length() == 4) {
+        inBounds = Nan::To<bool>(info[3]).FromJust();
+    }
+
+    auto* gep = llvm::ConstantExpr::getGetElementPtr(type, ptr, idxList, inBounds);
+    info.GetReturnValue().Set(ConstantWrapper::of(gep));
 }
 
 NAN_METHOD(ConstantExprWrapper::getOr) {

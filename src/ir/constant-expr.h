@@ -23,6 +23,7 @@ private:
     static NAN_METHOD(getSizeOf);
     static NAN_METHOD(getOr);
     static NAN_METHOD(getPointerBitCastOrAddrSpaceCast);
+    static NAN_METHOD(getGetElementPtr);
     static NAN_METHOD(getPointerCast);
     static NAN_METHOD(getIntegerCast);
     static NAN_METHOD(getFPCast);
