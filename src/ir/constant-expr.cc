@@ -127,22 +127,22 @@ NAN_METHOD(ConstantExprWrapper::getIntegerCast) {
 NAN_METHOD(ConstantExprWrapper::getGetElementPtr) {
     if (info.Length() < 3 || !TypeWrapper::isInstance(info[0]) || !ConstantWrapper::isInstance(info[1]) || !info[2]->IsArray() ||
         (info.Length() == 4 && !info[3]->IsBoolean())) {
-        return Nan::ThrowTypeError("getGetElementPtr needs to be called with type: Type, constant: Constant, idxList: Value[], inBounds?: boolean");
+        return Nan::ThrowTypeError("getGetElementPtr needs to be called with type: Type, constant: Constant, idxList: Constant[], inBounds?: boolean");
     }
 
     auto* type = TypeWrapper::FromValue(info[0])->getType();
     auto* ptr = ConstantWrapper::FromValue(info[1])->getConstant();
     auto indexValues = v8::Array::Cast(*info[2]);
-    std::vector<llvm::Value*> idxList { indexValues->Length() };
+    std::vector<llvm::Constant*> idxList { indexValues->Length() };
 
     for (uint32_t i = 0; i < indexValues->Length(); ++i) {
         auto idx = indexValues->Get(i);
 
-        if (!ValueWrapper::isInstance(idx)) {
-            return Nan::ThrowTypeError("Value expected for idxList element");
+        if (!ConstantWrapper::isInstance(idx)) {
+            return Nan::ThrowTypeError("Constant expected for idxList element");
         }
 
-        idxList[i] = ValueWrapper::FromValue(idx)->getValue();
+        idxList[i] = ConstantWrapper::FromValue(idx)->getConstant();
     }
 
     bool inBounds = false;
