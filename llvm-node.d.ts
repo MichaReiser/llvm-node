@@ -608,6 +608,8 @@ declare namespace llvm {
 
     createICmpULT(lhs: Value, rhs: Value, name?: string): Value;
 
+    createIsNull(ptr: Value, name?: string): Value;
+
     createLoad(ptr: Value, name?: string): Value;
 
     createLShr(lhs: Value, rhs: Value, name?: string): Value;

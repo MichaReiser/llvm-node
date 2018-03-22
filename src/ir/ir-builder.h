@@ -46,6 +46,7 @@ private:
     static NAN_METHOD(CreateInBoundsGEPWithType);
     static NAN_METHOD(CreateInsertValue);
     static NAN_METHOD(CreateIntCast);
+    static NAN_METHOD(CreateIsNull);
     static NAN_METHOD(CreateLoad);
     static NAN_METHOD(CreateNeg);
     static NAN_METHOD(CreateNot);

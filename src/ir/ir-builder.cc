@@ -113,6 +113,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createICmpUGT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpUGT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpULT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpULT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpULE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpULE>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createIsNull", IRBuilderWrapper::CreateIsNull);
     Nan::SetPrototypeMethod(functionTemplate, "createLoad", IRBuilderWrapper::CreateLoad);
     Nan::SetPrototypeMethod(functionTemplate, "createLShr", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateLShr>>);
     Nan::SetPrototypeMethod(functionTemplate, "createMul", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateMul>>);
@@ -392,6 +393,25 @@ NAN_METHOD(IRBuilderWrapper::CreateIntCast) {
 
     auto* casted = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateIntCast(value, type, isSigned, name);
     info.GetReturnValue().Set(ValueWrapper::of(casted));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateIsNull) {
+    if (info.Length() < 1 || !ValueWrapper::isInstance(info[0])
+            || (info.Length() > 1 && !(info[1]->IsString() || info[1]->IsUndefined()))
+            || info.Length() > 2) {
+        return Nan::ThrowTypeError("createIsNull needs to be called with: value: Value, name?: string");
+    }
+
+    auto* value = ValueWrapper::FromValue(info[0])->getValue();
+    std::string name {};
+
+    if (info.Length() > 1 && !info[1]->IsUndefined()) {
+        name = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
+    }
+
+    auto& irBuilder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
+    auto* inst = irBuilder.CreateIsNull(value, name);
+    info.GetReturnValue().Set(ValueWrapper::of(inst));
 }
 
 NAN_METHOD(IRBuilderWrapper::CreateLoad) {
