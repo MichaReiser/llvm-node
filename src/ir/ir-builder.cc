@@ -131,6 +131,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createSub", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSub>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSRem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSRem>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateSIToFP>);
+    Nan::SetPrototypeMethod(functionTemplate, "createURem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateURem>>);
     Nan::SetPrototypeMethod(functionTemplate, "createUIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateUIToFP>);
     Nan::SetPrototypeMethod(functionTemplate, "createStore", IRBuilderWrapper::CreateStore);
     Nan::SetPrototypeMethod(functionTemplate, "createZExt", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateZExt>);
