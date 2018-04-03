@@ -451,11 +451,14 @@ declare namespace llvm {
 
     isArrayTy(): boolean;
 
+    isFloatingPointTy(): boolean;
+
     isPointerTy(): this is PointerType;
 
     getPointerTo(addressSpace?: number): PointerType;
 
     getPrimitiveSizeInBits(): number;
+
 
     toString(): string;
   }
@@ -576,6 +579,7 @@ declare namespace llvm {
     createFSub(lhs: Value, rhs: Value, name?: string): Value;
 
     createFPToSI(value: Value, type: Type, name?: string): Value;
+    createFPToUI(value: Value, type: Type, name?: string): Value;
 
     createGlobalString(str: string, name?: string, addressSpace?: number): Value;
 
@@ -651,6 +655,10 @@ declare namespace llvm {
     createURem(lhs: Value, rhs: Value, name?: string): Value;
 
     createZExt(value: Value, destType: Type, name?: string): Value;
+
+    createZExtOrTrunc(value: Value, destType: Type, name?: string): Value;
+
+    createSExtOrTrunc(value: Value, destType: Type, name?: string): Value;
 
     getInsertBlock(): BasicBlock;
   }
