@@ -1,21 +1,17 @@
 language: node_js
-
 node_js:
 - node
 - '9'
 - '8'
 - '7'
 - '6'
-
 cache: yarn
-
 env:
   matrix:
-    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main" LLVM_VERSION=4.0
-    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main" LLVM_VERSION=5.0
-    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main" LLVM_VERSION=6.0
-    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main" LLVM_VERSION=7
-
+  - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main" LLVM_VERSION=4.0
+  - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main" LLVM_VERSION=5.0
+  - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main" LLVM_VERSION=6.0
+  - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main" LLVM_VERSION=7
 before_install:
 - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
 - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
@@ -23,12 +19,11 @@ before_install:
 - sudo apt-get update -qq
 - sudo apt-get install libedit-dev llvm-$LLVM_VERSION llvm-$LLVM_VERSION-dev
 - npm config set cmake_LLVM_DIR $(llvm-config-$LLVM_VERSION --cmakedir)
-
 deploy:
   provider: npm
   email: micha@famreiser.ch
   api_key:
-    secure: dl43E9+9IYRIfqrGrOVTP+5YN6T2DPhpja+GFjpui2oQsTJ2uzcWs/nVms0jvfwd34Le1ZDCRq37fAnEtHsxcspl4mUduqDnjdAzfqH76REJRbBCJj1eQ+v/JjDAZ2p3aOSEM0larP7DojjaapNV+NNkFLYw0vlkww1wEPhmmftdMtLJY+TVvvn6vkthwwL5TwXznSTTQB0IpYp+d3XK4PPhXbNcWmBcBtC/NxJ0NrZrOheM2jJxNWDQbkeZttpl5nLP8WZ332DZ/YeBWlV5Uv0bTtB24HIS7ZwZwpkzAZks5I7wn8pBVnW/vdjJ+TRmNkFo35dTV+2lKvjlo1TooE8ZnaY0We9czxMpmocV0+8wBAa+e/UqLRmDbrQyP/kSwlrN1EiK2jQkg/wlZ77hCA0JuEg5SDw0M2fym4jx6gQFLrIM3w55rtce+fQ3jdnGBYz3RzYxfpYGsdnIAv7y/myYKZ8Ekm5Pd6b3WMX/LhtcPmvirKKN/lRXwJiY3gpuX4ELJ+kIlQI3y63Z0nrf+4ADJsIC0rTDbCcXY7TWUWKzq7vSr55A2ckDRciVWlr4VI6u1YeFoI6bA777Ddh63oY1iq7vUqUZyL13xOjn2aAhlHTFDbFturRFQvBNeN42IHYItZBSZk4AI2AG2Zro04BozbRjiF4uepPynkniizk=
+    secure: LrZLf4Lbkdf9E9NsiszO++ZrVXtGWoSnqOKAUFKsssdovX0dTXf+qNjLih4+2RrskZtwZB5XU4TREHUyuEOoK3AHLir+yxAh+S8TyFwEL5RJHDyz3lfx7niuPr/w7Mr148EcPA4nEQNAwqJG+ONfpdMFqsMxKdpX06dFHD5/+5isEt+EwdyTrKda78nHpYejHO3yiBbeOdo2Q0F1bVnp6aPwrwEWvfHImiM1KxVxwDNKTzJXPsxONxER1PDWuC9n9cVWpZYKLf/R4UYL++ZBhfhZIURbkUcCnYga+/vtFoF4lzlAXxAUX+tuAaWuHx53t5zOVjPMhuKFn2sLJLYakw4mekgYjZBk0lnK0r3NosiZyQ7V2jSb4jjqPsdFjajGY/YKTtjcWeLTtSJkr+hRHS2RsykNkHZesFy7qDKmQ0xrRDbMUKrfnlWytJl7wzCR2md2QZrd9dzHZZLUGdcBEeQ84WMQlzAQOz9hYrBQQ3Yq7PdjWEkg1AqgIrnExGDbXnqi+C6wYTi6hTdfPAHnIz5+upc13LmVj3MdpWOCcFi/91AoPfiMfET8GbMYOROjfM0qVBVhV9Q8vuEYVNR0FDZ+gYfwUidYxgCfAEK1EEmOwx1O6rwpmy2qsC9WCOO3JgJ/8778vwHvkpK9/siTdw+Ihs5U3iivRWmMwMcpQII=
   on:
     tags: true
     repo: MichaReiser/llvm-node
