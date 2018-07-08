@@ -3,6 +3,7 @@
 //
 
 #include "pointer-type.h"
+#include "../util/inherit.h"
 
 Napi::FunctionReference PointerTypeWrapper::constructor;
 
@@ -16,6 +17,8 @@ void PointerTypeWrapper::Init(Napi::Env env, Napi::Object &exports){
 
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
+
+    Inherit(env, constructor.Value(), TypeWrapper::constructor.Value());
 
     exports.Set("PointerType", func);
 }

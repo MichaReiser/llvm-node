@@ -36,6 +36,7 @@ file(GLOB SOURCE_FILES
         "src/ir/value.cc"
         "src/ir/pointer-type.h"
         "src/ir/pointer-type.cc"
+        "src/util/inherit.h"
 #        "src/*.h"
 #        "src/*.cc"
 #        "src/**/*.h"
@@ -43,7 +44,7 @@ file(GLOB SOURCE_FILES
         )
 
 
-add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
+add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} src/util/inherit.h)
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
 
 llvm_map_components_to_libnames(llvm_libs ${LLVM_TARGETS_TO_BUILD} bitwriter codegen core support tablegen target)

@@ -60,9 +60,9 @@ void InitIr(Napi::Env env, Napi::Object& exports) {
     ModuleWrapper::Init(env, exports);
     LLVMContextWrapper::Init(env, exports);
 //    PhiNodeWrapper::Init(target);
-    PointerTypeWrapper::Init(env, exports);
 //    StructTypeWrapper::Init(target);
     TypeWrapper::Init(env, exports);
+    PointerTypeWrapper::Init(env, exports);
 //    UndefValueWrapper::Init(target);
     ValueWrapper::Init(env, exports);
 //    InitVerifier(target);

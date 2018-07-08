@@ -14,13 +14,13 @@ public:
     static void Init(Napi::Env env, Napi::Object& exports);
     static Napi::Object of(Napi::Env env, llvm::Type *type);
     static bool isInstanceOfType(const Napi::Value& value);
+    static Napi::FunctionReference constructor;
 
     explicit TypeWrapper(const Napi::CallbackInfo& info);
 
     llvm::Type* getType();
 
 private:
-    static Napi::FunctionReference constructor;
     llvm::Type* type;
 
     static Napi::Value getIntNTy(const Napi::CallbackInfo& info);

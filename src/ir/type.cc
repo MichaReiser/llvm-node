@@ -57,9 +57,7 @@ Napi::Value getPointerType(const Napi::CallbackInfo& info) {
     }
 
     auto* type = method(context->getContext(), AS);
-//    TODO uncomment when PointerType is migrated
-//    return PointerTypeWrapper::of(type);
-    return env.Undefined();
+    return PointerTypeWrapper::of(env, type);
 }
 
 void TypeWrapper::Init(Napi::Env env, Napi::Object &exports){
