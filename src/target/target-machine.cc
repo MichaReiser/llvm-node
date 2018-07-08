@@ -3,33 +3,55 @@
 //
 
 #include "target-machine.h"
-#include "../ir/data-layout.h"
+//#include "../ir/data-layout.h"
 
+Napi::FunctionReference TargetMachineWrapper::constructor;
 
-Nan::Persistent<v8::ObjectTemplate> TargetMachineWrapper::targetMachineTemplate {};
+void TargetMachineWrapper::Init(Napi::Env env, Napi::Object& exports) {
+    Napi::HandleScope scope { env };
 
-NAN_MODULE_INIT(TargetMachineWrapper::Init) {
-    auto objectTemplate = Nan::New<v8::ObjectTemplate>();
-    objectTemplate->SetInternalFieldCount(1);
+    Napi::Function func = DefineClass(env, "TargetMachine", {
+    });
 
-    Nan::SetMethod(objectTemplate, "createDataLayout", TargetMachineWrapper::createDataLayout);
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
 
-    targetMachineTemplate.Reset(objectTemplate);
+    exports.Set("TargetMachine", func);
 }
 
-NAN_METHOD(TargetMachineWrapper::createDataLayout) {
-    auto dataLayout = TargetMachineWrapper::FromValue(info.Holder())->targetMachine->createDataLayout();
-    info.GetReturnValue().Set(DataLayoutWrapper::of(dataLayout));
+Napi::Object TargetMachineWrapper::of(Napi::Env env, llvm::TargetMachine* targetMachine) {
+    Napi::Object result = constructor.New({Napi::External<llvm::TargetMachine>::New(env, targetMachine)});
+
+    Napi::EscapableHandleScope escapeScope{env};
+    return escapeScope.Escape(result).ToObject();
 }
 
-v8::Local<v8::Object> TargetMachineWrapper::of(const llvm::TargetMachine *targetMachinePtr) {
-    Nan::EscapableHandleScope escapeScope {};
-    v8::Local<v8::ObjectTemplate> tpl = Nan::New(targetMachineTemplate);
-
-    auto object = Nan::NewInstance(tpl).ToLocalChecked();
-    auto* wrapper = new TargetMachineWrapper { targetMachinePtr };
-    wrapper->Wrap(object);
-
-    return escapeScope.Escape(object);
+bool TargetMachineWrapper::isInstanceOfType(const Napi::Value &value) {
+    return value.ToObject().InstanceOf(constructor.Value());
 }
+
+TargetMachineWrapper::TargetMachineWrapper(const Napi::CallbackInfo &info): Napi::ObjectWrap<TargetMachineWrapper>{info} {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope { env };
+    size_t argsLength = info.Length();
+
+    if (!info.IsConstructCall()) {
+        throw Napi::TypeError::New(env, "TargetMachine constructor needs to be called with new");
+    }
+
+    if (argsLength < 1 || !info[0].IsExternal()) {
+        throw Napi::TypeError::New(env, "TargetMachine expected");
+    }
+
+    auto external = info[0].As<Napi::External<llvm::TargetMachine>>();
+    this->targetMachine = external.Data();
+}
+
+
+// TODO createDataLayout
+//Napi::Value TargetMachineWrapper::createDataLayout(const Napi::CallbackInfo& info) {
+//    auto dataLayout = TargetMachineWrapper::FromValue(info.Holder())->targetMachine->createDataLayout();
+//    return DataLayoutWrapper::of(dataLayout);
+//}
+
 

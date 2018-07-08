@@ -20,7 +20,7 @@ describe("support/target-registry", () => {
 
   test("short description returns a short description of the target", () => {
     const target = llvm.TargetRegistry.lookupTarget("x86_64");
-    expect(target.shortDescription).toBeUndefined();
+    expect(target.shortDescription).toBe("64-bit X86: EM64T and AMD64");
   });
 
   test("create target machine returns a TargetMachine", () => {

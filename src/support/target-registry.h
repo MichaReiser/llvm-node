@@ -1,38 +1,27 @@
 #ifndef TARGET_REGISTRY_H
 #define TARGET_REGISTRY_H
 
-#include <nan.h>
+#include <napi.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Target/TargetMachine.h>
-#include "../util/from-value-mixin.h"
 
-class TargetRegistryWrapper: public Nan::ObjectWrap, public FromValueMixin<TargetRegistryWrapper> {
+void InitTargetRegistry(Napi::Env env, Napi::Object& exports);
+
+class TargetWrapper: public Napi::ObjectWrap<TargetWrapper> {
     public:
+    static void Init(Napi::Env env, Napi::Object& exports);
+    explicit TargetWrapper(const Napi::CallbackInfo& info);
 
-    static NAN_MODULE_INIT(Init);
+    static Napi::Object of(Napi::Env env, llvm::Target *target);
 
     private:
-        static NAN_METHOD(lookupTarget);
+    static Napi::FunctionReference constructor;
 
-        TargetRegistryWrapper() = delete;
-};
-
-class TargetWrapper: public Nan::ObjectWrap, public FromValueMixin<TargetWrapper> {
-    public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(const llvm::Target *target);
-
-    private:
     const llvm::Target* target {};
 
-    explicit TargetWrapper(const llvm::Target* target): target { target } {
-        assert(target && "No target pointer passed");
-    }
-
-    static NAN_METHOD(createTargetMachine);
-    static NAN_GETTER(getName);
-    static NAN_GETTER(getShortDescription);
-    static Nan::Persistent<v8::ObjectTemplate> target_template;
+    Napi::Value createTargetMachine(const Napi::CallbackInfo& info);
+    Napi::Value getName(const Napi::CallbackInfo& info);
+    Napi::Value getShortDescription(const Napi::CallbackInfo& info);
 };
 
 #endif

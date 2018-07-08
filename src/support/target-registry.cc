@@ -2,93 +2,119 @@
 #include "target-registry.h"
 #include "../target/target-machine.h"
 
-NAN_METHOD(TargetRegistryWrapper::lookupTarget) {
-    if (info.Length() == 1 && info[0]->IsString()) {
-        std::string triple = ToString(Nan::To<v8::String>(info[0]).ToLocalChecked());
-        std::string error {};
+Napi::Value lookupTarget(const Napi::CallbackInfo &info) {
+    auto env = info.Env();
+    Napi::HandleScope scope { env };
 
-        const llvm::Target* result = llvm::TargetRegistry::lookupTarget(triple, error);
-
-        if (!result) {
-            std::string msg = "Failed to lookup target: " + error;
-            Nan::ThrowError(msg.c_str());
-            return;
-        }
-
-        info.GetReturnValue().Set(TargetWrapper::of(result));
-    } else {
-        Nan::ThrowTypeError("lookupTarget needs to be called with a single string argument");
+    if (info.Length() != 1 || !info[0].IsString()) {
+        throw Napi::TypeError::New(env, "lookupTarget needs to be called with a single string argument");
     }
+
+    std::string triple = info[0].As<Napi::String>();
+    std::string error {};
+
+    const llvm::Target* result = llvm::TargetRegistry::lookupTarget(triple, error);
+
+    if (!result) {
+        std::string msg = "Failed to lookup target: " + error;
+        throw Napi::Error::New(env, msg);
+    }
+
+    return TargetWrapper::of(env, const_cast<llvm::Target*>(result));
 }
 
-NAN_MODULE_INIT(TargetRegistryWrapper::Init) {
-    v8::Local<v8::ObjectTemplate> tpl = Nan::New<v8::ObjectTemplate>();
-    Nan::SetMethod(tpl, "lookupTarget", TargetRegistryWrapper::lookupTarget);
-    
-    Nan::Set(target, Nan::New("TargetRegistry").ToLocalChecked(), tpl->NewInstance());
+void InitTargetRegistry(Napi::Env env, Napi::Object& exports) {
+    Napi::HandleScope scope { env };
+
+    Napi::Object targetRegistry = Napi::Object::New(env);
+    targetRegistry.Set("lookupTarget", Napi::Function::New(env, &lookupTarget));
+
+    exports.Set("TargetRegistry", targetRegistry);
 }
+
+
 
 //--------------------------------------------------------------
 // TargetWrapper
 //--------------------------------------------------------------
 
-Nan::Persistent<v8::ObjectTemplate> TargetWrapper::target_template {};
+Napi::FunctionReference TargetWrapper::constructor;
 
-NAN_MODULE_INIT(TargetWrapper::Init) {
-    v8::Local<v8::ObjectTemplate> tpl = Nan::New<v8::ObjectTemplate>();
-    tpl->SetInternalFieldCount(1);
+void TargetWrapper::Init(Napi::Env env, Napi::Object &exports) {
+    Napi::HandleScope scope { env };
 
-    Nan::SetMethod(tpl, "createTargetMachine", TargetWrapper::createTargetMachine);
-    Nan::SetAccessor(tpl, Nan::New("name").ToLocalChecked(), TargetWrapper::getName);
-    Nan::SetAccessor(tpl, Nan::New("getShortDescription").ToLocalChecked(), TargetWrapper::getShortDescription);
+    Napi::Function func = DefineClass(env, "Target", {
+        InstanceMethod("createTargetMachine", &TargetWrapper::createTargetMachine),
+        InstanceAccessor("name", &TargetWrapper::getName, nullptr),
+        InstanceAccessor("shortDescription", &TargetWrapper::getShortDescription, nullptr)
+    });
 
-    target_template.Reset(tpl);
+    constructor = Persistent(func);
+    constructor.SuppressDestruct();
+
+    exports.Set("Target", func);
 }
 
-NAN_METHOD(TargetWrapper::createTargetMachine) {
-    if (info.Length() < 2 || !info[0]->IsString() || !info[1]->IsString()) {
-        return Nan::ThrowError("Function needs to be called at least with the arguments: triple: string, cpu: string.");
+Napi::Object TargetWrapper::of(Napi::Env env, llvm::Target *target) {
+    Napi::Object result = constructor.New({Napi::External<llvm::Target>::New(env, target)});
+
+    Napi::EscapableHandleScope escapeScope{env};
+    return escapeScope.Escape(result).ToObject();
+}
+
+TargetWrapper::TargetWrapper(const Napi::CallbackInfo &info): Napi::ObjectWrap<TargetWrapper> { info } {
+    auto env = info.Env();
+    Napi::HandleScope scope { env };
+    auto argsLength = info.Length();
+
+    if (!info.IsConstructCall()) {
+        throw Napi::TypeError::New(env, "Target constructor needs to be called with new");
     }
 
-    std::string targetTriple = ToString(Nan::To<v8::String>(info[0]).ToLocalChecked());
-    std::string cpu = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
+    if (!argsLength < 0 || !info[0].IsExternal()) {
+        throw Napi::TypeError::New(env, "Target constructor needs to be called with a pointer to a target");
+    }
+
+    auto external = info[0].As<Napi::External<llvm::Target>>();
+    this->target = external.Data();
+}
+
+
+Napi::Value TargetWrapper::createTargetMachine(const Napi::CallbackInfo &info) {
+    auto env = info.Env();
+    Napi::HandleScope scope { env };
+
+    if (info.Length() < 2 || !info[0].IsString() || !info[1].IsString()) {
+        throw Napi::TypeError::New(env, "Function needs to be called at least with the arguments: triple: string, cpu: string.");
+    }
+
+    std::string targetTriple = info[0].As<Napi::String>();
+    std::string cpu = info[1].As<Napi::String>();
     std::string features {};
 
     if (info.Length() > 2) {
-        if (info[2]->IsString()) {
-            features = ToString(Nan::To<v8::String>(info[2]).ToLocalChecked());
+        if (info[2].IsString()) {
+            features = info[2].As<Napi::String>();
         } else {
-            return Nan::ThrowError("The 3th argument of createTargetMachine needs to be a string");
+            throw Napi::TypeError::New(env, "The 3th argument of createTargetMachine needs to be a string");
         }
     }
 
     llvm::TargetOptions options {};
-    TargetWrapper* wrapper = TargetWrapper::FromValue(info.Holder());
-
-    auto* targetMachinePtr = wrapper->target->createTargetMachine(targetTriple, cpu, features, options, llvm::Optional<llvm::Reloc::Model> {});
-    info.GetReturnValue().Set(TargetMachineWrapper::of(targetMachinePtr));
+    auto* targetMachinePtr = target->createTargetMachine(targetTriple, cpu, features, options, llvm::Optional<llvm::Reloc::Model> {});
+    return TargetMachineWrapper::of(env, targetMachinePtr);
 }
 
-NAN_GETTER(TargetWrapper::getName) {
-    TargetWrapper* wrapper = TargetWrapper::FromValue(info.Holder());
-    auto result = v8::String::NewFromUtf8(info.GetIsolate(), wrapper->target->getName());
-    info.GetReturnValue().Set(result);
+Napi::Value TargetWrapper::getName(const Napi::CallbackInfo& info) {
+    auto env = info.Env();
+    Napi::HandleScope scope { env };
+
+    return Napi::String::New(env, target->getName());
 }
 
-NAN_GETTER(TargetWrapper::getShortDescription) {
-    TargetWrapper* wrapper = TargetWrapper::FromValue(info.Holder());
-    auto result = v8::String::NewFromUtf8(info.GetIsolate(), wrapper->target->getShortDescription());
-    info.GetReturnValue().Set(result);
-}
+Napi::Value TargetWrapper::getShortDescription(const Napi::CallbackInfo &info) {
+    auto env = info.Env();
+    Napi::HandleScope scope { env };
 
-v8::Local<v8::Object> TargetWrapper::of(const llvm::Target *llvmTarget) {
-    Nan::EscapableHandleScope escapeScope {};
-
-    v8::Local<v8::ObjectTemplate> tpl = Nan::New(target_template);
-    auto object = Nan::NewInstance(tpl).ToLocalChecked();
-
-    auto wrapper = new TargetWrapper { llvmTarget };
-    wrapper->Wrap(object);
-
-    return escapeScope.Escape(object);
+    return Napi::String::New(env, target->getShortDescription());
 }

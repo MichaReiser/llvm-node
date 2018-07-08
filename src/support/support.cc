@@ -1,52 +1,34 @@
 #include <llvm/Support/TargetSelect.h>
 #include "support.h"
+#include "target-registry.h"
 
-NAN_METHOD(InitializeAllTargetInfos) {
+void InitializeAllTargetInfos(const Napi::CallbackInfo &info) {
     llvm::InitializeAllTargetInfos();
 }
 
-NAN_METHOD(InitializeAllTargets) {
+void InitializeAllTargets(const Napi::CallbackInfo &info) {
     llvm::InitializeAllTargets();
 }
 
-NAN_METHOD(InitializeAllTargetMCs) {
+void InitializeAllTargetMCs(const Napi::CallbackInfo &info) {
     llvm::InitializeAllTargetMCs();
 }
 
-NAN_METHOD(InitializeAllAsmParsers) {
+void InitializeAllAsmParsers(const Napi::CallbackInfo &info) {
     llvm::InitializeAllAsmParsers();
 }
 
-NAN_METHOD(InitializeAllAsmPrinters) {
+void InitializeAllAsmPrinters(const Napi::CallbackInfo &info) {
     llvm::InitializeAllAsmPrinters();
 }
 
-NAN_MODULE_INIT(InitSupport) {
-    Nan::Set(target, 
-        Nan::New<v8::String>("initializeAllTargetInfos").ToLocalChecked(),
-        Nan::GetFunction(Nan::New<v8::FunctionTemplate>(InitializeAllTargetInfos)).ToLocalChecked()
-    );
+void InitSupport(Napi::Env env, Napi::Object& exports) {
+    exports.Set(Napi::String::New(env, "initializeAllTargetInfos"), Napi::Function::New(env, InitializeAllTargetInfos));
+    exports.Set(Napi::String::New(env, "initializeAllTargets"), Napi::Function::New(env, InitializeAllTargets));
+    exports.Set(Napi::String::New(env, "initializeAllTargetMCs"), Napi::Function::New(env, InitializeAllTargetMCs));
+    exports.Set(Napi::String::New(env, "initializeAllAsmParsers"), Napi::Function::New(env, InitializeAllAsmParsers));
+    exports.Set(Napi::String::New(env, "initializeAllAsmPrinters"), Napi::Function::New(env, InitializeAllAsmPrinters));
 
-    Nan::Set(target, 
-        Nan::New<v8::String>("initializeAllTargets").ToLocalChecked(),
-        Nan::GetFunction(Nan::New<v8::FunctionTemplate>(InitializeAllTargets)).ToLocalChecked()
-    );
-
-     Nan::Set(target, 
-        Nan::New<v8::String>("initializeAllTargetMCs").ToLocalChecked(),
-        Nan::GetFunction(Nan::New<v8::FunctionTemplate>(InitializeAllTargetMCs)).ToLocalChecked()
-    );
-
-     Nan::Set(target, 
-        Nan::New<v8::String>("initializeAllAsmParsers").ToLocalChecked(),
-        Nan::GetFunction(Nan::New<v8::FunctionTemplate>(InitializeAllAsmParsers)).ToLocalChecked()
-    );
-
-     Nan::Set(target, 
-        Nan::New<v8::String>("initializeAllAsmPrinters").ToLocalChecked(),
-        Nan::GetFunction(Nan::New<v8::FunctionTemplate>(InitializeAllAsmPrinters)).ToLocalChecked()
-    );
-
-    TargetRegistryWrapper::Init(target);
-    TargetWrapper::Init(target);
+    InitTargetRegistry(env, exports);
+    TargetWrapper::Init(env, exports);
 }

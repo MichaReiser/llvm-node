@@ -5,11 +5,11 @@
 #ifndef LLVM_NODE_TARGET_H
 #define LLVM_NODE_TARGET_H
 
-#include <nan.h>
+#include <napi.h>
 #include "target-machine.h"
 
-NAN_MODULE_INIT(InitTarget) {
-    TargetMachineWrapper::Init(target);
+void InitTarget(Napi::Env env, Napi::Object& exports) {
+    TargetMachineWrapper::Init(env, exports);
 }
 
 #endif //LLVM_NODE_TARGET_H
