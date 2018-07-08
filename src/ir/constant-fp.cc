@@ -65,10 +65,7 @@ llvm::ConstantFP *ConstantFPWrapper::getConstantFP() {
 v8::Local<v8::Object> ConstantFPWrapper::of(llvm::ConstantFP *constantFP) {
     auto constructorFunction = Nan::GetFunction(Nan::New(constantFpTemplate())).ToLocalChecked();
     v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantFP) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScpoe {};
-    return escapeScpoe.Escape(instance);
+    return Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
 }
 
 Nan::Persistent<v8::FunctionTemplate>& ConstantFPWrapper::constantFpTemplate() {

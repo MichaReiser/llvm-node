@@ -68,10 +68,7 @@ v8::Local<v8::Object> FunctionWrapper::of(llvm::Function *function) {
 
     v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(function) };
 
-    v8::Local<v8::Object> instance = Nan::NewInstance(constructor, 1, args ).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScope {};
-    return escapeScope.Escape(instance);
+    return Nan::NewInstance(constructor, 1, args ).ToLocalChecked();
 }
 
 NAN_METHOD(FunctionWrapper::Create) {

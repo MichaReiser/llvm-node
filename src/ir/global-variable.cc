@@ -16,9 +16,7 @@ v8::Local<v8::Object> GlobalVariableWrapper::of(llvm::GlobalVariable* variable) 
     auto constructor = Nan::GetFunction(Nan::New(globalVariableTemplate())).ToLocalChecked();
     v8::Local<v8::Value> args[1] = { Nan::New<v8::External> (variable) };
 
-    auto instance = Nan::NewInstance(constructor, 1, args).ToLocalChecked();
-    Nan::EscapableHandleScope escapeHandleScope {};
-    return escapeHandleScope.Escape(instance);
+    return Nan::NewInstance(constructor, 1, args).ToLocalChecked();
 }
 
 llvm::GlobalVariable* GlobalVariableWrapper::getGlobalVariable() {

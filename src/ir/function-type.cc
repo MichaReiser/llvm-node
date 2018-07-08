@@ -32,14 +32,10 @@ llvm::FunctionType *FunctionTypeWrapper::getFunctionType() {
 }
 
 v8::Local<v8::Object> FunctionTypeWrapper::Create(llvm::FunctionType *functionType) {
-    Nan::EscapableHandleScope escapeScope {};
-
     v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New(functionTypeTemplate());
     auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
     v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(functionType) };
-    v8::Local<v8::Object> object = Nan::NewInstance(constructorFunction, 1, argv).ToLocalChecked();
-
-    return escapeScope.Escape(object);
+    return Nan::NewInstance(constructorFunction, 1, argv).ToLocalChecked();
 }
 
 

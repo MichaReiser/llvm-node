@@ -139,12 +139,8 @@ llvm::Argument *ArgumentWrapper::getArgument() {
 }
 
 v8::Local<v8::Object> ArgumentWrapper::of(llvm::Argument *argument) {
-    Nan::EscapableHandleScope escapeScope {};
-
     auto functionTemplate = Nan::New(argumentTemplate());
     auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
     v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(argument) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    return escapeScope.Escape(instance);
+    return Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
 }

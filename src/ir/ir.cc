@@ -8,8 +8,9 @@
 //#include "ir-builder.h"
 #include "module.h"
 #include "llvm-context.h"
-//#include "type.h"
+#include "type.h"
 #include "value.h"
+#include "constant.h"
 //#include "function.h"
 //#include "linkage-types.h"
 //#include "argument.h"
@@ -17,7 +18,7 @@
 //#include "phi-node.h"
 //#include "verifier.h"
 //#include "alloca-inst.h"
-//#include "pointer-type.h"
+#include "pointer-type.h"
 //#include "array-type.h"
 //#include "calling-conv.h"
 //#include "call-inst.h"
@@ -44,7 +45,7 @@ void InitIr(Napi::Env env, Napi::Object& exports) {
 //    InitCallingConv(target);
 //    InitUnnamedAddr(target);
 //    CallInstWrapper::Init(target);
-//    ConstantWrapper::Init(target);
+    ConstantWrapper::Init(env, exports);
 //    ConstantArrayWrapper::Init(target);
 //    ConstantDataArrayWrapper::Init(target);
 //    ConstantFPWrapper::Init(target);
@@ -59,9 +60,9 @@ void InitIr(Napi::Env env, Napi::Object& exports) {
     ModuleWrapper::Init(env, exports);
     LLVMContextWrapper::Init(env, exports);
 //    PhiNodeWrapper::Init(target);
-//    PointerTypeWrapper::Init(target);
+    PointerTypeWrapper::Init(env, exports);
 //    StructTypeWrapper::Init(target);
-//    TypeWrapper::Init(target);
+    TypeWrapper::Init(env, exports);
 //    UndefValueWrapper::Init(target);
     ValueWrapper::Init(env, exports);
 //    InitVerifier(target);

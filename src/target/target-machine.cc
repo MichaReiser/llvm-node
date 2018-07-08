@@ -8,8 +8,6 @@
 Napi::FunctionReference TargetMachineWrapper::constructor;
 
 void TargetMachineWrapper::Init(Napi::Env env, Napi::Object& exports) {
-    Napi::HandleScope scope { env };
-
     Napi::Function func = DefineClass(env, "TargetMachine", {
     });
 
@@ -20,10 +18,7 @@ void TargetMachineWrapper::Init(Napi::Env env, Napi::Object& exports) {
 }
 
 Napi::Object TargetMachineWrapper::of(Napi::Env env, llvm::TargetMachine* targetMachine) {
-    Napi::Object result = constructor.New({Napi::External<llvm::TargetMachine>::New(env, targetMachine)});
-
-    Napi::EscapableHandleScope escapeScope{env};
-    return escapeScope.Escape(result).ToObject();
+    return constructor.New({Napi::External<llvm::TargetMachine>::New(env, targetMachine)});
 }
 
 bool TargetMachineWrapper::isInstanceOfType(const Napi::Value &value) {
@@ -32,7 +27,6 @@ bool TargetMachineWrapper::isInstanceOfType(const Napi::Value &value) {
 
 TargetMachineWrapper::TargetMachineWrapper(const Napi::CallbackInfo &info): Napi::ObjectWrap<TargetMachineWrapper>{info} {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope { env };
     size_t argsLength = info.Length();
 
     if (!info.IsConstructCall()) {

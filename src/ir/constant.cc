@@ -4,130 +4,114 @@
 
 #include <llvm/IR/Function.h>
 #include "constant.h"
-#include "type.h"
-#include "function.h"
-#include "pointer-type.h"
-#include "../util/array.h"
-#include "../util/string.h"
-#include "constant-fp.h"
-#include "constant-int.h"
-#include "constant-data-array.h"
-#include "constant-pointer-null.h"
-#include "global-variable.h"
-#include "constant-struct.h"
-#include "constant-array.h"
-#include "undef-value.h"
 
-NAN_MODULE_INIT(ConstantWrapper::Init) {
-    auto constant = Nan::GetFunction(Nan::New(constantTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("Constant").ToLocalChecked(), constant);
+Napi::FunctionReference ConstantWrapper::constructor;
+
+void ConstantWrapper::Init(Napi::Env env, Napi::Object &exports){
+    Napi::HandleScope scope { env };
+
+    Napi::Function func = DefineClass(env, "Constant", {
+        StaticMethod("getNullValue", ConstantWrapper::getNullValue),
+        StaticMethod("getAllOnesValue", ConstantWrapper::getAllOnesValue),
+        InstanceMethod("isNullValue", &ConstantWrapper::isNullValue),
+        InstanceMethod("isOneValue", &ConstantWrapper::isOneValue),
+        InstanceMethod("isAllOnesValue", &ConstantWrapper::isAllOnesValue)
+    });
+
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+
+    exports.Set("Constant", func);
 }
 
-v8::Local<v8::Object> ConstantWrapper::of(llvm::Constant *constant) {
-    v8::Local<v8::Object> result;
+ConstantWrapper::ConstantWrapper(const Napi::CallbackInfo &info) : Napi::ObjectWrap<ConstantWrapper> { info } {
+    auto env = info.Env();
 
-    if (llvm::Function::classof(constant)) {
-        result = FunctionWrapper::of(static_cast<llvm::Function*>(constant));
-    } else if (llvm::ConstantFP::classof(constant)) {
-        result = ConstantFPWrapper::of(static_cast<llvm::ConstantFP*>(constant));
-    } else if (llvm::ConstantInt::classof(constant)) {
-        result = ConstantIntWrapper::of(static_cast<llvm::ConstantInt*>(constant));
-    } else if (llvm::ConstantPointerNull::classof(constant)) {
-        result = ConstantPointerNullWrapper::of(static_cast<llvm::ConstantPointerNull*>(constant));
-    } else if (llvm::ConstantDataArray::classof(constant)) {
-        result = ConstantDataArrayWrapper::of(static_cast<llvm::ConstantDataArray*>(constant));
-    } else if (llvm::GlobalVariable::classof(constant)) {
-        result = GlobalVariableWrapper::of(static_cast<llvm::GlobalVariable*>(constant));
-    } else if (llvm::ConstantStruct::classof(constant)) {
-        result = ConstantStructWrapper::of(static_cast<llvm::ConstantStruct*>(constant));
-    } else if (llvm::ConstantArray::classof(constant)) {
-        result = ConstantArrayWrapper::of(static_cast<llvm::ConstantArray*>(constant));
-    } else if (llvm::UndefValue::classof(constant)) {
-        result = UndefValueWrapper::of(static_cast<llvm::UndefValue*>(constant));
-    } else {
-        auto constructorFunction = Nan::GetFunction(Nan::New(constantTemplate())).ToLocalChecked();
-        v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(constant) };
-        result = Nan::NewInstance(constructorFunction, 1, argv).ToLocalChecked();
-    }
-
-    Nan::EscapableHandleScope escapeScope {};
-    return escapeScope.Escape(result);
-}
-
-NAN_METHOD(ConstantWrapper::New) {
     if (!info.IsConstructCall()) {
-        return Nan::ThrowTypeError("Class Constructor Constant cannot be invoked without new");
+        throw Napi::TypeError::New(env, "Class Constructor Constant cannot be invoked without new");
     }
 
-    if (info.Length() != 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("Constant constructor requires: constant: External");
+    if (info.Length() != 1 || !info[0].IsExternal()) {
+        throw Napi::TypeError::New(env, "Constant constructor requires: constant: External");
     }
 
-    auto* constant = static_cast<llvm::Constant*>(v8::External::Cast(*info[0])->Value());
-    auto* wrapper = new ConstantWrapper { constant };
-    wrapper->Wrap(info.This());
-
-    info.GetReturnValue().Set(info.This());
+    auto external = info[0].As<Napi::External<llvm::Constant>>();
+    constant = external.Data();
 }
 
-NAN_METHOD(ConstantWrapper::getNullValue) {
-    if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("getNullValue needs to be called with: type: Type");
-    }
+Napi::Object ConstantWrapper::of(Napi::Env env, llvm::Constant *constant) {
+    Napi::Object result;
 
-    auto* type = TypeWrapper::FromValue(info[0])->getType();
-    auto* constant = llvm::Constant::getNullValue(type);
+//    TODO uncomment when time has come
+//    if (llvm::Function::classof(constant)) {
+//        result = FunctionWrapper::of(static_cast<llvm::Function*>(constant));
+//    } else if (llvm::ConstantFP::classof(constant)) {
+//        result = ConstantFPWrapper::of(static_cast<llvm::ConstantFP*>(constant));
+//    } else if (llvm::ConstantInt::classof(constant)) {
+//        result = ConstantIntWrapper::of(static_cast<llvm::ConstantInt*>(constant));
+//    } else if (llvm::ConstantPointerNull::classof(constant)) {
+//        result = ConstantPointerNullWrapper::of(static_cast<llvm::ConstantPointerNull*>(constant));
+//    } else if (llvm::ConstantDataArray::classof(constant)) {
+//        result = ConstantDataArrayWrapper::of(static_cast<llvm::ConstantDataArray*>(constant));
+//    } else if (llvm::GlobalVariable::classof(constant)) {
+//        result = GlobalVariableWrapper::of(static_cast<llvm::GlobalVariable*>(constant));
+//    } else if (llvm::ConstantStruct::classof(constant)) {
+//        result = ConstantStructWrapper::of(static_cast<llvm::ConstantStruct*>(constant));
+//    } else if (llvm::ConstantArray::classof(constant)) {
+//        result = ConstantArrayWrapper::of(static_cast<llvm::ConstantArray*>(constant));
+//    } else if (llvm::UndefValue::classof(constant)) {
+//        result = UndefValueWrapper::of(static_cast<llvm::UndefValue*>(constant));
+//    } else {
+        result = ConstantWrapper::constructor.New({ Napi::External<llvm::Constant>::New(env, constant)});
+//    }
 
-    info.GetReturnValue().Set(ConstantWrapper::of(constant));
+    return result;
 }
 
-NAN_METHOD(ConstantWrapper::getAllOnesValue) {
-    if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("getAllOnesValue needs to be called with: type: Type");
-    }
+Napi::Value ConstantWrapper::getNullValue(const Napi::CallbackInfo &info){
+//    TODO uncomment when type wrapper is migrated
+//    if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
+//        return Nan::ThrowTypeError("getNullValue needs to be called with: type: Type");
+//    }
 
-    auto* type = TypeWrapper::FromValue(info[0])->getType();
-    auto* constant = llvm::Constant::getAllOnesValue(type);
+//    auto* type = TypeWrapper::FromValue(info[0])->getType();
+//    auto* constant = llvm::Constant::getNullValue(type);
+//    return ConstantWrapper::of(info.Env(), constant):
 
-    info.GetReturnValue().Set(ConstantWrapper::of(constant));
+    return info.Env().Undefined();
 }
 
-NAN_METHOD(ConstantWrapper::isNullValue) {
-    auto* wrapper = ConstantWrapper::FromValue(info.Holder());
-    info.GetReturnValue().Set(Nan::New(wrapper->getConstant()->isNullValue()));
+Napi::Value ConstantWrapper::getAllOnesValue(const Napi::CallbackInfo &info){
+//    TODO uncomment when type wrapper is migrated
+//    if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
+//        return Nan::ThrowTypeError("getAllOnesValue needs to be called with: type: Type");
+//    }
+//
+//    auto* type = TypeWrapper::FromValue(info[0])->getType();
+//    auto* constant = llvm::Constant::getAllOnesValue(type);
+//    return ConstantWrapper::of(info.Env(), constant);
+    return info.Env().Undefined();
 }
 
-NAN_METHOD(ConstantWrapper::isOneValue) {
-    auto* wrapper = ConstantWrapper::FromValue(info.Holder());
-    info.GetReturnValue().Set(Nan::New(wrapper->getConstant()->isOneValue()));
+Napi::Value ConstantWrapper::isNullValue(const Napi::CallbackInfo &info){
+    auto env = info.Env();
+
+    return Napi::Boolean::New(env, constant->isNullValue());
 }
 
-NAN_METHOD(ConstantWrapper::isAllOnesValue) {
-    auto* wrapper = ConstantWrapper::FromValue(info.Holder());
-    info.GetReturnValue().Set(Nan::New(wrapper->getConstant()->isAllOnesValue()));
+Napi::Value ConstantWrapper::isOneValue(const Napi::CallbackInfo &info){
+    auto env = info.Env();
+
+    return Napi::Boolean::New(env, constant->isOneValue());
 }
 
-Nan::Persistent<v8::FunctionTemplate>& ConstantWrapper::constantTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+Napi::Value ConstantWrapper::isAllOnesValue(const Napi::CallbackInfo &info){
+    auto env = info.Env();
 
-    if (functionTemplate.IsEmpty()) {
-        v8::Local<v8::FunctionTemplate> localTemplate = Nan::New<v8::FunctionTemplate>(ConstantWrapper::New);
-        localTemplate->SetClassName(Nan::New("Constant").ToLocalChecked());
-        localTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        localTemplate->Inherit(Nan::New(ValueWrapper::valueTemplate()));
-
-        Nan::SetMethod(localTemplate, "getNullValue", ConstantWrapper::getNullValue);
-        Nan::SetMethod(localTemplate, "getAllOnesValue", ConstantWrapper::getAllOnesValue);
-        Nan::SetPrototypeMethod(localTemplate, "isNullValue", ConstantWrapper::isNullValue);
-        Nan::SetPrototypeMethod(localTemplate, "isOneValue", ConstantWrapper::isOneValue);
-        Nan::SetPrototypeMethod(localTemplate, "isAllOnesValue", ConstantWrapper::isAllOnesValue);
-
-        functionTemplate.Reset(localTemplate);
-    }
-
-    return functionTemplate;
+    return Napi::Boolean::New(env, constant->isAllOnesValue());
 }
+
 
 llvm::Constant *ConstantWrapper::getConstant() {
-    return static_cast<llvm::Constant*>(getValue());
+    return constant;
 }

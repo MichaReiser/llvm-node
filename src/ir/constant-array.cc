@@ -14,10 +14,7 @@ v8::Local<v8::Object> ConstantArrayWrapper::of(llvm::ConstantArray* constantArra
     auto constructorFunction = Nan::GetFunction(Nan::New(constantArrayTemplate())).ToLocalChecked();
     v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantArray)};
 
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapableHandleScope {};
-    return escapableHandleScope.Escape(instance);
+    return Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
 }
 
 Nan::Persistent<v8::FunctionTemplate>& ConstantArrayWrapper::constantArrayTemplate() {

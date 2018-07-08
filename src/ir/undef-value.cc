@@ -44,10 +44,7 @@ llvm::UndefValue* UndefValueWrapper::getUndefValue() {
 v8::Local<v8::Object> UndefValueWrapper::of(llvm::UndefValue* undefValue) {
     auto constructorFunction = Nan::GetFunction(Nan::New(undefValueTemplate())).ToLocalChecked();
     v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(undefValue) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScpoe {};
-    return escapeScpoe.Escape(instance);
+    return Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
 }
 
 Nan::Persistent<v8::FunctionTemplate>& UndefValueWrapper::undefValueTemplate() {

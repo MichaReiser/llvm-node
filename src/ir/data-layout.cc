@@ -15,8 +15,7 @@ v8::Local<v8::Object> DataLayoutWrapper::of(llvm::DataLayout layout) {
     DataLayoutWrapper* wrapper = new DataLayoutWrapper(layout);
     wrapper->Wrap(object);
 
-    Nan::EscapableHandleScope escapeScope {};
-    return escapeScope.Escape(object);
+    return object;
 }
 
 NAN_MODULE_INIT(DataLayoutWrapper::Init) {

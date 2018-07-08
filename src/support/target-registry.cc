@@ -4,7 +4,6 @@
 
 Napi::Value lookupTarget(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     if (info.Length() != 1 || !info[0].IsString()) {
         throw Napi::TypeError::New(env, "lookupTarget needs to be called with a single string argument");
@@ -24,8 +23,6 @@ Napi::Value lookupTarget(const Napi::CallbackInfo &info) {
 }
 
 void InitTargetRegistry(Napi::Env env, Napi::Object& exports) {
-    Napi::HandleScope scope { env };
-
     Napi::Object targetRegistry = Napi::Object::New(env);
     targetRegistry.Set("lookupTarget", Napi::Function::New(env, &lookupTarget));
 
@@ -41,8 +38,6 @@ void InitTargetRegistry(Napi::Env env, Napi::Object& exports) {
 Napi::FunctionReference TargetWrapper::constructor;
 
 void TargetWrapper::Init(Napi::Env env, Napi::Object &exports) {
-    Napi::HandleScope scope { env };
-
     Napi::Function func = DefineClass(env, "Target", {
         InstanceMethod("createTargetMachine", &TargetWrapper::createTargetMachine),
         InstanceAccessor("name", &TargetWrapper::getName, nullptr),
@@ -56,15 +51,11 @@ void TargetWrapper::Init(Napi::Env env, Napi::Object &exports) {
 }
 
 Napi::Object TargetWrapper::of(Napi::Env env, llvm::Target *target) {
-    Napi::Object result = constructor.New({Napi::External<llvm::Target>::New(env, target)});
-
-    Napi::EscapableHandleScope escapeScope{env};
-    return escapeScope.Escape(result).ToObject();
+    return constructor.New({Napi::External<llvm::Target>::New(env, target)});
 }
 
 TargetWrapper::TargetWrapper(const Napi::CallbackInfo &info): Napi::ObjectWrap<TargetWrapper> { info } {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
     auto argsLength = info.Length();
 
     if (!info.IsConstructCall()) {
@@ -82,7 +73,6 @@ TargetWrapper::TargetWrapper(const Napi::CallbackInfo &info): Napi::ObjectWrap<T
 
 Napi::Value TargetWrapper::createTargetMachine(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     if (info.Length() < 2 || !info[0].IsString() || !info[1].IsString()) {
         throw Napi::TypeError::New(env, "Function needs to be called at least with the arguments: triple: string, cpu: string.");
@@ -107,14 +97,12 @@ Napi::Value TargetWrapper::createTargetMachine(const Napi::CallbackInfo &info) {
 
 Napi::Value TargetWrapper::getName(const Napi::CallbackInfo& info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     return Napi::String::New(env, target->getName());
 }
 
 Napi::Value TargetWrapper::getShortDescription(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     return Napi::String::New(env, target->getShortDescription());
 }

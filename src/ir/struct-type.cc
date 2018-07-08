@@ -13,10 +13,7 @@ NAN_MODULE_INIT(StructTypeWrapper::Init) {
 v8::Local<v8::Object> StructTypeWrapper::of(llvm::StructType *type) {
     auto constructorFunction = Nan::GetFunction(Nan::New(structTypeTemplate())).ToLocalChecked();
     v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(type) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScope {};
-    return escapeScope.Escape(instance);
+    return Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
 }
 
 bool StructTypeWrapper::isInstance(v8::Local<v8::Value> value) {

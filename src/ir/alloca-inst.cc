@@ -13,10 +13,7 @@ NAN_MODULE_INIT(AllocaInstWrapper::Init) {
 v8::Local<v8::Object> AllocaInstWrapper::of(llvm::AllocaInst* inst) {
     auto constructorFunction = Nan::GetFunction(Nan::New(allocaInstTemplate())).ToLocalChecked();
     v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(inst) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScope {};
-    return escapeScope.Escape(instance);
+    return Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
 }
 
 llvm::AllocaInst* AllocaInstWrapper::getAllocaInst() {

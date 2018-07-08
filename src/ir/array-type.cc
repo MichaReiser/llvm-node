@@ -13,10 +13,7 @@ v8::Local<v8::Object> ArrayTypeWrapper::of(llvm::ArrayType* arrayType) {
     auto constructorFunction = Nan::GetFunction(Nan::New(arrayTypeTemplate())).ToLocalChecked();
     v8::Local<v8::Value> args[1] = { Nan::New<v8::External> (arrayType) };
 
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScope {};
-    return escapeScope.Escape(instance);
+    return Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
 }
 
 bool ArrayTypeWrapper::isInstance(v8::Local<v8::Value> value) {

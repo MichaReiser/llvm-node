@@ -9,8 +9,6 @@
 Napi::FunctionReference ValueWrapper::constructor;
 
 void ValueWrapper::Init(Napi::Env env, Napi::Object &exports){
-    Napi::HandleScope scope { env };
-
     Napi::Function func = DefineClass(env, "Value", {
         InstanceMethod("hasName", &ValueWrapper::hasName),
         InstanceAccessor("type", &ValueWrapper::getType, nullptr),
@@ -63,8 +61,7 @@ Napi::Value ValueWrapper::of(Napi::Env env, llvm::Value *value)
         result = constructor.New({ Napi::External<llvm::Value>::New(env, value) });
 //    }
 
-    Napi::EscapableHandleScope escapeScope { env };
-    return escapeScope.Escape(result);
+    return result;
 }
 
 bool ValueWrapper::isInstanceOfType(Napi::Value value)
@@ -97,7 +94,6 @@ void ValueWrapper::dump(const Napi::CallbackInfo &info) {
 
 Napi::Value ValueWrapper::getType(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
     auto* type = value->getType();
 
 //    TODO uncomment when type wrapper is migrated
@@ -108,22 +104,16 @@ Napi::Value ValueWrapper::getType(const Napi::CallbackInfo &info) {
 
 Napi::Value ValueWrapper::hasName(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
-
     return Napi::Boolean::New(env, value->hasName());
 }
 
 Napi::Value ValueWrapper::getName(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
-
     return Napi::String::New(env, value->getName());
 }
 
 void ValueWrapper::setName(const Napi::CallbackInfo &info, const Napi::Value &value) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
-
     if (!value.IsString())
     {
         throw Napi::TypeError::New(env, "name needs to be a string");
@@ -143,7 +133,6 @@ void ValueWrapper::deleteValue(const Napi::CallbackInfo &info) {
 
 void ValueWrapper::replaceAllUsesWith(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     if (info.Length() != 1 || !ValueWrapper::isInstanceOfType(info[0]))
     {
@@ -158,7 +147,6 @@ void ValueWrapper::replaceAllUsesWith(const Napi::CallbackInfo &info) {
 
 Napi::Value ValueWrapper::useEmpty(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     return Napi::Boolean::New(env, value->use_empty());
 }

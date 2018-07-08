@@ -44,10 +44,7 @@ llvm::ConstantPointerNull *ConstantPointerNullWrapper::getConstantPointerNull() 
 v8::Local<v8::Object> ConstantPointerNullWrapper::of(llvm::ConstantPointerNull *constantPointerNull) {
     auto constructorFunction = Nan::GetFunction(Nan::New(constantPointerNullTemplate())).ToLocalChecked();
     v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantPointerNull) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScpoe {};
-    return escapeScpoe.Escape(instance);
+    return Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
 }
 
 Nan::Persistent<v8::FunctionTemplate>& ConstantPointerNullWrapper::constantPointerNullTemplate() {

@@ -15,10 +15,7 @@ v8::Local<v8::Object> ConstantStructWrapper::of(llvm::ConstantStruct* constantSt
     auto constructor = Nan::GetFunction(Nan::New(constantStructTemplate())).ToLocalChecked();
     v8::Local<v8::Value> args[1] = { Nan::New<v8::External> (constantStruct) };
 
-    auto instance = Nan::NewInstance(constructor, 1, args).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapableHandleScope {};
-    return escapableHandleScope.Escape(instance);
+    return Nan::NewInstance(constructor, 1, args).ToLocalChecked();
 }
 
 llvm::ConstantStruct* ConstantStructWrapper::getConstantStruct() {

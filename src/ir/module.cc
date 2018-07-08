@@ -9,8 +9,6 @@
 Napi::FunctionReference ModuleWrapper::constructor;
 
 void ModuleWrapper::Init(Napi::Env env, Napi::Object &exports) {
-    Napi::HandleScope scope { env };
-
     Napi::Function func = DefineClass(env, "Module", {
         InstanceAccessor("empty", &ModuleWrapper::empty, nullptr),
         InstanceMethod("getFunction", &ModuleWrapper::getFunction),
@@ -40,8 +38,6 @@ bool ModuleWrapper::isInstanceOfType(const Napi::Value &value) {
 
 ModuleWrapper::ModuleWrapper(const Napi::CallbackInfo &info): Napi::ObjectWrap<ModuleWrapper> { info } {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
-
     if (!info.IsConstructCall()) {
         throw Napi::TypeError::New(env, "Module constructor needs to be called with new");
     }
@@ -63,14 +59,11 @@ void ModuleWrapper::dump(const Napi::CallbackInfo& info) {
 
 Napi::Value ModuleWrapper::empty(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
-
     return Napi::Boolean::New(env, module->empty());
 }
 
 Napi::Value ModuleWrapper::getFunction(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     if (info.Length() != 1 || !info[0].IsString()) {
         throw Napi::TypeError::New(env, "getFunction needs to be called with: name: string");
@@ -89,7 +82,6 @@ Napi::Value ModuleWrapper::getFunction(const Napi::CallbackInfo &info) {
 
 Napi::Value ModuleWrapper::getOrInsertFunction(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
 
 //    TODO uncomment when FunctionType and Constant is migrated
@@ -105,7 +97,6 @@ Napi::Value ModuleWrapper::getOrInsertFunction(const Napi::CallbackInfo &info) {
 
 Napi::Value ModuleWrapper::getGlobalVariable(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     if (info.Length() < 1 || !info[0].IsString() ||
         (info.Length() == 2 && !info[1].IsBoolean()) ||
@@ -131,7 +122,6 @@ Napi::Value ModuleWrapper::getGlobalVariable(const Napi::CallbackInfo &info) {
 
 Napi::Value ModuleWrapper::getTypeByName(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     if (info.Length() < 1 || !info[0].IsString()) {
         throw Napi::TypeError::New(env, "getTypeByName needs to be called with: name: string");
@@ -150,14 +140,12 @@ Napi::Value ModuleWrapper::getTypeByName(const Napi::CallbackInfo &info) {
 
 Napi::Value ModuleWrapper::getName(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     return Napi::String::New(env, module->getName());
 }
 
 Napi::Value ModuleWrapper::getDataLayout(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
     auto dataLayout = module->getDataLayout();
 //    TODO uncomment when data layout has been migrated
 //    return DataLayoutWrapper::of(dataLayout);
@@ -167,7 +155,6 @@ Napi::Value ModuleWrapper::getDataLayout(const Napi::CallbackInfo &info) {
 
 void ModuleWrapper::setDataLayout(const Napi::CallbackInfo &info, const Napi::Value &value) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
 //    TODO uncomment when data layout wrapper has been migrated
 //    if (!DataLayoutWrapper::isInstance(value)) {
@@ -180,14 +167,12 @@ void ModuleWrapper::setDataLayout(const Napi::CallbackInfo &info, const Napi::Va
 
 Napi::Value ModuleWrapper::getModuleIdentifier(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     return Napi::String::New(env, module->getModuleIdentifier());
 }
 
 void ModuleWrapper::setModuleIdentifier(const Napi::CallbackInfo &info, const Napi::Value &value) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     if (!value.IsString()) {
         throw Napi::TypeError::New(env, "moduleIdentifier needs to be a string");
@@ -199,14 +184,12 @@ void ModuleWrapper::setModuleIdentifier(const Napi::CallbackInfo &info, const Na
 
 Napi::Value ModuleWrapper::getSourceFileName(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     return Napi::String::New(env, module->getSourceFileName());
 }
 
 void ModuleWrapper::setSourceFileName(const Napi::CallbackInfo &info, const Napi::Value &value) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     if (!value.IsString()) {
         throw Napi::TypeError::New(env, "sourceFileName needs to be a string");
@@ -218,14 +201,12 @@ void ModuleWrapper::setSourceFileName(const Napi::CallbackInfo &info, const Napi
 
 Napi::Value ModuleWrapper::getTargetTriple(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     return Napi::String::New(env, module->getTargetTriple());
 }
 
 void ModuleWrapper::setTargetTriple(const Napi::CallbackInfo &info, const Napi::Value &value) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     if (!value.IsString()) {
         throw Napi::TypeError::New(env, "targetTriple needs to be a string");
@@ -237,7 +218,6 @@ void ModuleWrapper::setTargetTriple(const Napi::CallbackInfo &info, const Napi::
 
 void ModuleWrapper::print(const Napi::CallbackInfo &info) {
     auto env = info.Env();
-    Napi::HandleScope scope { env };
 
     std::string str {};
     llvm::raw_string_ostream output { str };
