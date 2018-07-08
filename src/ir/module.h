@@ -5,51 +5,38 @@
 #ifndef LLVM_NODE_MODULE_H
 #define LLVM_NODE_MODULE_H
 
-#include <nan.h>
+#include <napi.h>
 #include <llvm/IR/Module.h>
-#include "../util/from-value-mixin.h"
 
-class ModuleWrapper: public Nan::ObjectWrap, public FromValueMixin<ModuleWrapper> {
+class ModuleWrapper: public Napi::ObjectWrap<ModuleWrapper> {
 public:
+    static void Init(Napi::Env env, Napi::Object& exports);
+    static bool isInstanceOfType(const Napi::Value& value);
 
-    static NAN_MODULE_INIT(Init);
-
+    explicit ModuleWrapper(const Napi::CallbackInfo& info);
     llvm::Module* getModule();
 
-    static bool isInstance(v8::Local<v8::Value> value);
-
 private:
+    static Napi::FunctionReference constructor;
+
     llvm::Module* module;
 
-    ModuleWrapper(llvm::StringRef moduleId, llvm::LLVMContext& context)
-    : module { new llvm::Module { moduleId, context } } {
-    }
-
-    // static
-    static NAN_METHOD(New);
-
-    // instance
-    static NAN_METHOD(dump);
-    static NAN_GETTER(empty);
-    static NAN_METHOD(getFunction);
-    static NAN_GETTER(getName);
-    static NAN_GETTER(getDataLayout);
-    static NAN_SETTER(setDataLayout);
-    static NAN_GETTER(getModuleIdentifier);
-    static NAN_SETTER(setModuleIdentifier);
-    static NAN_METHOD(getOrInsertFunction);
-    static NAN_METHOD(getGlobalVariable);
-    static NAN_METHOD(getTypeByName);
-    static NAN_SETTER(setSourceFileName);
-    static NAN_GETTER(getSourceFileName);
-    static NAN_GETTER(getTargetTriple);
-    static NAN_SETTER(setTargetTriple);
-    static NAN_METHOD(print);
-
-    static inline Nan::Persistent<v8::FunctionTemplate>& moduleTemplate() {
-        static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
-        return functionTemplate;
-    }
+    void dump(const Napi::CallbackInfo& info);
+    Napi::Value empty(const Napi::CallbackInfo& info);
+    Napi::Value getFunction(const Napi::CallbackInfo& info);
+    Napi::Value getName(const Napi::CallbackInfo& info);
+    Napi::Value getDataLayout(const Napi::CallbackInfo& info);
+    void setDataLayout(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value getModuleIdentifier(const Napi::CallbackInfo& info);
+    void setModuleIdentifier(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value getOrInsertFunction(const Napi::CallbackInfo& info);
+    Napi::Value getGlobalVariable(const Napi::CallbackInfo& info);
+    Napi::Value getTypeByName(const Napi::CallbackInfo& info);
+    void setSourceFileName(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value getSourceFileName(const Napi::CallbackInfo& info);
+    Napi::Value getTargetTriple(const Napi::CallbackInfo& info);
+    void setTargetTriple(const Napi::CallbackInfo& info, const Napi::Value& value);
+    void print(const Napi::CallbackInfo& info);
 };
 
 #endif //LLVM_NODE_MODULE_H

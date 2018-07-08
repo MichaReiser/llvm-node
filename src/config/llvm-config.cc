@@ -6,6 +6,7 @@
 #include "llvm-config.h"
 
 void InitLLVMConfig(Napi::Env env, Napi::Object& exports) {
+    Napi::HandleScope scope { env };
     Napi::Object config = Napi::Object::New(env);
 
     config.Set("LLVM_VERSION_MAJOR", Napi::Number::New(env, static_cast<uint32_t>(LLVM_VERSION_MAJOR)));

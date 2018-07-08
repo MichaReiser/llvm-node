@@ -5,6 +5,6 @@
 #include "bitcode.h"
 #include "bitcode-writer.h"
 
-NAN_MODULE_INIT(InitBitCode) {
-    InitBitcodeWriter(target);
+void InitBitCode(Napi::Env env, Napi::Object& exports) {
+    InitBitcodeWriter(env, exports);
 }
