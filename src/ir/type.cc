@@ -38,7 +38,7 @@ Napi::Value TypeWrapper::equals(const Napi::CallbackInfo &info) {
     return Napi::Boolean::New(env, equals);
 }
 
-Napi::Object TypeWrapper::getPointerTo(const Napi::CallbackInfo &info) {
+Napi::Value TypeWrapper::getPointerTo(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     if ((info.Length() == 1 && !info[0].IsNumber()) || info.Length() > 1) {
         throw Napi::TypeError::New(env, "getPointer needs to called with: addrSpace?: uint32");
@@ -123,16 +123,11 @@ Napi::Object TypeWrapper::of(Napi::Env env, llvm::Type *type) {
 //    } else if (type->isStructTy()) {
 //        result = StructTypeWrapper::of(static_cast<llvm::StructType *>(type));
 //    } else {
-    return TypeWrapper::constructor.New(env, {Napi::External<llvm::Type>::New(env, type)}).ToObject();
+    result = constructor.New({Napi::External<llvm::Type>::New(env, type)});
+
+    Napi::EscapableHandleScope escapeScope{env};
+    return escapeScope.Escape(result).ToObject();
 //    }
-}
-
-typedef bool (llvm::Type::*isTy)() const;
-
-template<isTy method>
-Napi::Value isOfType(const Napi::CallbackInfo &info) {
-    llvm::Type *type = TypeWrapper::Unwrap(info.This().ToObject())->getType();
-    return Napi::Boolean::New(info.Env(), (type->*method)());
 }
 
 Napi::Value TypeWrapper::isIntegerTy(const Napi::CallbackInfo &info) {
@@ -141,14 +136,14 @@ Napi::Value TypeWrapper::isIntegerTy(const Napi::CallbackInfo &info) {
         throw Napi::TypeError::New(env, "isIntegerTy needs to be called with: bitwidth?: uint32");
     }
 
-    return info.Length() == 0 ? this->type->isIntegerTy() : this->type->isIntegerTy(info[0].ToNumber());
+    return Napi::Boolean::New(info.Env(), info.Length() == 0 ? this->type->isIntegerTy() : this->type->isIntegerTy(info[0].ToNumber()));
 }
 
 Napi::Value TypeWrapper::getTypeID(const Napi::CallbackInfo &info) {
     return Napi::Number::New(info.Env(), this->type->getTypeID());
 }
 
-Napi::Object TypeWrapper::getIntNTy(const Napi::CallbackInfo &info) {
+Napi::Value TypeWrapper::getIntNTy(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     if (info.Length() != 2 || !LLVMContextWrapper::isInstanceOfType(info[0]) || !info[1].IsNumber()) {
         throw Napi::TypeError::New(env, "getIntNTy needs to be called with: context: LLVMContext, N: uint32");
@@ -176,17 +171,17 @@ Napi::Object TypeWrapper::Init(Napi::Env env, Napi::Object exports) {
     typeIds.Set("FP128TyID", Napi::Number::New(env, llvm::Type::TypeID::FP128TyID));
     typeIds.Set("PPC_FP128TyID", Napi::Number::New(env, llvm::Type::TypeID::PPC_FP128TyID));
     typeIds.Set("LabelTyID", Napi::Number::New(env, llvm::Type::TypeID::LabelTyID));
-    typeIds.Set("MetadataTyID", Napi::Number::New(llvm::Type::TypeID::MetadataTyID));
-    typeIds.Set("X86_MMXTyID", Napi::Number::New(llvm::Type::TypeID::X86_MMXTyID));
-    typeIds.Set("TokenTyID", Napi::Number::New(llvm::Type::TypeID::TokenTyID));
-    typeIds.Set("IntegerTyID", Napi::Number::New(llvm::Type::TypeID::IntegerTyID));
-    typeIds.Set("FunctionTyID", Napi::Number::New(llvm::Type::TypeID::FunctionTyID));
-    typeIds.Set("StructTyID", Napi::Number::New(llvm::Type::TypeID::StructTyID));
-    typeIds.Set("ArrayTyID", Napi::Number::New(llvm::Type::TypeID::ArrayTyID));
-    typeIds.Set("PointerTyID", Napi::Number::New(llvm::Type::TypeID::PointerTyID));
-    typeIds.Set("VectorTyID", Napi::Number::New(llvm::Type::TypeID::VectorTyID));
+    typeIds.Set("MetadataTyID", Napi::Number::New(env, llvm::Type::TypeID::MetadataTyID));
+    typeIds.Set("X86_MMXTyID", Napi::Number::New(env, llvm::Type::TypeID::X86_MMXTyID));
+    typeIds.Set("TokenTyID", Napi::Number::New(env, llvm::Type::TypeID::TokenTyID));
+    typeIds.Set("IntegerTyID", Napi::Number::New(env, llvm::Type::TypeID::IntegerTyID));
+    typeIds.Set("FunctionTyID", Napi::Number::New(env, llvm::Type::TypeID::FunctionTyID));
+    typeIds.Set("StructTyID", Napi::Number::New(env, llvm::Type::TypeID::StructTyID));
+    typeIds.Set("ArrayTyID", Napi::Number::New(env, llvm::Type::TypeID::ArrayTyID));
+    typeIds.Set("PointerTyID", Napi::Number::New(env, llvm::Type::TypeID::PointerTyID));
+    typeIds.Set("VectorTyID", Napi::Number::New(env, llvm::Type::TypeID::VectorTyID));
 
-    Napi::Function type = DefineClass(env, {
+    Napi::Function type = DefineClass(env, "Type", {
             StaticValue("TypeIDs", typeIds),
             StaticMethod("getDoubleTy", &getTypeFactory<&llvm::Type::getDoubleTy>),
             StaticMethod("getVoidTy", &getTypeFactory<&llvm::Type::getVoidTy>),
@@ -204,15 +199,15 @@ Napi::Object TypeWrapper::Init(Napi::Env env, Napi::Object exports) {
             StaticMethod("getInt32PtrTy", getPointerType<&llvm::Type::getInt32PtrTy>),
 
             InstanceMethod("equals", &TypeWrapper::equals),
-            InstanceMethod("isVoidTy", &isOfType<&llvm::Type::isVoidTy>),
-            InstanceMethod("isFloatTy", &isOfType<&llvm::Type::isFloatTy>),
-            InstanceMethod("isDoubleTy", &isOfType<&llvm::Type::isDoubleTy>),
-            InstanceMethod("isLabelTy", &isOfType<&llvm::Type::isLabelTy>),
-            InstanceMethod("isIntegerTy", &isIntegerTy),
-            InstanceMethod("isFunctionTy", &isOfType<&llvm::Type::isFunctionTy>),
-            InstanceMethod("isStructTy", &isOfType<&llvm::Type::isStructTy>),
-            InstanceMethod("isArrayTy", &isOfType<&llvm::Type::isArrayTy>),
-            InstanceMethod("isPointerTy", &isOfType<&llvm::Type::isPointerTy>),
+            InstanceMethod("isVoidTy", &TypeWrapper::isOfType<&llvm::Type::isVoidTy>),
+            InstanceMethod("isFloatTy", &TypeWrapper::isOfType<&llvm::Type::isFloatTy>),
+            InstanceMethod("isDoubleTy", &TypeWrapper::isOfType<&llvm::Type::isDoubleTy>),
+            InstanceMethod("isLabelTy", &TypeWrapper::isOfType<&llvm::Type::isLabelTy>),
+            InstanceMethod("isIntegerTy", &TypeWrapper::isIntegerTy),
+            InstanceMethod("isFunctionTy", &TypeWrapper::isOfType<&llvm::Type::isFunctionTy>),
+            InstanceMethod("isStructTy", &TypeWrapper::isOfType<&llvm::Type::isStructTy>),
+            InstanceMethod("isArrayTy", &TypeWrapper::isOfType<&llvm::Type::isArrayTy>),
+            InstanceMethod("isPointerTy", &TypeWrapper::isOfType<&llvm::Type::isPointerTy>),
             InstanceAccessor("typeID", &TypeWrapper::getTypeID, nullptr),
             InstanceMethod("getPointerTo", &TypeWrapper::getPointerTo),
             InstanceMethod("getPrimitiveSizeInBits", &TypeWrapper::getPrimitiveSizeInBits),
@@ -227,7 +222,7 @@ Napi::Object TypeWrapper::Init(Napi::Env env, Napi::Object exports) {
 }
 
 bool TypeWrapper::isInstanceOfType(const Napi::Value &value) {
-    return value.ToObject().InstanceOf(TypeWrapper::constructor);
+    return value.ToObject().InstanceOf(TypeWrapper::constructor.Value());
 }
 
 llvm::Type *TypeWrapper::getType() {

@@ -36,6 +36,7 @@ Napi::Object ValueWrapper::Init(Napi::Env env, Napi::Object exports) {
     constructor.SuppressDestruct();
 
     exports.Set("Value", func);
+    return exports;
 }
 
 ValueWrapper::ValueWrapper(const Napi::CallbackInfo &info) : Napi::ObjectWrap<ValueWrapper>{info} {

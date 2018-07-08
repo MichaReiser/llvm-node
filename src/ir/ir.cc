@@ -8,8 +8,8 @@
 //#include "ir-builder.h"
 #include "module.h"
 #include "llvm-context.h"
-//#include "type.h"
 #include "value.h"
+#include "type.h"
 //#include "function.h"
 //#include "linkage-types.h"
 //#include "argument.h"
@@ -38,6 +38,7 @@ Napi::Object InitIR(Napi::Env env, Napi::Object exports) {
     LLVMContextWrapper::Init(env, exports);
     ModuleWrapper::Init(env, exports);
     ValueWrapper::Init(env, exports);
+    TypeWrapper::Init(env, exports);
     return exports;
 }
 //NAN_MODULE_INIT(InitIR) {

@@ -12,17 +12,17 @@
   },
   "engineStrict": true,
   "devDependencies": {
-    "@types/jest": "^22.1.1",
+    "@types/jest": "^23.1.4",
     "@types/requirejs": "^2.1.31",
-    "generate-changelog": "^1.7.0",
-    "jest": "^22.1.4",
-    "ts-jest": "^22.0.2",
-    "typescript": "^2.6.2"
+    "generate-changelog": "^1.7.1",
+    "jest": "^23.3.0",
+    "ts-jest": "^23.0.0",
+    "typescript": "^2.9.2"
   },
   "dependencies": {
     "bindings": "^1.3.0",
-    "cmake-js": "^3.6.2",
-    "node-addon-api": "^1.2.0"
+    "cmake-js": "^3.7.3",
+    "node-addon-api": "^1.3.0"
   },
   "scripts": {
     "configure": "cmake-js configure",
