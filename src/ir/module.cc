@@ -4,13 +4,7 @@
 
 #include <llvm/Support/raw_ostream.h>
 #include "module.h"
-#include "../util/string.h"
 #include "./llvm-context.h"
-#include "./data-layout.h"
-#include "function.h"
-#include "function-type.h"
-#include "global-variable.h"
-#include "struct-type.h"
 
 Napi::FunctionReference ModuleWrapper::constructor;
 

@@ -9,7 +9,7 @@
 #include "module.h"
 #include "llvm-context.h"
 //#include "type.h"
-//#include "value.h"
+#include "value.h"
 //#include "function.h"
 //#include "linkage-types.h"
 //#include "argument.h"
@@ -63,7 +63,7 @@ void InitIr(Napi::Env env, Napi::Object& exports) {
 //    StructTypeWrapper::Init(target);
 //    TypeWrapper::Init(target);
 //    UndefValueWrapper::Init(target);
-//    ValueWrapper::Init(target);
+    ValueWrapper::Init(env, exports);
 //    InitVerifier(target);
 //    InitVisibilityTypes(target);
 }

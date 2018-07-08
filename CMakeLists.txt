@@ -28,6 +28,8 @@ file(GLOB SOURCE_FILES
         "src/ir/llvm-context.cc"
         "src/ir/ir.h"
         "src/ir/ir.cc"
+        "src/ir/value.h",
+        "src/ir/value.cc"
 #        "src/*.h"
 #        "src/*.cc"
 #        "src/**/*.h"
