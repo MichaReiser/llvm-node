@@ -14,6 +14,8 @@ add_definitions(-DNAPI_CPP_EXCEPTIONS=ON)
 
 file(GLOB SOURCE_FILES
         "src/llvm-node.cc"
+        "src/config/*.h"
+        "src/config/*.cc"
         "src/support/*.h"
         "src/support/*.cc"
         "src/target/*.h"

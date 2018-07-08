@@ -5,14 +5,14 @@
 #include <llvm/Config/llvm-config.h>
 #include "llvm-config.h"
 
-NAN_MODULE_INIT(InitLLVMConfig) {
-    auto config = Nan::New<v8::Object>();
+void InitLLVMConfig(Napi::Env env, Napi::Object& exports) {
+    Napi::Object config = Napi::Object::New(env);
 
-    Nan::Set(config, Nan::New("LLVM_VERSION_MAJOR").ToLocalChecked(), Nan::New(static_cast<uint32_t>(LLVM_VERSION_MAJOR)));
-    Nan::Set(config, Nan::New("LLVM_VERSION_MINOR").ToLocalChecked(), Nan::New(static_cast<uint32_t>(LLVM_VERSION_MINOR)));
-    Nan::Set(config, Nan::New("LLVM_VERSION_PATCH").ToLocalChecked(), Nan::New(static_cast<uint32_t>(LLVM_VERSION_PATCH)));
-    Nan::Set(config, Nan::New("LLVM_VERSION_STRING").ToLocalChecked(), Nan::New(LLVM_VERSION_STRING).ToLocalChecked());
-    Nan::Set(config, Nan::New("LLVM_DEFAULT_TARGET_TRIPLE").ToLocalChecked(), Nan::New(LLVM_DEFAULT_TARGET_TRIPLE).ToLocalChecked());
+    config.Set("LLVM_VERSION_MAJOR", Napi::Number::New(env, static_cast<uint32_t>(LLVM_VERSION_MAJOR)));
+    config.Set("LLVM_VERSION_MINOR", Napi::Number::New(env, static_cast<uint32_t>(LLVM_VERSION_MINOR)));
+    config.Set("LLVM_VERSION_PATCH", Napi::Number::New(env, static_cast<uint32_t>(LLVM_VERSION_PATCH)));
+    config.Set("LLVM_VERSION_STRING", Napi::String::New(env, LLVM_VERSION_STRING));
+    config.Set("LLVM_DEFAULT_TARGET_TRIPLE", Napi::String::New(env, LLVM_DEFAULT_TARGET_TRIPLE));
 
-    Nan::Set(target, Nan::New("config").ToLocalChecked(), config);
+    exports.Set("config", config);
 }
