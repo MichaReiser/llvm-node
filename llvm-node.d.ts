@@ -679,11 +679,11 @@ declare namespace llvm {
   }
 
   export const config: Readonly<{
-      LLVM_VERSION_MAJOR: number;
-      LLVM_VERSION_MINOR: number;
-      LLVM_VERSION_PATCH: number;
-      LLVM_VERSION_STRING: string;
-      LLVM_DEFAULT_TARGET_TRIPLE: string;
+    LLVM_VERSION_MAJOR: number;
+    LLVM_VERSION_MINOR: number;
+    LLVM_VERSION_PATCH: number;
+    LLVM_VERSION_STRING: string;
+    LLVM_DEFAULT_TARGET_TRIPLE: string;
   }>;
 }
 
