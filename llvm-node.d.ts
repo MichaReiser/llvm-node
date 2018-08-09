@@ -288,7 +288,7 @@ declare namespace llvm {
 
     hasRetAttr(kind: AttrKind): boolean;
 
-    paramHasAttr(index, kind: AttrKind): boolean;
+    paramHasAttr(index: number, kind: AttrKind): boolean;
 
     getNumArgOperands(): number;
   }
