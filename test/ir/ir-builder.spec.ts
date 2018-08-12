@@ -1,5 +1,5 @@
 import * as llvm from "../../";
-import { createBuilderWithBlock } from "../test-utils";
+import { createBuilder, createBuilderWithBlock } from "../test-utils";
 
 describe("IRBuilder", () => {
   test("createAdd returns a value", () => {
@@ -841,5 +841,11 @@ describe("IRBuilder", () => {
     builder.setInsertionPoint(block);
 
     expect(builder.getInsertBlock()).toEqual(block);
+  });
+
+  test("getInsertBlock returns undefined if insertion point has not been set", () => {
+    const { builder } = createBuilder();
+
+    expect(builder.getInsertBlock()).toBeUndefined();
   });
 });

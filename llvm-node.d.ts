@@ -628,7 +628,7 @@ declare namespace llvm {
 
     createZExt(value: Value, destType: Type, name?: string): Value;
 
-    getInsertBlock(): BasicBlock;
+    getInsertBlock(): BasicBlock | undefined;
   }
 
   class LLVMContext {
