@@ -1,10 +1,10 @@
 #### 2.0.7 (2018-08-13)
 
-- Prevent segfault in getInsertBlock if block does not exist. Thanks to @emlai (#49)
+- Prevent segfault in getInsertBlock if block does not exist ([#49](https://github.com/MichaReiser/llvm-node/pull/49))
 
 #### 2.0.6 (2018-08-09)
 
-- Fix implicit any error in definition file. Thanks to @emlai (#47)
+- Fix implicit any error in definition file ([#47](https://github.com/MichaReiser/llvm-node/pull/47))
 
 #### 2.0.5 (2018-05-21)
 
