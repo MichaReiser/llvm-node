@@ -1,4 +1,4 @@
-### 2.0.8 (2018-08-14)
+#### 2.0.8 (2018-08-14)
 
 - Fix type declaration of StructType.name to an union of string | undefined ([#50](https://github.com/MichaReiser/llvm-node/pull/50))
 
