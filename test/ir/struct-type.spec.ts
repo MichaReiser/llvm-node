@@ -38,6 +38,14 @@ describe("ir/struct-type", () => {
 
       expect(structType.name).toBe("name");
     });
+
+    it("returns undefined for literal struct types", () => {
+      const { context } = createModule();
+
+      const structType = llvm.StructType.get(context, [llvm.Type.getInt32Ty(context)]);
+
+      expect(structType.name).toBeUndefined();
+    });
   });
 
   describe("numElements", () => {
