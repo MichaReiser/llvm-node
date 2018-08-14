@@ -481,7 +481,7 @@ declare namespace llvm {
 
     static get(context: LLVMContext, elements: Type[], isPacked?: boolean): StructType;
 
-    name: string;
+    name: string | undefined;
     readonly numElements: number;
 
     private constructor();
