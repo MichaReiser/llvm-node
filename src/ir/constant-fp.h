@@ -5,25 +5,11 @@
 #ifndef LLVM_NODE_CONSTANT_FP_WRAPPER_H
 #define LLVM_NODE_CONSTANT_FP_WRAPPER_H
 
-#include <nan.h>
 #include <llvm/IR/Constants.h>
 #include "constant.h"
-#include "../util/from-value-mixin.h"
+#include "value-wrapper-template.h"
 
-class ConstantFPWrapper: public ConstantWrapper, public FromValueMixin<ConstantFPWrapper> {
-public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::ConstantFP* constantFP);
-    using FromValueMixin<ConstantFPWrapper>::FromValue;
-    llvm::ConstantFP* getConstantFP();
-
-private:
-    explicit ConstantFPWrapper(llvm::ConstantFP* constant)
-            : ConstantWrapper { constant }
-    {}
-
-    static Nan::Persistent<v8::FunctionTemplate>& constantFpTemplate();
-
+VALUE_WRAPPER_TEMPLATE_BEGIN(ConstantFP, ConstantFP, constantFp, Constant, private)
     // static
     static NAN_METHOD(New);
     static NAN_METHOD(get);
@@ -31,6 +17,6 @@ private:
 
     // instance
     static NAN_GETTER(getValueAPF);
-};
+VALUE_WRAPPER_TEMPLATE_END
 
 #endif //LLVM_NODE_CONSTANT_FP_WRAPPER_H

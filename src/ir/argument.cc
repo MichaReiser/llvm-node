@@ -134,17 +134,9 @@ NAN_METHOD(ArgumentWrapper::addDereferenceableAttr) {
 #endif
 }
 
-llvm::Argument *ArgumentWrapper::getArgument() {
-    return static_cast<llvm::Argument*>(ValueWrapper::getValue());
-}
+VALUE_WRAPPER_OF_DEFINITION(Argument, Argument, argument)
 
-v8::Local<v8::Object> ArgumentWrapper::of(llvm::Argument *argument) {
-    Nan::EscapableHandleScope escapeScope {};
-
-    auto functionTemplate = Nan::New(argumentTemplate());
-    auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(argument) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    return escapeScope.Escape(instance);
+Nan::Persistent<v8::FunctionTemplate>& ArgumentWrapper::argumentTemplate() {
+    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+    return functionTemplate;
 }

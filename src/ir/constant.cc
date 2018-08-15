@@ -127,7 +127,3 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantWrapper::constantTemplate() {
 
     return functionTemplate;
 }
-
-llvm::Constant *ConstantWrapper::getConstant() {
-    return static_cast<llvm::Constant*>(getValue());
-}

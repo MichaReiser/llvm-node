@@ -5,23 +5,11 @@
 #ifndef LLVM_NODE_GLOBAL_VARIABLE_H
 #define LLVM_NODE_GLOBAL_VARIABLE_H
 
-#include <nan.h>
 #include <llvm/IR/GlobalVariable.h>
 #include "constant.h"
-#include "../util/from-value-mixin.h"
+#include "value-wrapper-template.h"
 
-class GlobalVariableWrapper: public ConstantWrapper, public FromValueMixin<GlobalVariableWrapper> {
-public:
-
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::GlobalVariable* variable);
-    using FromValueMixin<GlobalVariableWrapper>::FromValue;
-    llvm::GlobalVariable* getGlobalVariable();
-
-
-private:
-    explicit GlobalVariableWrapper(llvm::GlobalVariable* variable) : ConstantWrapper { variable } {}
-
+VALUE_WRAPPER_TEMPLATE_BEGIN(GlobalVariable, GlobalVariable, globalVariable, Constant, private)
     static NAN_METHOD(New);
     static NAN_METHOD(NewFromExternal);
     static NAN_METHOD(NewFromArguments);
@@ -34,8 +22,6 @@ private:
 
     static NAN_GETTER(getInitializer);
     static NAN_SETTER(setInitializer);
-    static Nan::Persistent<v8::FunctionTemplate>& globalVariableTemplate();
-
-};
+VALUE_WRAPPER_TEMPLATE_END
 
 #endif //LLVM_NODE_GLOBAL_VARIABLE_H

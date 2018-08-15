@@ -13,14 +13,7 @@ NAN_MODULE_INIT(BasicBlockWrapper::Init) {
     Nan::Set(target, Nan::New("BasicBlock").ToLocalChecked(), basicBlock);
 }
 
-v8::Local<v8::Object> BasicBlockWrapper::of(llvm::BasicBlock *basicBlock) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(basicBlockTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(basicBlock) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, argv).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScope {};
-    return escapeScope.Escape(instance);
-}
+VALUE_WRAPPER_OF_DEFINITION(BasicBlock, BasicBlock, basicBlock)
 
 NAN_METHOD(BasicBlockWrapper::New) {
     if (!info.IsConstructCall()) {

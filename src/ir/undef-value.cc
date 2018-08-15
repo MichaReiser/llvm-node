@@ -37,18 +37,7 @@ NAN_METHOD(UndefValueWrapper::get) {
     info.GetReturnValue().Set(UndefValueWrapper::of(undefValue));
 }
 
-llvm::UndefValue* UndefValueWrapper::getUndefValue() {
-    return static_cast<llvm::UndefValue*>(getValue());
-}
-
-v8::Local<v8::Object> UndefValueWrapper::of(llvm::UndefValue* undefValue) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(undefValueTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(undefValue) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScpoe {};
-    return escapeScpoe.Escape(instance);
-}
+VALUE_WRAPPER_OF_DEFINITION(UndefValue, UndefValue, undefValue)
 
 Nan::Persistent<v8::FunctionTemplate>& UndefValueWrapper::undefValueTemplate() {
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};

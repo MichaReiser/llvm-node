@@ -5,19 +5,10 @@
 #ifndef LLVM_NODE_CALL_INST_H
 #define LLVM_NODE_CALL_INST_H
 
-#include <nan.h>
 #include <llvm/IR/Instructions.h>
-#include "value.h"
+#include "value-wrapper-template.h"
 
-class CallInstWrapper: public ValueWrapper, public FromValueMixin<CallInstWrapper> {
-public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::CallInst* callInst);
-    static bool isInstance(v8::Local<v8::Value> value);
-    using FromValueMixin<CallInstWrapper>::FromValue;
-    llvm::CallInst* getCallInst();
-
-private:
+VALUE_WRAPPER_TEMPLATE_BEGIN(CallInst, CallInst, callInst, Value, private)
     static NAN_METHOD(New);
 
     static NAN_GETTER(getCallingConv);
@@ -27,9 +18,8 @@ private:
     static NAN_METHOD(paramHasAttr);
     static NAN_METHOD(getNumArgOperands);
 
-    explicit CallInstWrapper(llvm::CallInst* value) : ValueWrapper { value } {}
-
-    static Nan::Persistent<v8::FunctionTemplate>& callInstTemplate();
-};
+public:
+    static bool isInstance(v8::Local<v8::Value> value);
+VALUE_WRAPPER_TEMPLATE_END
 
 #endif //LLVM_NODE_CALL_INST_H

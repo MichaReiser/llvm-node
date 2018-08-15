@@ -58,18 +58,7 @@ NAN_GETTER(ConstantFPWrapper::getValueAPF) {
         info.GetReturnValue().Set(Nan::New(value.convertToDouble()));
 }
 
-llvm::ConstantFP *ConstantFPWrapper::getConstantFP() {
-    return static_cast<llvm::ConstantFP*>(getValue());
-}
-
-v8::Local<v8::Object> ConstantFPWrapper::of(llvm::ConstantFP *constantFP) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(constantFpTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantFP) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScpoe {};
-    return escapeScpoe.Escape(instance);
-}
+VALUE_WRAPPER_OF_DEFINITION(ConstantFP, ConstantFP, constantFp)
 
 Nan::Persistent<v8::FunctionTemplate>& ConstantFPWrapper::constantFpTemplate() {
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
