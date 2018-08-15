@@ -21,10 +21,6 @@ v8::Local<v8::Object> GlobalVariableWrapper::of(llvm::GlobalVariable* variable) 
     return escapeHandleScope.Escape(instance);
 }
 
-llvm::GlobalVariable* GlobalVariableWrapper::getGlobalVariable() {
-    return static_cast<llvm::GlobalVariable*>(getValue());
-}
-
 NAN_METHOD(GlobalVariableWrapper::New) {
     if (!info.IsConstructCall()) {
         return Nan::ThrowTypeError("The GlobalVariable needs to be called with new");

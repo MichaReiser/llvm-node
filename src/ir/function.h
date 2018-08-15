@@ -5,24 +5,11 @@
 #ifndef LLVM_NODE_FUNCTION_H
 #define LLVM_NODE_FUNCTION_H
 
-#include <nan.h>
 #include <llvm/IR/Function.h>
 #include "constant.h"
-#include "../util/from-value-mixin.h"
+#include "value-wrapper-template.h"
 
-class FunctionWrapper: public ConstantWrapper, public FromValueMixin<FunctionWrapper> {
-public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::Function* function);
-
-    llvm::Function* getFunction();
-
-    static bool isInstance(v8::Local<v8::Value> value);
-    using FromValueMixin<FunctionWrapper>::FromValue;
-
-private:
-    explicit FunctionWrapper(llvm::Function* function);
-
+VALUE_WRAPPER_TEMPLATE_BEGIN(Function, Function, function, Constant, private)
     // static
     static NAN_METHOD(New);
     static NAN_METHOD(Create);
@@ -42,8 +29,8 @@ private:
     static NAN_SETTER(setVisibility);
     static NAN_METHOD(viewCFG);
 
-    static Nan::Persistent<v8::FunctionTemplate>& functionTemplate();
-};
-
+public:
+    static bool isInstance(v8::Local<v8::Value> value);
+VALUE_WRAPPER_TEMPLATE_END
 
 #endif //LLVM_NODE_FUNCTION_H

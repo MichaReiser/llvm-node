@@ -9,8 +9,6 @@
 #include "argument.h"
 #include "basic-block.h"
 
-FunctionWrapper::FunctionWrapper(llvm::Function *function) : ConstantWrapper { function } {}
-
 NAN_MODULE_INIT(FunctionWrapper::Init) {
     auto constructorFunction = Nan::GetFunction(Nan::New(functionTemplate())).ToLocalChecked();
     Nan::Set(target, Nan::New("Function").ToLocalChecked(), constructorFunction);
@@ -231,10 +229,6 @@ NAN_SETTER(FunctionWrapper::setVisibility) {
 
 NAN_METHOD(FunctionWrapper::viewCFG) {
     FunctionWrapper::FromValue(info.Holder())->getFunction()->viewCFG();
-}
-
-llvm::Function *FunctionWrapper::getFunction() {
-    return static_cast<llvm::Function*>(getValue());
 }
 
 bool FunctionWrapper::isInstance(v8::Local<v8::Value> value) {

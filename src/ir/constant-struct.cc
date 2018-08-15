@@ -21,10 +21,6 @@ v8::Local<v8::Object> ConstantStructWrapper::of(llvm::ConstantStruct* constantSt
     return escapableHandleScope.Escape(instance);
 }
 
-llvm::ConstantStruct* ConstantStructWrapper::getConstantStruct() {
-    return static_cast<llvm::ConstantStruct*>(getValue());
-}
-
 Nan::Persistent<v8::FunctionTemplate>& ConstantStructWrapper::constantStructTemplate() {
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
 

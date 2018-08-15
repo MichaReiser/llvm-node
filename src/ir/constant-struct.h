@@ -5,25 +5,13 @@
 #ifndef LLVM_NODE_CONSTANT_STRUCT_H
 #define LLVM_NODE_CONSTANT_STRUCT_H
 
-#include <nan.h>
 #include <llvm/IR/Constants.h>
 #include "constant.h"
+#include "value-wrapper-template.h"
 
-class ConstantStructWrapper: public ConstantWrapper, public FromValueMixin<ConstantStructWrapper> {
-public:
-    static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(llvm::ConstantStruct* constantStruct);
-    using FromValueMixin<ConstantStructWrapper>::FromValue;
-    llvm::ConstantStruct* getConstantStruct();
-
-private:
-    explicit ConstantStructWrapper(llvm::ConstantStruct* constantStruct) : ConstantWrapper { constantStruct }
-    {}
-
-    static Nan::Persistent<v8::FunctionTemplate>& constantStructTemplate();
-
+VALUE_WRAPPER_TEMPLATE_BEGIN(ConstantStruct, ConstantStruct, constantStruct, Constant, private)
     static NAN_METHOD(New);
     static NAN_METHOD(get);
-};
+VALUE_WRAPPER_TEMPLATE_END
 
 #endif //LLVM_NODE_CONSTANT_STRUCT_H

@@ -23,10 +23,6 @@ bool CallInstWrapper::isInstance(v8::Local<v8::Value> value) {
     return Nan::New(callInstTemplate())->HasInstance(value);
 }
 
-llvm::CallInst* CallInstWrapper::getCallInst() {
-    return static_cast<llvm::CallInst*>(getValue());
-}
-
 NAN_METHOD(CallInstWrapper::New) {
     if (!info.IsConstructCall()) {
         return Nan::ThrowTypeError("CallInst Constructor needs to be called with new");

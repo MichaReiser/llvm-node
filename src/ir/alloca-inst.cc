@@ -19,10 +19,6 @@ v8::Local<v8::Object> AllocaInstWrapper::of(llvm::AllocaInst* inst) {
     return escapeScope.Escape(instance);
 }
 
-llvm::AllocaInst* AllocaInstWrapper::getAllocaInst() {
-    return static_cast<llvm::AllocaInst*>(getValue());
-}
-
 NAN_METHOD(AllocaInstWrapper::New) {
     if (!info.IsConstructCall()) {
         return Nan::ThrowTypeError("Class Constructor AllocaInst cannot be invoked without new");

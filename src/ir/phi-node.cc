@@ -5,10 +5,6 @@
 #include "phi-node.h"
 #include "basic-block.h"
 
-llvm::PHINode *PhiNodeWrapper::getPhiNode() {
-    return static_cast<llvm::PHINode*>(getValue());
-}
-
 v8::Local<v8::Object> PhiNodeWrapper::of(llvm::PHINode *phiNode) {
     auto constructorFunction = Nan::GetFunction(Nan::New(phiNodeTemplate())).ToLocalChecked();
     v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(phiNode) };
@@ -54,4 +50,9 @@ NAN_METHOD(PhiNodeWrapper::addIncoming) {
     auto* basicBlock = BasicBlockWrapper::FromValue(info[1])->getBasicBlock();
 
     PhiNodeWrapper::FromValue(info.Holder())->getPhiNode()->addIncoming(value, basicBlock);
+}
+
+Nan::Persistent<v8::FunctionTemplate>& PhiNodeWrapper::phiNodeTemplate() {
+    static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
+    return functionTemplate;
 }

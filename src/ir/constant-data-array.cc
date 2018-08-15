@@ -21,10 +21,6 @@ v8::Local<v8::Object> ConstantDataArrayWrapper::of(llvm::ConstantDataArray* cons
     return escapeScope.Escape(instance);
 }
 
-llvm::ConstantDataArray* ConstantDataArrayWrapper::getConstantDataArray() {
-    return static_cast<llvm::ConstantDataArray*>(getValue());
-}
-
 Nan::Persistent<v8::FunctionTemplate>& ConstantDataArrayWrapper::constantDataArrayTemplate() {
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};
 

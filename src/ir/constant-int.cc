@@ -81,10 +81,6 @@ NAN_GETTER(ConstantIntWrapper::getValueApf) {
     info.GetReturnValue().Set(Nan::New(value.signedRoundToDouble()));
 }
 
-llvm::ConstantInt *ConstantIntWrapper::getConstantInt() {
-    return static_cast<llvm::ConstantInt*>(getValue());
-}
-
 v8::Local<v8::Object> ConstantIntWrapper::of(llvm::ConstantInt *constantInt) {
     auto constructorFunction = Nan::GetFunction(Nan::New(constantIntTemplate())).ToLocalChecked();
     v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantInt) };
