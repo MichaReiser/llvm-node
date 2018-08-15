@@ -10,14 +10,7 @@ NAN_MODULE_INIT(CallInstWrapper::Init) {
     Nan::Set(target, Nan::New("CallInst").ToLocalChecked(), callInstruction);
 }
 
-v8::Local<v8::Object> CallInstWrapper::of(llvm::CallInst* inst) {
-    Nan::EscapableHandleScope escapeScope {};
-    auto constructorFunction = Nan::GetFunction(Nan::New(callInstTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(inst) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    return escapeScope.Escape(instance);
-}
+VALUE_WRAPPER_OF_DEFINITION(CallInst, CallInst, callInst)
 
 bool CallInstWrapper::isInstance(v8::Local<v8::Value> value) {
     return Nan::New(callInstTemplate())->HasInstance(value);

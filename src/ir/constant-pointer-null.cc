@@ -37,14 +37,7 @@ NAN_METHOD(ConstantPointerNullWrapper::get) {
     info.GetReturnValue().Set(ConstantPointerNullWrapper::of(constant));
 }
 
-v8::Local<v8::Object> ConstantPointerNullWrapper::of(llvm::ConstantPointerNull *constantPointerNull) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(constantPointerNullTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantPointerNull) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScpoe {};
-    return escapeScpoe.Escape(instance);
-}
+VALUE_WRAPPER_OF_DEFINITION(ConstantPointerNull, ConstantPointerNull, constantPointerNull)
 
 Nan::Persistent<v8::FunctionTemplate>& ConstantPointerNullWrapper::constantPointerNullTemplate() {
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};

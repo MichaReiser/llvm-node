@@ -12,14 +12,7 @@ NAN_MODULE_INIT(ConstantDataArrayWrapper::Init) {
     Nan::Set(target, Nan::New("ConstantDataArray").ToLocalChecked(), constantDataArray);
 }
 
-v8::Local<v8::Object> ConstantDataArrayWrapper::of(llvm::ConstantDataArray* constantDataArray) {
-    Nan::EscapableHandleScope escapeScope {};
-    auto constuctorFunction = Nan::GetFunction(Nan::New(constantDataArrayTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantDataArray) };
-    auto instance = Nan::NewInstance(constuctorFunction, 1, args).ToLocalChecked();
-
-    return escapeScope.Escape(instance);
-}
+VALUE_WRAPPER_OF_DEFINITION(ConstantDataArray, ConstantDataArray, constantDataArray)
 
 Nan::Persistent<v8::FunctionTemplate>& ConstantDataArrayWrapper::constantDataArrayTemplate() {
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};

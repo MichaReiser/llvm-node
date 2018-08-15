@@ -60,17 +60,7 @@ Nan::Persistent<v8::FunctionTemplate> &FunctionWrapper::functionTemplate() {
     return tmpl;
 }
 
-v8::Local<v8::Object> FunctionWrapper::of(llvm::Function *function) {
-    v8::Local<v8::FunctionTemplate> localTemplate = Nan::New(functionTemplate());
-    v8::Local<v8::Function> constructor = Nan::GetFunction(localTemplate).ToLocalChecked();
-
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(function) };
-
-    v8::Local<v8::Object> instance = Nan::NewInstance(constructor, 1, args ).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScope {};
-    return escapeScope.Escape(instance);
-}
+VALUE_WRAPPER_OF_DEFINITION(Function, Function, function)
 
 NAN_METHOD(FunctionWrapper::Create) {
     if (info.Length() < 2 || !FunctionTypeWrapper::isInstance(info[0]) || !info[1]->IsUint32()

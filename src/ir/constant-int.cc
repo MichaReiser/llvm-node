@@ -81,14 +81,7 @@ NAN_GETTER(ConstantIntWrapper::getValueApf) {
     info.GetReturnValue().Set(Nan::New(value.signedRoundToDouble()));
 }
 
-v8::Local<v8::Object> ConstantIntWrapper::of(llvm::ConstantInt *constantInt) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(constantIntTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(constantInt) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScpoe {};
-    return escapeScpoe.Escape(instance);
-}
+VALUE_WRAPPER_OF_DEFINITION(ConstantInt, ConstantInt, constantInt)
 
 Nan::Persistent<v8::FunctionTemplate>& ConstantIntWrapper::constantIntTemplate() {
     static Nan::Persistent<v8::FunctionTemplate> functionTemplate {};

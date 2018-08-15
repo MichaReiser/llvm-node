@@ -5,14 +5,7 @@
 #include "phi-node.h"
 #include "basic-block.h"
 
-v8::Local<v8::Object> PhiNodeWrapper::of(llvm::PHINode *phiNode) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(phiNodeTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External>(phiNode) };
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
-
-    Nan::EscapableHandleScope escapeScope {};
-    return escapeScope.Escape(instance);
-}
+VALUE_WRAPPER_OF_DEFINITION(PHINode, PhiNode, phiNode)
 
 NAN_MODULE_INIT(PhiNodeWrapper::Init) {
     auto functionTemplate = Nan::New<v8::FunctionTemplate>(PhiNodeWrapper::New);
