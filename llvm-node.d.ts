@@ -652,7 +652,7 @@ declare namespace llvm {
 
     print(): string;
 
-    getFunction(name: string): Function;
+    getFunction(name: string): Function | undefined;
 
     getOrInsertFunction(name: string, functionType: FunctionType): Constant;
 
