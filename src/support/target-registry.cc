@@ -10,7 +10,7 @@ NAN_METHOD(TargetRegistryWrapper::lookupTarget) {
         const llvm::Target* result = llvm::TargetRegistry::lookupTarget(triple, error);
 
         if (!result) {
-            std::string msg = "Failed to lookup target: " + error;
+            std::string msg = "Failed to lookup target '" + triple + "': " + error;
             Nan::ThrowError(msg.c_str());
             return;
         }
