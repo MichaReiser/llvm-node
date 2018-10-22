@@ -9,7 +9,7 @@ describe("ir/type", () => {
 
     for (const typeId of Object.keys(llvm.Type.TypeID)) {
       it(`defines ${typeId}`, () => {
-        expect(llvm.Type.TypeID[typeId]).toBeDefined();
+        expect((llvm.Type.TypeID as any)[typeId]).toBeDefined();
       });
     }
   });
