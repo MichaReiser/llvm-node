@@ -249,6 +249,7 @@ Nan::Persistent<v8::FunctionTemplate> &TypeWrapper::typeTemplate()
         Nan::SetMethod(typeTemplate, "getVoidTy", &getTypeFactory<&llvm::Type::getVoidTy>);
         Nan::SetMethod(typeTemplate, "getFloatTy", &getTypeFactory<&llvm::Type::getFloatTy>);
         Nan::SetMethod(typeTemplate, "getLabelTy", &getTypeFactory<&llvm::Type::getLabelTy>);
+        Nan::SetMethod(typeTemplate, "getHalfTy", &getTypeFactory<&llvm::Type::getHalfTy>);
         Nan::SetMethod(typeTemplate, "getInt1Ty", &getIntType<&llvm::Type::getInt1Ty>);
         Nan::SetMethod(typeTemplate, "getInt8Ty", &getIntType<&llvm::Type::getInt8Ty>);
         Nan::SetMethod(typeTemplate, "getInt16Ty", &getIntType<&llvm::Type::getInt16Ty>);
