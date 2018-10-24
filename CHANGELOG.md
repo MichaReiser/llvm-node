@@ -2,6 +2,9 @@
 
 - Add `isHalfTy` and `getHalfTy` to `Type` ([#60](https://github.com/MichaReiser/llvm-node/pull/60))
 - Upgrade cmake-js to avoid vulnerable lodash depndency ([#58](https://github.com/MichaReiser/llvm-node/pull/58))
+- Include target triple in lookupTarget error message ([#54](https://github.com/MichaReiser/llvm-node/pull/54))
+- Fix type definition of Module.getFunction to include undefined ([#53](https://github.com/MichaReiser/llvm-node/pull/53))
+- Make package.json scripts work with both npm and yarn ([#52](https://github.com/MichaReiser/llvm-node/pull/52))
 
 #### 2.0.8 (2018-08-14)
 
