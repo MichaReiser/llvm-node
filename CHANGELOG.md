@@ -1,3 +1,8 @@
+#### 2.1.0 (2018-10-24)
+
+- Add `isHalfTy` and `getHalfTy` to `Type` ([#60](https://github.com/MichaReiser/llvm-node/pull/60))
+- Upgrade cmake-js to avoid vulnerable lodash depndency ([#58](https://github.com/MichaReiser/llvm-node/pull/58))
+
 #### 2.0.8 (2018-08-14)
 
 - Fix type declaration of StructType.name to an union of string | undefined ([#50](https://github.com/MichaReiser/llvm-node/pull/50))
