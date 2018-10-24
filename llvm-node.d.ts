@@ -431,6 +431,8 @@ declare namespace llvm {
 
     isArrayTy(): boolean;
 
+    isHalfTy(): boolean;
+
     isPointerTy(): this is PointerType;
 
     getPointerTo(addressSpace?: number): PointerType;
