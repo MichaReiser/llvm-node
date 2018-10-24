@@ -183,4 +183,12 @@ describe("ir/type", () => {
         .toString()
     ).toBe("double*");
   });
+
+  test("isHalfTy returns true for a half type", () => {
+    expect(llvm.Type.getHalfTy(context).isHalfTy()).toBe(true);
+  });
+
+  test("isHalfTy returns false for a float", () => {
+    expect(llvm.Type.getFloatTy(context).isHalfTy()).toBe(false);
+  });
 });
