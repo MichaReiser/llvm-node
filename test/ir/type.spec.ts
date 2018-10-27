@@ -9,7 +9,7 @@ describe("ir/type", () => {
 
     for (const typeId of Object.keys(llvm.Type.TypeID)) {
       it(`defines ${typeId}`, () => {
-        expect(llvm.Type.TypeID[typeId]).toBeDefined();
+        expect((llvm.Type.TypeID as any)[typeId]).toBeDefined();
       });
     }
   });
@@ -182,5 +182,13 @@ describe("ir/type", () => {
         .getPointerTo()
         .toString()
     ).toBe("double*");
+  });
+
+  test("isHalfTy returns true for a half type", () => {
+    expect(llvm.Type.getHalfTy(context).isHalfTy()).toBe(true);
+  });
+
+  test("isHalfTy returns false for a float", () => {
+    expect(llvm.Type.getFloatTy(context).isHalfTy()).toBe(false);
   });
 });

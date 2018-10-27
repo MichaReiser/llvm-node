@@ -661,7 +661,12 @@ NAN_METHOD(IRBuilderWrapper::CreateSelect) {
 NAN_METHOD(IRBuilderWrapper::GetInsertBlock) {
     auto* builder = IRBuilderWrapper::FromValue(info.Holder());
     auto* block = builder->irBuilder.GetInsertBlock();
-    info.GetReturnValue().Set(BasicBlockWrapper::of(block));
+
+    if (block) {
+        return info.GetReturnValue().Set(BasicBlockWrapper::of(block));
+    }
+
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(IRBuilderWrapper::SetInsertionPoint) {

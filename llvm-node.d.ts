@@ -304,7 +304,7 @@ declare namespace llvm {
 
     hasRetAttr(kind: AttrKind): boolean;
 
-    paramHasAttr(index, kind: AttrKind): boolean;
+    paramHasAttr(index: number, kind: AttrKind): boolean;
 
     getNumArgOperands(): number;
   }
@@ -429,6 +429,8 @@ declare namespace llvm {
 
     static getInt32PtrTy(context: LLVMContext, AS?: number): PointerType;
 
+    static getHalfTy(context: LLVMContext): Type;
+
     protected constructor();
 
     readonly typeID: number;
@@ -452,6 +454,7 @@ declare namespace llvm {
     isArrayTy(): boolean;
 
     isFloatingPointTy(): boolean;
+    isHalfTy(): boolean;
 
     isPointerTy(): this is PointerType;
 
@@ -504,7 +507,7 @@ declare namespace llvm {
 
     static get(context: LLVMContext, elements: Type[], isPacked?: boolean): StructType;
 
-    name: string;
+    name: string | undefined;
     readonly numElements: number;
 
     private constructor();
@@ -660,7 +663,7 @@ declare namespace llvm {
 
     createSExtOrTrunc(value: Value, destType: Type, name?: string): Value;
 
-    getInsertBlock(): BasicBlock;
+    getInsertBlock(): BasicBlock | undefined;
   }
 
   class LLVMContext {
@@ -684,7 +687,7 @@ declare namespace llvm {
 
     print(): string;
 
-    getFunction(name: string): Function;
+    getFunction(name: string): Function | undefined;
 
     getOrInsertFunction(name: string, functionType: FunctionType): Constant;
 
@@ -711,11 +714,11 @@ declare namespace llvm {
   }
 
   export const config: Readonly<{
-      LLVM_VERSION_MAJOR: number;
-      LLVM_VERSION_MINOR: number;
-      LLVM_VERSION_PATCH: number;
-      LLVM_VERSION_STRING: string;
-      LLVM_DEFAULT_TARGET_TRIPLE: string;
+    LLVM_VERSION_MAJOR: number;
+    LLVM_VERSION_MINOR: number;
+    LLVM_VERSION_PATCH: number;
+    LLVM_VERSION_STRING: string;
+    LLVM_DEFAULT_TARGET_TRIPLE: string;
   }>;
 }
 
