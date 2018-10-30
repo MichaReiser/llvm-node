@@ -260,6 +260,8 @@ Nan::Persistent<v8::FunctionTemplate> &TypeWrapper::typeTemplate()
         Nan::SetMethod(typeTemplate, "getInt1PtrTy", &getPointerType<&llvm::Type::getInt1PtrTy>);
         Nan::SetMethod(typeTemplate, "getInt8PtrTy", &getPointerType<&llvm::Type::getInt8PtrTy>);
         Nan::SetMethod(typeTemplate, "getInt32PtrTy", &getPointerType<&llvm::Type::getInt32PtrTy>);
+        Nan::SetMethod(typeTemplate, "getFloatPtrTy", &getPointerType<&llvm::Type::getFloatPtrTy>);
+        Nan::SetMethod(typeTemplate, "getDoublePtrTy", &getPointerType<&llvm::Type::getDoublePtrTy>);
 
         Nan::SetPrototypeMethod(typeTemplate, "equals", &equals);
         Nan::SetPrototypeMethod(typeTemplate, "isVoidTy", &isOfType<&llvm::Type::isVoidTy>);

@@ -409,6 +409,10 @@ declare namespace llvm {
 
     static getInt32PtrTy(context: LLVMContext, AS?: number): PointerType;
 
+    static getDoublePtrTy(context: LLVMContext, AS?: number): PointerType;
+
+    static getFloatPtrTy(context: LLVMContext, AS?: number): PointerType;
+
     static getHalfTy(context: LLVMContext): Type;
 
     protected constructor();
