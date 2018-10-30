@@ -128,6 +128,22 @@ describe("ir/type", () => {
     expect(ty.isVoidTy()).toBe(false);
   });
 
+  test("getDoublePtrTy returns a type for which isPointerTy is true", () => {
+    const ty = llvm.Type.getDoublePtrTy(context);
+
+    expect(ty).toBeInstanceOf(llvm.Type);
+    expect(ty.isPointerTy()).toBe(true);
+    expect(ty.isVoidTy()).toBe(false);
+  });
+
+  test("getFloatPtrTy returns a type for which isPointerTy is true", () => {
+    const ty = llvm.Type.getFloatPtrTy(context);
+
+    expect(ty).toBeInstanceOf(llvm.Type);
+    expect(ty.isPointerTy()).toBe(true);
+    expect(ty.isVoidTy()).toBe(false);
+  });
+
   test("equals returns true if the two types are equal", () => {
     expect(llvm.Type.getInt32Ty(context).equals(llvm.Type.getInt32Ty(context))).toBe(true);
   });
