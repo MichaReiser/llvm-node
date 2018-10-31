@@ -51,6 +51,17 @@ NAN_METHOD(ConstantFPWrapper::getNaN) {
     info.GetReturnValue().Set(ConstantWrapper::of(nan));
 }
 
+NAN_METHOD(ConstantFPWrapper::getInfinity) {
+    if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
+        return Nan::ThrowTypeError("getInfinity needs to be called with: type: Type");
+    }
+
+    auto* type = TypeWrapper::FromValue(info[0])->getType();
+    llvm::Constant* infinity = llvm::ConstantFP::getInfinity(type);
+
+    info.GetReturnValue().Set(ConstantWrapper::of(infinity));
+}
+
 NAN_GETTER(ConstantFPWrapper::getValueAPF) {
         auto* wrapper = ConstantFPWrapper::FromValue(info.Holder());
         auto value = wrapper->getConstantFP()->getValueAPF();
@@ -82,6 +93,7 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantFPWrapper::constantFpTemplate() {
 
         Nan::SetMethod(localTemplate, "get", ConstantFPWrapper::get);
         Nan::SetMethod(localTemplate, "getNaN", ConstantFPWrapper::getNaN);
+        Nan::SetMethod(localTemplate, "getInfinity", ConstantFPWrapper::getInfinity);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("value").ToLocalChecked(), ConstantFPWrapper::getValueAPF);
 
         functionTemplate.Reset(localTemplate);

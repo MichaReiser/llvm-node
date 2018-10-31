@@ -178,6 +178,8 @@ declare namespace llvm {
 
     static getNaN(type: Type): Constant;
 
+    static getInfinity(type: Type): Constant;
+
     private constructor();
 
     readonly value: number;

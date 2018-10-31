@@ -48,6 +48,14 @@ describe("ir/constant-fp", () => {
     });
   });
 
+  describe("getInfinity", () => {
+    it("returns the infinity value", () => {
+      const nan = llvm.ConstantFP.getInfinity(llvm.Type.getDoubleTy(context));
+
+      expect(nan).toBeDefined();
+    });
+  });
+
   describe("value", () => {
     it("returns the value", () => {
       const value = llvm.ConstantFP.get(context, 10);

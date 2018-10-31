@@ -28,6 +28,7 @@ private:
     static NAN_METHOD(New);
     static NAN_METHOD(get);
     static NAN_METHOD(getNaN);
+    static NAN_METHOD(getInfinity);
 
     // instance
     static NAN_GETTER(getValueAPF);
