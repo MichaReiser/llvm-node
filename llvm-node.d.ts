@@ -683,6 +683,9 @@ declare namespace llvm {
     getTypeByName(name: string): StructType | null;
   }
 
+  class ExecutionEngine {
+  }
+
   // support
   class TargetRegistry {
     private constructor();
