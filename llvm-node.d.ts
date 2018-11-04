@@ -178,7 +178,7 @@ declare namespace llvm {
 
     static getNaN(type: Type): Constant;
 
-    static getInfinity(type: Type): Constant;
+    static getInfinity(type: Type, negative?: boolean/* = false */): Constant;
 
     private constructor();
 

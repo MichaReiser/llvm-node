@@ -52,12 +52,22 @@ NAN_METHOD(ConstantFPWrapper::getNaN) {
 }
 
 NAN_METHOD(ConstantFPWrapper::getInfinity) {
-    if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
-        return Nan::ThrowTypeError("getInfinity needs to be called with: type: Type");
+    if (
+        (info.Length() > 2 || info.Length() == 0)
+        || !TypeWrapper::isInstance(info[0])
+        || (info.Length() == 2 && !info[1]->IsBoolean())
+    ) {
+        return Nan::ThrowTypeError("getInfinity needs to be called with: type: Type, negative?: boolean = false");
+    }
+
+    bool negative = false;
+
+    if (info.Length() == 2) {
+        negative = Nan::To<bool>(info[1]).FromJust();
     }
 
     auto* type = TypeWrapper::FromValue(info[0])->getType();
-    llvm::Constant* infinity = llvm::ConstantFP::getInfinity(type);
+    llvm::Constant* infinity = llvm::ConstantFP::getInfinity(type, negative);
 
     info.GetReturnValue().Set(ConstantWrapper::of(infinity));
 }

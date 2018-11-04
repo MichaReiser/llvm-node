@@ -54,6 +54,12 @@ describe("ir/constant-fp", () => {
 
       expect(nan).toBeDefined();
     });
+
+    it("returns the infinity value for negative", () => {
+      const nan = llvm.ConstantFP.getInfinity(llvm.Type.getDoubleTy(context), true);
+
+      expect(nan).toBeDefined();
+    });
   });
 
   describe("value", () => {
