@@ -18,6 +18,8 @@ private:
     explicit ExecutionEngineWrapper(const llvm::ExecutionEngine* executionEngine): executionEngine { executionEngine } {
         assert(executionEngine && "No execute engine passed");
     }
+
+    static NAN_METHOD(addModule);
 };
 
 #endif //LLVM_NODE_EXECUTION_ENGINE_H

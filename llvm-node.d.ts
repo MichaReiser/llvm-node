@@ -684,6 +684,11 @@ declare namespace llvm {
   }
 
   class ExecutionEngine {
+    /**
+     * Add a Module to the list of modules that we can JIT from.
+     * @param module
+     */
+    addModule(module: Module);
   }
 
   // support
