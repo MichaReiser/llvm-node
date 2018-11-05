@@ -790,6 +790,18 @@ describe("IRBuilder", () => {
     expect(rem).toEqual(llvm.ConstantInt.get(context, 1));
   });
 
+  test("CreateURem", () => {
+    const { builder, context } = createBuilderWithBlock();
+
+    const rem = builder.CreateURem(
+      llvm.ConstantInt.get(context, 11),
+      llvm.ConstantInt.get(context, 2)
+    );
+
+    expect(rem).toBeInstanceOf(llvm.Value);
+    expect(rem).toEqual(llvm.ConstantInt.get(context, 1));
+  });
+
   test("createSITToFP", () => {
     const { builder, context } = createBuilderWithBlock();
 
