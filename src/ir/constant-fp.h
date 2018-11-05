@@ -30,6 +30,7 @@ private:
     static NAN_METHOD(getZeroValueForNegation);
     static NAN_METHOD(getNegativeZero);
     static NAN_METHOD(getNaN);
+    static NAN_METHOD(getInfinity);
 
     // instance
     static NAN_GETTER(getValueAPF);

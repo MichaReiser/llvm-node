@@ -51,6 +51,27 @@ NAN_METHOD(ConstantFPWrapper::getNaN) {
     info.GetReturnValue().Set(ConstantWrapper::of(nan));
 }
 
+NAN_METHOD(ConstantFPWrapper::getInfinity) {
+    if (
+        (info.Length() > 2 || info.Length() == 0)
+        || !TypeWrapper::isInstance(info[0])
+        || (info.Length() == 2 && !info[1]->IsBoolean())
+    ) {
+        return Nan::ThrowTypeError("getInfinity needs to be called with: type: Type, negative?: boolean = false");
+    }
+
+    bool negative = false;
+
+    if (info.Length() == 2) {
+        negative = Nan::To<bool>(info[1]).FromJust();
+    }
+
+    auto* type = TypeWrapper::FromValue(info[0])->getType();
+    llvm::Constant* infinity = llvm::ConstantFP::getInfinity(type, negative);
+
+    info.GetReturnValue().Set(ConstantWrapper::of(infinity));
+}
+  
 NAN_METHOD(ConstantFPWrapper::getZeroValueForNegation) {
     if (info.Length() != 1 || !TypeWrapper::isInstance(info[0])) {
         return Nan::ThrowTypeError("getZeroValueForNegation needs to be called with: type: Type");
@@ -106,6 +127,7 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantFPWrapper::constantFpTemplate() {
         Nan::SetMethod(localTemplate, "getZeroValueForNegation", ConstantFPWrapper::getZeroValueForNegation);
         Nan::SetMethod(localTemplate, "getNegativeZero", ConstantFPWrapper::getNegativeZero);
         Nan::SetMethod(localTemplate, "getNaN", ConstantFPWrapper::getNaN);
+        Nan::SetMethod(localTemplate, "getInfinity", ConstantFPWrapper::getInfinity);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("value").ToLocalChecked(), ConstantFPWrapper::getValueAPF);
 
         functionTemplate.Reset(localTemplate);
