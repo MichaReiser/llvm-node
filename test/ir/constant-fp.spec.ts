@@ -40,6 +40,24 @@ describe("ir/constant-fp", () => {
     });
   });
 
+  describe("getZeroValueForNegation", () => {
+    it("returns the zero value for negation", () => {
+      const nan = llvm.ConstantFP.getZeroValueForNegation(llvm.Type.getDoubleTy(context));
+
+      expect(nan).toBeDefined();
+      expect(nan).toBeInstanceOf(llvm.Constant);
+    });
+  });
+
+  describe("getNegativeZero", () => {
+    it("returns the negative zero value", () => {
+      const nan = llvm.ConstantFP.getNegativeZero(llvm.Type.getDoubleTy(context));
+
+      expect(nan).toBeDefined();
+      expect(nan).toBeInstanceOf(llvm.Constant);
+    });
+  });
+
   describe("getNaN", () => {
     it("returns the nan value", () => {
       const nan = llvm.ConstantFP.getNaN(llvm.Type.getDoubleTy(context));

@@ -176,6 +176,10 @@ declare namespace llvm {
   class ConstantFP extends Constant {
     static get(context: LLVMContext, value: number): ConstantFP;
 
+    static getZeroValueForNegation(type: Type): Constant;
+
+    static getNegativeZero(type: Type): Constant;
+
     static getNaN(type: Type): Constant;
 
     static getInfinity(type: Type, negative?: boolean/* = false */): Constant;
