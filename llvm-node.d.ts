@@ -395,19 +395,19 @@ declare namespace llvm {
 
     static getLabelTy(context: LLVMContext): Type;
 
-    static getInt1Ty(context: LLVMContext): Type;
+    static getInt1Ty(context: LLVMContext): IntegerType;
 
-    static getInt8Ty(context: LLVMContext): Type;
+    static getInt8Ty(context: LLVMContext): IntegerType;
 
-    static getInt16Ty(context: LLVMContext): Type;
+    static getInt16Ty(context: LLVMContext): IntegerType;
 
-    static getInt32Ty(context: LLVMContext): Type;
+    static getInt32Ty(context: LLVMContext): IntegerType;
 
-    static getInt64Ty(context: LLVMContext): Type;
+    static getInt64Ty(context: LLVMContext): IntegerType;
 
-    static getInt128Ty(context: LLVMContext): Type;
+    static getInt128Ty(context: LLVMContext): IntegerType;
 
-    static getIntNTy(context: LLVMContext, N: number): Type;
+    static getIntNTy(context: LLVMContext, N: number): IntegerType;
 
     static getInt1PtrTy(context: LLVMContext, AS?: number): PointerType;
 
@@ -452,6 +452,12 @@ declare namespace llvm {
     getPrimitiveSizeInBits(): number;
 
     toString(): string;
+  }
+
+  class IntegerType extends Type {
+    private constructor();
+
+    getBitWidth(): number;
   }
 
   class FunctionType extends Type {

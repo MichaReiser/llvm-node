@@ -2,8 +2,25 @@
 #include "integer-type.h"
 
 NAN_MODULE_INIT(IntegerTypeWrapper::Init) {
-    auto arrayType = Nan::GetFunction(Nan::New(integerTypeTemplate())).ToLocalChecked();
-    Nan::Set(target, Nan::New("IntegerType").ToLocalChecked(), arrayType);
+    auto integerType = Nan::GetFunction(Nan::New(integerTypeTemplate())).ToLocalChecked();
+    Nan::Set(target, Nan::New("IntegerType").ToLocalChecked(), integerType);
+}
+
+NAN_METHOD(IntegerTypeWrapper::New)
+{
+    if (!info.IsConstructCall()) {
+        return Nan::ThrowTypeError("Constructor needs to be called with new");
+    }
+
+    if (info.Length() < 1 || !info[0]->IsExternal()) {
+        return Nan::ThrowTypeError("Expected type pointer");
+    }
+
+    auto *type = static_cast<llvm::IntegerType *>(v8::External::Cast(*info[0])->Value());
+    auto *wrapper = new IntegerTypeWrapper { type };
+    wrapper->Wrap(info.This());
+
+    info.GetReturnValue().Set(info.This());
 }
 
 v8::Local<v8::Object> IntegerTypeWrapper::of(llvm::IntegerType* integerType) {
@@ -36,11 +53,11 @@ v8::Persistent<v8::FunctionTemplate>& IntegerTypeWrapper::integerTypeTemplate() 
 
     if (tmpl.IsEmpty()) {
         auto integerTypeWrapperTemplate = Nan::New<v8::FunctionTemplate>(IntegerTypeWrapper::New);
-        integerTypeWrapperTemplate->SetClassName(Nan::New("ArrayType").ToLocalChecked());
+        integerTypeWrapperTemplate->SetClassName(Nan::New("IntegerType").ToLocalChecked());
         integerTypeWrapperTemplate->InstanceTemplate()->SetInternalFieldCount(1);
         integerTypeWrapperTemplate->Inherit(Nan::New(typeTemplate()));
 
-        Nan::SetMethod(integerTypeWrapperTemplate, "getBitWidth", IntegerTypeWrapper::getBitWidth);
+        Nan::SetPrototypeMethod(integerTypeWrapperTemplate, "getBitWidth", IntegerTypeWrapper::getBitWidth);
 
         tmpl.Reset(integerTypeWrapperTemplate);
     }

@@ -18,6 +18,7 @@ private:
     explicit IntegerTypeWrapper(llvm::IntegerType* type) : TypeWrapper { type } {
     }
 
+    static NAN_METHOD(New);
     static NAN_METHOD(getBitWidth);
 
     static v8::Persistent<v8::FunctionTemplate>& integerTypeTemplate();
