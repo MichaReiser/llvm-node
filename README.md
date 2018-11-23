@@ -51,3 +51,19 @@ In this case, run `node-gyp build --debug` or if using `npm install` run `npm_co
 There variables can also be set using npm set:
 
 `npm config set [--global] DEBUG True`
+
+## Develop with VS-Code
+
+1. Install the [C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
+2. Install the [Cmake Tools Extension](https://marketplace.visualstudio.com/items?itemName=vector-of-bool.cmake-tools)
+3. Configure the LLVM directory in the user settings by adding the following entry
+
+```json
+"cmake.configureSettings": {
+    "LLVM_DIR": "/usr/local/Cellar/llvm/7.0.0/lib/cmake/llvm" // Output of llvm-config --cmakedir
+}
+```
+
+4. Run the `CMake:Configure` Command in Visual Studio Code
+5. Run `yarn configure` from the command line
+6. Run `CMake:Build` command in Visual Studio Code

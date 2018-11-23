@@ -5,7 +5,8 @@ NAN_MODULE_INIT(IntegerTypeWrapper::Init) {
     Nan::Set(target, Nan::New("IntegerType").ToLocalChecked(), integerType);
 }
 
-NAN_METHOD(IntegerTypeWrapper::New) {
+NAN_METHOD(IntegerTypeWrapper::New)
+{
     if (!info.IsConstructCall()) {
         return Nan::ThrowTypeError("Constructor needs to be called with new");
     }

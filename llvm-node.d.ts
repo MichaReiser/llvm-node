@@ -192,7 +192,13 @@ declare namespace llvm {
   class ConstantFP extends Constant {
     static get(context: LLVMContext, value: number): ConstantFP;
 
+    static getZeroValueForNegation(type: Type): Constant;
+
+    static getNegativeZero(type: Type): Constant;
+
     static getNaN(type: Type): Constant;
+
+    static getInfinity(type: Type, negative?: boolean/* = false */): Constant;
 
     private constructor();
 
@@ -409,25 +415,29 @@ declare namespace llvm {
 
     static getLabelTy(context: LLVMContext): Type;
 
-    static getInt1Ty(context: LLVMContext): Type;
+    static getInt1Ty(context: LLVMContext): IntegerType;
 
-    static getInt8Ty(context: LLVMContext): Type;
+    static getInt8Ty(context: LLVMContext): IntegerType;
 
-    static getInt16Ty(context: LLVMContext): Type;
+    static getInt16Ty(context: LLVMContext): IntegerType;
 
-    static getInt32Ty(context: LLVMContext): Type;
+    static getInt32Ty(context: LLVMContext): IntegerType;
 
-    static getInt64Ty(context: LLVMContext): Type;
+    static getInt64Ty(context: LLVMContext): IntegerType;
 
-    static getInt128Ty(context: LLVMContext): Type;
+    static getInt128Ty(context: LLVMContext): IntegerType;
 
-    static getIntNTy(context: LLVMContext, N: number): Type;
+    static getIntNTy(context: LLVMContext, N: number): IntegerType;
 
     static getInt1PtrTy(context: LLVMContext, AS?: number): PointerType;
 
     static getInt8PtrTy(context: LLVMContext, AS?: number): PointerType;
 
     static getInt32PtrTy(context: LLVMContext, AS?: number): PointerType;
+
+    static getDoublePtrTy(context: LLVMContext, AS?: number): PointerType;
+
+    static getFloatPtrTy(context: LLVMContext, AS?: number): PointerType;
 
     static getHalfTy(context: LLVMContext): Type;
 
@@ -464,6 +474,12 @@ declare namespace llvm {
 
 
     toString(): string;
+  }
+
+  class IntegerType extends Type {
+    private constructor();
+
+    getBitWidth(): number;
   }
 
   class FunctionType extends Type {

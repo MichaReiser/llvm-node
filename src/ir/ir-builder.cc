@@ -122,7 +122,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createNot", IRBuilderWrapper::CreateNot);
     Nan::SetPrototypeMethod(functionTemplate, "createOr", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateOr>>);
     Nan::SetPrototypeMethod(functionTemplate, "createXor", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateXor>>);
-    Nan::SetPrototypeMethod(functionTemplate, "createPhi", IRBuilderWrapper::CreatePHI);
+    Nan::SetPrototypeMethod(functionTemplate, "createPhi", IRBuilderWrapper::CreatePhi);
     Nan::SetPrototypeMethod(functionTemplate, "createPtrToInt", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreatePtrToInt>);
     Nan::SetPrototypeMethod(functionTemplate, "createRet", IRBuilderWrapper::CreateRet);
     Nan::SetPrototypeMethod(functionTemplate, "createRetVoid", IRBuilderWrapper::CreateRetVoid);
@@ -601,7 +601,7 @@ NAN_METHOD(IRBuilderWrapper::CreateGlobalStringPtr) {
     info.GetReturnValue().Set(ValueWrapper::of(value));
 }
 
-NAN_METHOD(IRBuilderWrapper::CreatePHI) {
+NAN_METHOD(IRBuilderWrapper::CreatePhi) {
     if (info.Length() < 2 || !TypeWrapper::isInstance(info[0]) || !info[1]->IsUint32()
             || (info.Length() == 3 && !(info[2]->IsString() || info[2]->IsUndefined()))
             || info.Length() > 3) {

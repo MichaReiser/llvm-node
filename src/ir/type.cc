@@ -7,6 +7,7 @@
 #include "type.h"
 #include "function-type.h"
 #include "pointer-type.h"
+#include "integer-type.h"
 #include "array-type.h"
 #include "struct-type.h"
 #include "integer-type.h"
@@ -120,16 +121,14 @@ typedef llvm::IntegerType *(getIntTypeFn)(llvm::LLVMContext &);
 template <getIntTypeFn method>
 NAN_METHOD(getIntType)
 {
-    if (info.Length() < 1 || !LLVMContextWrapper::isInstance(info[0]))
-    {
+    if (info.Length() < 1 || !LLVMContextWrapper::isInstance(info[0])) {
         return Nan::ThrowTypeError("getIntTy needs to be called with the context");
     }
 
     auto context = LLVMContextWrapper::FromValue(info[0]);
 
     auto *type = method(context->getContext());
-    auto wrapped = TypeWrapper::of(type);
-    info.GetReturnValue().Set(wrapped);
+    info.GetReturnValue().Set(IntegerTypeWrapper::of(type));
 }
 
 typedef llvm::PointerType *(getPointerTypeFn)(llvm::LLVMContext &, unsigned AS);
@@ -159,27 +158,17 @@ v8::Local<v8::Object> TypeWrapper::of(llvm::Type *type)
 {
     v8::Local<v8::Object> result{};
 
-    if (type->isFunctionTy())
-    {
-        result = FunctionTypeWrapper::Create(static_cast<llvm::FunctionType *>(type));
-    }
-    else if (type->isPointerTy())
-    {
-        result = PointerTypeWrapper::of(static_cast<llvm::PointerType *>(type));
-    }
-    else if (type->isArrayTy())
-    {
-        result = ArrayTypeWrapper::of(static_cast<llvm::ArrayType *>(type));
-    }
-    else if (type->isStructTy())
-    {
-        result = StructTypeWrapper::of(static_cast<llvm::StructType *>(type));
-    }
-    else if (type->isIntegerTy()) {
+    if (type->isIntegerTy()) {
         result = IntegerTypeWrapper::of(static_cast<llvm::IntegerType *>(type));
-    }
-    else
-    {
+    } else if (type->isFunctionTy()) {
+        result = FunctionTypeWrapper::Create(static_cast<llvm::FunctionType *>(type));
+    } else if (type->isPointerTy()) {
+        result = PointerTypeWrapper::of(static_cast<llvm::PointerType *>(type));
+    } else if (type->isArrayTy()) {
+        result = ArrayTypeWrapper::of(static_cast<llvm::ArrayType *>(type));
+    } else if (type->isStructTy()) {
+        result = StructTypeWrapper::of(static_cast<llvm::StructType *>(type));
+    } else {
         v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New(typeTemplate());
         auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
         v8::Local<v8::Value> argv[1] = {Nan::New<v8::External>(type)};
@@ -264,6 +253,8 @@ Nan::Persistent<v8::FunctionTemplate> &TypeWrapper::typeTemplate()
         Nan::SetMethod(typeTemplate, "getInt1PtrTy", &getPointerType<&llvm::Type::getInt1PtrTy>);
         Nan::SetMethod(typeTemplate, "getInt8PtrTy", &getPointerType<&llvm::Type::getInt8PtrTy>);
         Nan::SetMethod(typeTemplate, "getInt32PtrTy", &getPointerType<&llvm::Type::getInt32PtrTy>);
+        Nan::SetMethod(typeTemplate, "getFloatPtrTy", &getPointerType<&llvm::Type::getFloatPtrTy>);
+        Nan::SetMethod(typeTemplate, "getDoublePtrTy", &getPointerType<&llvm::Type::getDoublePtrTy>);
 
         Nan::SetPrototypeMethod(typeTemplate, "equals", &equals);
         Nan::SetPrototypeMethod(typeTemplate, "isVoidTy", &isOfType<&llvm::Type::isVoidTy>);
