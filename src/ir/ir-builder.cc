@@ -123,6 +123,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createOr", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateOr>>);
     Nan::SetPrototypeMethod(functionTemplate, "createXor", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateXor>>);
     Nan::SetPrototypeMethod(functionTemplate, "createPhi", IRBuilderWrapper::CreatePhi);
+    Nan::SetPrototypeMethod(functionTemplate, "createIntToPtr", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateIntToPtr>);
     Nan::SetPrototypeMethod(functionTemplate, "createPtrToInt", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreatePtrToInt>);
     Nan::SetPrototypeMethod(functionTemplate, "createRet", IRBuilderWrapper::CreateRet);
     Nan::SetPrototypeMethod(functionTemplate, "createRetVoid", IRBuilderWrapper::CreateRetVoid);

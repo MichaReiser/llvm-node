@@ -17,6 +17,7 @@
 #include "global-variable.h"
 #include "constant-struct.h"
 #include "constant-array.h"
+#include "constant-expr.h"
 #include "undef-value.h"
 
 NAN_MODULE_INIT(ConstantWrapper::Init) {
@@ -47,6 +48,8 @@ v8::Local<v8::Object> ConstantWrapper::of(llvm::Constant *constant) {
         result = ConstantAggregateZeroWrapper::of(static_cast<llvm::ConstantAggregateZero*>(constant));
     } else if (llvm::UndefValue::classof(constant)) {
         result = UndefValueWrapper::of(static_cast<llvm::UndefValue*>(constant));
+    } else if (llvm::ConstantExpr::classof(constant)) {
+        result = ConstantExprWrapper::of(static_cast<llvm::ConstantExpr*>(constant));
     } else {
         auto constructorFunction = Nan::GetFunction(Nan::New(constantTemplate())).ToLocalChecked();
         v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(constant) };

@@ -180,13 +180,23 @@ declare namespace llvm {
   }
 
   class ConstantExpr extends Constant {
-    static getBitCast(constant: Constant, type: Type): ConstantExpr
+    static getPointerCast(constant: Constant, type: Type): Constant;
 
-    static getOr(constant1: Constant, constant2: Constant): ConstantExpr
+    static getIntegerCast(constant: Constant, type: Type): Constant;
 
-    static getPointerBitCastOrAddrSpaceCast(constant: Constant, type: Type): ConstantExpr
+    static getFPCast(constant: Constant, type: Type): Constant;
 
-    static getPointerCast(constant: Constant, type: Type): ConstantExpr
+    static getBitCast(constant: Constant, type: Type): Constant;
+
+    static getGetElementPtr(type: Type, constant: Constant, idxList: Constant[], inBounds?: boolean): Constant;
+
+    static getOr(constant1: Constant, constant2: Constant): Constant;
+
+    static getPointerBitCastOrAddrSpaceCast(constant: Constant, type: Type): Constant;
+
+    static getAlignOf(type: Type): Constant;
+
+    static getSizeOf(type: Type): Constant;
   }
 
   class ConstantFP extends Constant {
@@ -384,7 +394,7 @@ declare namespace llvm {
 
     getTypeAllocSizeInBits(type: Type): number;
 
-    getIntPtrType(context: LLVMContext, as: number): Type;
+    getIntPtrType(context: LLVMContext, as: number): IntegerType;
   }
 
   class Type {
