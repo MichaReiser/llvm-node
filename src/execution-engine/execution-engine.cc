@@ -21,10 +21,10 @@ NAN_METHOD(ExecutionEngineWrapper::addModule) {
     auto* module = ModuleWrapper::FromValue(info[0])->getModule();
 
     auto* executionEngine = ExecutionEngineWrapper::FromValue(info.Holder())->executionEngine;
-    executionEngine->addModule(std::make_unique<llvm::Module*>(module));
+    executionEngine->addModule(std::unique_ptr<llvm::Module>(module));
 }
 
-v8::Local<v8::Object> ExecutionEngineWrapper::of(const llvm::ExecutionEngine *executionEnginePtr) {
+v8::Local<v8::Object> ExecutionEngineWrapper::of(llvm::ExecutionEngine *executionEnginePtr) {
     Nan::EscapableHandleScope escapeScope {};
     v8::Local<v8::ObjectTemplate> tpl = Nan::New(executionEngineTemplate);
 

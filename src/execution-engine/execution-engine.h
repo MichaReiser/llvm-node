@@ -9,13 +9,13 @@
 class ExecutionEngineWrapper: public Nan::ObjectWrap, public FromValueMixin<ExecutionEngineWrapper> {
 public:
     static NAN_MODULE_INIT(Init);
-    static v8::Local<v8::Object> of(const llvm::ExecutionEngine *ptr);
+    static v8::Local<v8::Object> of(llvm::ExecutionEngine *ptr);
 
 private:
-    const llvm::ExecutionEngine* executionEngine;
+    llvm::ExecutionEngine* executionEngine;
     static Nan::Persistent<v8::ObjectTemplate> executionEngineTemplate;
 
-    explicit ExecutionEngineWrapper(const llvm::ExecutionEngine* executionEngine): executionEngine { executionEngine } {
+    explicit ExecutionEngineWrapper(llvm::ExecutionEngine* executionEngine): executionEngine { executionEngine } {
         assert(executionEngine && "No execute engine passed");
     }
 
