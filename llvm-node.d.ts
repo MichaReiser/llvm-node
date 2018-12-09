@@ -391,6 +391,8 @@ declare namespace llvm {
 
     static getDoubleTy(context: LLVMContext): Type;
 
+    static getFP128Ty(context: LLVMContext): Type;
+
     static getVoidTy(context: LLVMContext): Type;
 
     static getLabelTy(context: LLVMContext): Type;
@@ -432,6 +434,8 @@ declare namespace llvm {
     isFloatTy(): boolean;
 
     isDoubleTy(): boolean;
+
+    isFP128Ty(): boolean;
 
     isLabelTy(): boolean;
 
