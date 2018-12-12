@@ -239,6 +239,7 @@ Nan::Persistent<v8::FunctionTemplate> &TypeWrapper::typeTemplate()
         typeTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
         Nan::SetMethod(typeTemplate, "getDoubleTy", &getTypeFactory<&llvm::Type::getDoubleTy>);
+        Nan::SetMethod(typeTemplate, "getFP128Ty", &getTypeFactory<&llvm::Type::getFP128Ty>);
         Nan::SetMethod(typeTemplate, "getVoidTy", &getTypeFactory<&llvm::Type::getVoidTy>);
         Nan::SetMethod(typeTemplate, "getFloatTy", &getTypeFactory<&llvm::Type::getFloatTy>);
         Nan::SetMethod(typeTemplate, "getLabelTy", &getTypeFactory<&llvm::Type::getLabelTy>);
@@ -260,6 +261,7 @@ Nan::Persistent<v8::FunctionTemplate> &TypeWrapper::typeTemplate()
         Nan::SetPrototypeMethod(typeTemplate, "isVoidTy", &isOfType<&llvm::Type::isVoidTy>);
         Nan::SetPrototypeMethod(typeTemplate, "isFloatTy", &isOfType<&llvm::Type::isFloatTy>);
         Nan::SetPrototypeMethod(typeTemplate, "isDoubleTy", &isOfType<&llvm::Type::isDoubleTy>);
+        Nan::SetPrototypeMethod(typeTemplate, "isFP128Ty", &isOfType<&llvm::Type::isFP128Ty>);
         Nan::SetPrototypeMethod(typeTemplate, "isLabelTy", &isOfType<&llvm::Type::isLabelTy>);
         Nan::SetPrototypeMethod(typeTemplate, "isIntegerTy", &isIntegerTy);
         Nan::SetPrototypeMethod(typeTemplate, "isFunctionTy", &isOfType<&llvm::Type::isFunctionTy>);

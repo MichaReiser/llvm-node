@@ -24,6 +24,14 @@ describe("ir/type", () => {
     expect(ty.isVoidTy()).toBe(false);
   });
 
+  test("FP128Ty returns a type for which isFP128Ty is true", () => {
+    const ty = llvm.Type.getFP128Ty(context);
+
+    expect(ty).toBeInstanceOf(llvm.Type);
+    expect(ty.isFP128Ty()).toBe(true);
+    expect(ty.isVoidTy()).toBe(false);
+  });
+
   test("voidTy returns a type for which isVoidTy is true", () => {
     const ty = llvm.Type.getVoidTy(context);
 
