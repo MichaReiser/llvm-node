@@ -790,6 +790,18 @@ describe("IRBuilder", () => {
     expect(rem).toEqual(llvm.ConstantInt.get(context, 1));
   });
 
+  test("createUDiv", () => {
+    const { builder, context } = createBuilderWithBlock();
+
+    const div = builder.createUDiv(
+      llvm.ConstantInt.get(context, -1, 32, false),
+      llvm.ConstantInt.get(context, 2, 32)
+    );
+
+    expect(div).toBeInstanceOf(llvm.Value);
+    expect(div).toEqual(llvm.ConstantInt.get(context, 1073741824, 32));
+  });
+
   test("createURem", () => {
     const { builder, context } = createBuilderWithBlock();
 

@@ -687,6 +687,8 @@ declare namespace llvm {
 
     createSRem(lhs: Value, rhs: Value, name?: string): Value;
 
+    createUDiv(lhs: Value, rhs: Value, name?: string): Value;
+
     createURem(lhs: Value, rhs: Value, name?: string): Value;
 
     createZExt(value: Value, destType: Type, name?: string): Value;
