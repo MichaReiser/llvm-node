@@ -28,7 +28,7 @@ describe("ir/constant-int", () => {
         it("returns the true value", () => {
             const trueValue = llvm.ConstantInt.getTrue(context);
 
-            expect(trueValue.type).toEqual(llvm.Type.getInt8Ty(context));
+            expect(trueValue.type).toEqual(llvm.Type.getInt1Ty(context));
             expect(trueValue.value).toBeDefined();
         });
     });
@@ -37,7 +37,7 @@ describe("ir/constant-int", () => {
         it("returns the false value", () => {
             const trueValue = llvm.ConstantInt.getFalse(context);
 
-            expect(trueValue.type).toEqual(llvm.Type.getInt8Ty(context));
+            expect(trueValue.type).toEqual(llvm.Type.getInt1Ty(context));
             expect(trueValue.value).toBe(0);
         });
     });

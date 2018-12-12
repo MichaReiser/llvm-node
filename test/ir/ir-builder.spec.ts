@@ -790,10 +790,10 @@ describe("IRBuilder", () => {
     expect(rem).toEqual(llvm.ConstantInt.get(context, 1));
   });
 
-  test("CreateURem", () => {
+  test("createURem", () => {
     const { builder, context } = createBuilderWithBlock();
 
-    const rem = builder.CreateURem(
+    const rem = builder.createURem(
       llvm.ConstantInt.get(context, 11),
       llvm.ConstantInt.get(context, 2)
     );
