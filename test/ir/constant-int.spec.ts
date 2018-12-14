@@ -19,7 +19,7 @@ describe("ir/constant-int", () => {
       it("returns the int64 value", () => {
         const intValue = llvm.ConstantInt.get(context, '9223372036854775807', 64);
 
-        expect(intValue.value).toBe('9223372036854775807');
+        expect(intValue.getValueAsString()).toBe('9223372036854775807');
         expect(intValue.type).toEqual(llvm.Type.getInt64Ty(context));
       });
 
