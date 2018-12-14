@@ -27,11 +27,11 @@ NAN_METHOD(ConstantIntWrapper::New) {
 }
 
 NAN_METHOD(ConstantIntWrapper::get) {
-    if (info.Length() < 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsNumber() ||
+    if (info.Length() < 2 || !LLVMContextWrapper::isInstance(info[0]) || (!info[1]->IsNumber() && !info[1]->IsString()) ||
             (info.Length() > 2 && !info[2]->IsNumber() && !info[2]->IsUndefined()) ||
             (info.Length() > 3 && !info[3]->IsBoolean()) ||
             info.Length() > 4) {
-        return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number, numBits = 32, signed= true");
+        return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number|string, numBits = 32, signed= true");
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
