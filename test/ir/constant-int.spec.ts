@@ -23,6 +23,14 @@ describe("ir/constant-int", () => {
         expect(intValue.type).toEqual(llvm.Type.getInt64Ty(context));
       });
 
+
+      it("returns the negative int64 value", () => {
+        const intValue = llvm.ConstantInt.get(context, '-9223372036854775807', 64);
+
+        expect(intValue.getValueAsString()).toBe('-9223372036854775807');
+        expect(intValue.type).toEqual(llvm.Type.getInt64Ty(context));
+      });
+
        it("returns the int value with the specified number of bits", () => {
            const intValue = llvm.ConstantInt.get(context, 10, 32);
 

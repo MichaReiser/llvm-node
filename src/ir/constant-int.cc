@@ -4,6 +4,7 @@
 
 #include "constant-int.h"
 #include "llvm-context.h"
+#include "../util/string.h"
 
 NAN_MODULE_INIT(ConstantIntWrapper::Init) {
     auto constantInt = Nan::GetFunction(Nan::New(constantIntTemplate())).ToLocalChecked();
@@ -35,7 +36,6 @@ NAN_METHOD(ConstantIntWrapper::get) {
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
-    int64_t number = Nan::To<int64_t >(info[1]).FromJust();
     uint32_t numBits = 32;
     bool isSigned = true;
 
@@ -47,9 +47,17 @@ NAN_METHOD(ConstantIntWrapper::get) {
         isSigned = Nan::To<bool>(info[3]).FromJust();
     }
 
-    auto* constant = llvm::ConstantInt::get(context, llvm::APInt { numBits, static_cast<uint64_t>(number), isSigned } );
+    if (info[1]->IsString()) {
+        auto number = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
+        auto* constant = llvm::ConstantInt::get(context, llvm::APInt { numBits, llvm::StringRef(number.c_str()), 10 } );
 
-    info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
+        info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
+    } else {
+        int64_t number = Nan::To<int64_t>(info[1]).FromJust();
+        auto* constant = llvm::ConstantInt::get(context, llvm::APInt { numBits, static_cast<uint64_t>(number), isSigned } );
+
+        info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
+    }
 }
 
 NAN_METHOD(ConstantIntWrapper::getTrue) {
