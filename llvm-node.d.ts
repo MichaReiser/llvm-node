@@ -198,7 +198,10 @@ declare namespace llvm {
 
     private constructor();
 
-    readonly value: number;
+    /**
+     * Return string for integers with more then 54 bits
+     */
+    readonly value: number|string;
   }
 
   class ConstantPointerNull extends Constant {

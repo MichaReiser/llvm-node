@@ -76,9 +76,14 @@ NAN_METHOD(ConstantIntWrapper::getFalse) {
 
 NAN_GETTER(ConstantIntWrapper::getValueApf) {
     auto* wrapper = ConstantIntWrapper::FromValue(info.Holder());
-    auto value = wrapper->getConstantInt()->getValue();
+    auto constantInt = wrapper->getConstantInt();
+    auto value = constantInt->getValue();
 
-    info.GetReturnValue().Set(Nan::New(value.signedRoundToDouble()));
+    if (constantInt->getBitWidth() > 54) {
+        info.GetReturnValue().Set(Nan::New<v8::String>(value.toString(10, true)).ToLocalChecked());
+    } else {
+        info.GetReturnValue().Set(Nan::New(value.signedRoundToDouble()));
+    }
 }
 
 llvm::ConstantInt *ConstantIntWrapper::getConstantInt() {
