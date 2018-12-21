@@ -88,7 +88,7 @@ describe("IRBuilder", () => {
 
     expect(cast).toBeInstanceOf(llvm.Value);
     expect(cast.type).toEqual(
-      llvm.PointerType.get(llvm.Type.getInt32Ty(context), 0)
+      llvm.Type.getInt8PtrTy(context)
     );
   });
 
@@ -799,7 +799,7 @@ describe("IRBuilder", () => {
     );
 
     expect(div).toBeInstanceOf(llvm.Value);
-    expect(div).toEqual(llvm.ConstantInt.get(context, 1073741824, 32));
+    expect(div).toEqual(llvm.ConstantInt.get(context, 2147483647, 32));
   });
 
   test("createURem", () => {
