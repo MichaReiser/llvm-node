@@ -28,7 +28,7 @@ private:
     // Static Methods
     static NAN_METHOD(New);
     static NAN_METHOD(get);
-    static NAN_GETTER(getBitWidth);
+    static NAN_METHOD(getBitWidth);
 };
 
 #endif //LLVM_NODE_INTEGER_TYPE_H

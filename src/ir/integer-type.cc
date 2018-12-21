@@ -28,16 +28,16 @@ NAN_METHOD(IntegerTypeWrapper::get) {
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
-    uint32_t bitWidth = Nan::To<uint32_t>(info[1]).FromJust();
+    unsigned bitWidth = Nan::To<unsigned>(info[1]).FromJust();
 
     auto* integerType = llvm::IntegerType::get(context, bitWidth);
 
     info.GetReturnValue().Set(IntegerTypeWrapper::of(integerType));
 }
 
-NAN_GETTER(IntegerTypeWrapper::getBitWidth) {
+NAN_METHOD(IntegerTypeWrapper::getBitWidth) {
     auto* integerType = IntegerTypeWrapper::FromValue(info.Holder())->getIntegerType();
-    uint32_t bitWidth = integerType->getBitWidth();
+    unsigned bitWidth = integerType->getBitWidth();
 
     info.GetReturnValue().Set(Nan::New(bitWidth));
 }
@@ -64,7 +64,7 @@ Nan::Persistent<v8::FunctionTemplate>& IntegerTypeWrapper::integerTypeTemplate()
         integerTypeTemplate->InstanceTemplate()->SetInternalFieldCount(1);
         integerTypeTemplate->Inherit(Nan::New(typeTemplate()));
 
-        Nan::SetAccessor(integerTypeTemplate->InstanceTemplate(), Nan::New("bitWidth").ToLocalChecked(), IntegerTypeWrapper::getBitWidth);
+        Nan::SetPrototypeMethod(integerTypeTemplate, "getBitWidth", IntegerTypeWrapper::getBitWidth);
 
         persistentTemplate.Reset(integerTypeTemplate);
     }
