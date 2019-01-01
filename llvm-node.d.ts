@@ -688,7 +688,7 @@ declare namespace llvm {
      * Add a Module to the list of modules that we can JIT from.
      * @param module
      */
-    addModule(module: Module);
+    addModule(module: Module): void;
   }
 
   // support
