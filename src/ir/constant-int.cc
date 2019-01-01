@@ -82,7 +82,7 @@ NAN_METHOD(ConstantIntWrapper::getFalse) {
     info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
 }
 
-NAN_METHOD(ConstantIntWrapper::getValueAsString) {
+NAN_METHOD(ConstantIntWrapper::toString) {
     auto* wrapper = ConstantIntWrapper::FromValue(info.Holder());
     auto constantInt = wrapper->getConstantInt();
     auto value = constantInt->getValue();
@@ -123,7 +123,7 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantIntWrapper::constantIntTemplate()
         Nan::SetMethod(localTemplate, "get", ConstantIntWrapper::get);
         Nan::SetMethod(localTemplate, "getFalse", ConstantIntWrapper::getFalse);
         Nan::SetMethod(localTemplate, "getTrue", ConstantIntWrapper::getTrue);
-        Nan::SetPrototypeMethod(localTemplate, "getValueAsString", ConstantIntWrapper::getValueAsString);
+        Nan::SetPrototypeMethod(localTemplate, "toString", ConstantIntWrapper::toString);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("value").ToLocalChecked(), ConstantIntWrapper::getValueApf);
 
         functionTemplate.Reset(localTemplate);

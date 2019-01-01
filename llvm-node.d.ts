@@ -200,7 +200,7 @@ declare namespace llvm {
 
     readonly value: number;
 
-    public getValueAsString(): string;
+    public toString(): string;
   }
 
   class ConstantPointerNull extends Constant {

@@ -28,7 +28,7 @@ private:
     static NAN_METHOD(get);
     static NAN_METHOD(getTrue);
     static NAN_METHOD(getFalse);
-    static NAN_METHOD(getValueAsString);
+    static NAN_METHOD(toString);
 
     // instance
     static NAN_GETTER(getValueApf);
