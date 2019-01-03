@@ -190,7 +190,7 @@ declare namespace llvm {
   }
 
   class ConstantInt extends Constant {
-    static get(context: LLVMContext, value: number, numBits?: number, signed?: boolean): ConstantInt;
+    static get(context: LLVMContext, value: number|string, numBits?: number, signed?: boolean): ConstantInt;
 
     static getFalse(context: LLVMContext): ConstantInt;
 
@@ -199,6 +199,8 @@ declare namespace llvm {
     private constructor();
 
     readonly value: number;
+
+    public toString(): string;
   }
 
   class ConstantPointerNull extends Constant {
