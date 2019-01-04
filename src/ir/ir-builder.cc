@@ -92,6 +92,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpULT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpULT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpUEQ", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpUEQ>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpUNE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpUNE>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpUNO", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpUNO>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFDiv", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFDiv>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFMul", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFMul>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFNeg", IRBuilderWrapper::CreateFNeg);
