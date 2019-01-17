@@ -691,6 +691,8 @@ declare namespace llvm {
 
     createURem(lhs: Value, rhs: Value, name?: string): Value;
 
+    createUnreachable(): Value;
+
     createZExt(value: Value, destType: Type, name?: string): Value;
 
     createZExtOrTrunc(value: Value, destType: Type, name?: string): Value;
