@@ -6,6 +6,9 @@
 #include "llvm-context.h"
 #include "type.h"
 
+#include "../util/string.h"
+
+
 NAN_MODULE_INIT(ConstantFPWrapper::Init) {
         auto constantFp = Nan::GetFunction(Nan::New(constantFpTemplate())).ToLocalChecked();
         Nan::Set(target, Nan::New("ConstantFP").ToLocalChecked(), constantFp);
@@ -28,16 +31,22 @@ NAN_METHOD(ConstantFPWrapper::New) {
 }
 
 NAN_METHOD(ConstantFPWrapper::get) {
-        if (info.Length() != 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsNumber()) {
-            return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number");
-        }
-
+    if (info.Length() == 2 && LLVMContextWrapper::isInstance(info[0]) && info[1]->IsNumber()) {
         auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
         double number = Nan::To<double>(info[1]).FromJust();
 
-        auto* constant = llvm::ConstantFP::get(context, llvm::APFloat { number } );
+        auto* constant = llvm::ConstantFP::get(context, llvm::APFloat { number });
 
-        info.GetReturnValue().Set(ConstantFPWrapper::of(constant));
+        return info.GetReturnValue().Set(ConstantFPWrapper::of(constant));    
+    } else if (info.Length() == 2 && TypeWrapper::isInstance(info[0]) && info[1]->IsString()) {
+        auto type = TypeWrapper::FromValue(info[0])->getType();
+        auto number = ToString(info[1]);
+        auto constant = llvm::ConstantFP::get(type, number);
+
+        return info.GetReturnValue().Set(ConstantWrapper::of(constant));
+    }
+
+    return Nan::ThrowTypeError("get called with illegal arguments");
 }
 
 NAN_METHOD(ConstantFPWrapper::getNaN) {
@@ -95,10 +104,15 @@ NAN_METHOD(ConstantFPWrapper::getNegativeZero) {
 }
 
 NAN_GETTER(ConstantFPWrapper::getValueAPF) {
-        auto* wrapper = ConstantFPWrapper::FromValue(info.Holder());
-        auto value = wrapper->getConstantFP()->getValueAPF();
+    auto* wrapper = ConstantFPWrapper::FromValue(info.Holder());
+    auto fp = wrapper->getConstantFP();
+    auto value = fp->getValueAPF();
 
+    if (fp->getType()->isFloatTy()) {
+        info.GetReturnValue().Set(Nan::New(value.convertToFloat()));
+    } else {
         info.GetReturnValue().Set(Nan::New(value.convertToDouble()));
+    }
 }
 
 llvm::ConstantFP *ConstantFPWrapper::getConstantFP() {
