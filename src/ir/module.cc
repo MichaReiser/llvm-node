@@ -100,8 +100,8 @@ NAN_METHOD(ModuleWrapper::getOrInsertFunction) {
         Nan::Set(functionCallee, Nan::New("functionType").ToLocalChecked(), FunctionTypeWrapper::of(fnType));
     #else 
         auto llvmCallee = module->getOrInsertFunction(name, fnType);
-        Nan::Set(functionCallee, Nan::New("callee").ToLocalChecked(), ValueWrapper::of(llvmCallee->getCallee()));
-        Nan::Set(functionCallee, Nan::New("functionType").ToLocalChecked(), FunctionTypeWrapper::of(llvmCallee->getFunctionType()));
+        Nan::Set(functionCallee, Nan::New("callee").ToLocalChecked(), ValueWrapper::of(llvmCallee.getCallee()));
+        Nan::Set(functionCallee, Nan::New("functionType").ToLocalChecked(), FunctionTypeWrapper::of(llvmCallee.getFunctionType()));
     #endif
     
     Nan::EscapableHandleScope scope {};
