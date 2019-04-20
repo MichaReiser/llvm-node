@@ -175,6 +175,7 @@ declare namespace llvm {
 
   class ConstantFP extends Constant {
     static get(context: LLVMContext, value: number): ConstantFP;
+    static get(type: Type, value: string): Constant;
 
     static getZeroValueForNegation(type: Type): Constant;
 
@@ -182,7 +183,7 @@ declare namespace llvm {
 
     static getNaN(type: Type): Constant;
 
-    static getInfinity(type: Type, negative?: boolean/* = false */): Constant;
+    static getInfinity(type: Type, negative?: boolean /* = false */): Constant;
 
     private constructor();
 
@@ -190,7 +191,7 @@ declare namespace llvm {
   }
 
   class ConstantInt extends Constant {
-    static get(context: LLVMContext, value: number|string, numBits?: number, signed?: boolean): ConstantInt;
+    static get(context: LLVMContext, value: number | string, numBits?: number, signed?: boolean): ConstantInt;
 
     static getFalse(context: LLVMContext): ConstantInt;
 
