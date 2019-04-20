@@ -667,6 +667,11 @@ declare namespace llvm {
     private __marker: number;
   }
 
+  interface FunctionCallee {
+    callee: Value;
+    functionType: FunctionType;
+  }
+
   class Module {
     empty: boolean;
     readonly name: string;
@@ -683,7 +688,7 @@ declare namespace llvm {
 
     getFunction(name: string): Function | undefined;
 
-    getOrInsertFunction(name: string, functionType: FunctionType): Constant;
+    getOrInsertFunction(name: string, functionType: FunctionType): FunctionCallee;
 
     getGlobalVariable(name: string, allowInternal?: boolean): GlobalVariable;
 
