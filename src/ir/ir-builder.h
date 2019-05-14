@@ -53,6 +53,7 @@ private:
     static NAN_METHOD(CreatePhi);
     static NAN_METHOD(CreateRet);
     static NAN_METHOD(CreateRetVoid);
+    static NAN_METHOD(CreateUnreachable);
     static NAN_METHOD(CreateSelect);
     static NAN_METHOD(CreateStore);
     static NAN_METHOD(GetInsertBlock);

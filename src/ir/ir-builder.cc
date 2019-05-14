@@ -136,6 +136,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createSIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateSIToFP>);
     Nan::SetPrototypeMethod(functionTemplate, "createUDiv", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateUDiv>>);
     Nan::SetPrototypeMethod(functionTemplate, "createURem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateURem>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createUnreachable", IRBuilderWrapper::CreateUnreachable);
     Nan::SetPrototypeMethod(functionTemplate, "createUIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateUIToFP>);
     Nan::SetPrototypeMethod(functionTemplate, "createStore", IRBuilderWrapper::CreateStore);
     Nan::SetPrototypeMethod(functionTemplate, "createZExt", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateZExt>);
@@ -638,6 +639,12 @@ NAN_METHOD(IRBuilderWrapper::CreateRet) {
 NAN_METHOD(IRBuilderWrapper::CreateRetVoid) {
     auto& builder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
     auto* returnInstruction = builder.CreateRetVoid();
+    info.GetReturnValue().Set(ValueWrapper::of(returnInstruction));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateUnreachable) {
+    auto& builder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
+    auto* returnInstruction = builder.CreateUnreachable();
     info.GetReturnValue().Set(ValueWrapper::of(returnInstruction));
 }
 
