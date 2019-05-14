@@ -2,9 +2,7 @@ language: node_js
 node_js:
   - "11"
   - "10"
-  - "9"
   - "8"
-  - "7"
   - "6"
 cache: yarn
 env:
@@ -13,13 +11,14 @@ env:
     - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main" LLVM_VERSION=5.0
     - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main" LLVM_VERSION=6.0
     - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-7 main" LLVM_VERSION=7
-    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main" LLVM_VERSION=8
+    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-8 main" LLVM_VERSION=8
+    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main" LLVM_VERSION=9
 before_install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
   - echo $LLVM_DEB | sudo tee -a /etc/apt/sources.list
   - sudo apt-get update -qq
-  - sudo apt-get install libedit-dev llvm-$LLVM_VERSION llvm-$LLVM_VERSION-dev
+  - sudo apt-get install libedit-dev llvm-$LLVM_VERSION llvm-$LLVM_VERSION-dev clang-$LLVM_VERSION llvm-$LLVM_VERSION-tools
   - npm config set cmake_LLVM_DIR $(llvm-config-$LLVM_VERSION --cmakedir)
 deploy:
   provider: npm

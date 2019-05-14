@@ -22,21 +22,29 @@ describe("ir/constant-fp", () => {
 
   describe("get", () => {
     const untypedGet = llvm.ConstantFP.get as any;
-    it("creates a new float constant", () => {
+    it("creates a new double constant", () => {
       const value = llvm.ConstantFP.get(context, 10);
 
       expect(value.value).toBe(10);
     });
 
+    it("creates a new fp of the given type", () => {
+      const floatType = llvm.Type.getFloatTy(context);
+
+      const value = llvm.ConstantFP.get(floatType, "3");
+
+      expect(value.type).toEqual(floatType);
+      expect(value).toBeInstanceOf(llvm.ConstantFP);
+      expect((value as llvm.ConstantFP).value).toBe(3);
+    });
+
     it("throws if not called with a context as first argument", () => {
-      expect(() => untypedGet()).toThrowError("get needs to be called with: context: LLVMContext, value: number");
-      expect(() => untypedGet({}).toThrowError("get needs to be called with: context: LLVMContext, value: number"));
+      expect(() => untypedGet()).toThrowError("get called with illegal arguments");
+      expect(() => untypedGet({}).toThrowError("get called with illegal arguments"));
     });
 
     it("throws if not called with a number as second argument", () => {
-      expect(() => untypedGet(context, "test")).toThrowError(
-        "get needs to be called with: context: LLVMContext, value: number"
-      );
+      expect(() => untypedGet(context, "test")).toThrowError("get called with illegal arguments");
     });
   });
 
@@ -85,6 +93,12 @@ describe("ir/constant-fp", () => {
       const value = llvm.ConstantFP.get(context, 10);
 
       expect(value.value).toBe(10);
+    });
+
+    it("returns NaN for a NaN value", () => {
+      const value = llvm.ConstantFP.get(context, NaN);
+
+      expect(value.value).toBeNaN();
     });
   });
 });
