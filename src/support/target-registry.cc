@@ -24,8 +24,10 @@ NAN_METHOD(TargetRegistryWrapper::lookupTarget) {
 NAN_MODULE_INIT(TargetRegistryWrapper::Init) {
     v8::Local<v8::ObjectTemplate> tpl = Nan::New<v8::ObjectTemplate>();
     Nan::SetMethod(tpl, "lookupTarget", TargetRegistryWrapper::lookupTarget);
-    
-    Nan::Set(target, Nan::New("TargetRegistry").ToLocalChecked(), tpl->NewInstance());
+
+    auto targetRegistry = Nan::NewInstance(tpl).ToLocalChecked();
+
+    Nan::Set(target, Nan::New("TargetRegistry").ToLocalChecked(), targetRegistry);
 }
 
 //--------------------------------------------------------------

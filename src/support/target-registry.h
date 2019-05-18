@@ -8,13 +8,12 @@
 
 class TargetRegistryWrapper: public Nan::ObjectWrap, public FromValueMixin<TargetRegistryWrapper> {
     public:
-
     static NAN_MODULE_INIT(Init);
 
     private:
-        static NAN_METHOD(lookupTarget);
+    static NAN_METHOD(lookupTarget);
 
-        TargetRegistryWrapper() = delete;
+    TargetRegistryWrapper() = delete;
 };
 
 class TargetWrapper: public Nan::ObjectWrap, public FromValueMixin<TargetWrapper> {
