@@ -47,7 +47,7 @@ NAN_METHOD(ModuleWrapper::New) {
         return Nan::ThrowTypeError("The Module functionTemplate needs to be called with: (moduleId: string, context: LLVMContext)");
     }
 
-    auto moduleId = ToString(info[0]->ToString());
+    auto moduleId = ToString(info[0]);
     auto* llvmContextWrapper = LLVMContextWrapper::FromValue(info[1]);
 
     auto* moduleWrapper = new ModuleWrapper { llvm::StringRef { moduleId.c_str(), moduleId.length() },
@@ -98,12 +98,12 @@ NAN_METHOD(ModuleWrapper::getOrInsertFunction) {
     #if LLVM_VERSION_MAJOR < 9
         Nan::Set(functionCallee, Nan::New("callee").ToLocalChecked(), ConstantWrapper::of(module->getOrInsertFunction(name, fnType)));
         Nan::Set(functionCallee, Nan::New("functionType").ToLocalChecked(), FunctionTypeWrapper::of(fnType));
-    #else 
+    #else
         auto llvmCallee = module->getOrInsertFunction(name, fnType);
         Nan::Set(functionCallee, Nan::New("callee").ToLocalChecked(), ValueWrapper::of(llvmCallee.getCallee()));
         Nan::Set(functionCallee, Nan::New("functionType").ToLocalChecked(), FunctionTypeWrapper::of(llvmCallee.getFunctionType()));
     #endif
-    
+
     Nan::EscapableHandleScope scope {};
     info.GetReturnValue().Set(scope.Escape(functionCallee));
 }
