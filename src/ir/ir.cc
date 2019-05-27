@@ -6,6 +6,9 @@
 #include "data-layout.h"
 #include "function-type.h"
 #include "ir-builder.h"
+#include "di-builder.h"
+#include "di-file.h"
+#include "di-compile-unit.h"
 #include "module.h"
 #include "llvm-context.h"
 #include "type.h"
@@ -57,6 +60,9 @@ NAN_MODULE_INIT(InitIR) {
     FunctionTypeWrapper::Init(target);
     GlobalVariableWrapper::Init(target);
     IRBuilderWrapper::Init(target);
+    DIBuilderWrapper::Init(target);
+    DIFileWrapper::Init(target);
+    DICompileUnitWrapper::Init(target);
     InitLinkageTypes(target);
     ModuleWrapper::Init(target);
     LLVMContextWrapper::Init(target);

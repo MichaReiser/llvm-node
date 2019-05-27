@@ -228,6 +228,69 @@ declare namespace llvm {
     private constructor();
   }
 
+  class DIBuilder {
+    constructor(module: Module);
+
+    createCompileUnit(language: dwarf.SourceLanguage, file: DIFile, producer: string, isOptimized: boolean, flags?: string, runtimeVersion?: number): DICompileUnit;
+
+    createFile(filename: string, directory: string): DIFile;
+
+    finalize();
+  }
+
+  class DICompileUnit {
+
+  }
+
+  class DIFile {
+    readonly filename: string;
+    readonly directory: string;
+
+    private constructor();
+  }
+
+  namespace dwarf {
+    enum SourceLanguage {
+      C89,
+      C,
+      Ada83,
+      C_plus_plus,
+      Cobol74,
+      Cobol85,
+      Fortran77,
+      Fortran90,
+      Pascal83,
+      Modula2,
+      Java,
+      C99,
+      Ada95,
+      Fortran95,
+      PLI,
+      ObjC,
+      ObjC_plus_plus,
+      UPC,
+      D,
+      Python,
+      OpenCL,
+      Go,
+      Modula3,
+      Haskell,
+      C_plus_plus_03,
+      C_plus_plus_11,
+      OCaml,
+      Rust,
+      C11,
+      Swift,
+      Julia,
+      Dylan,
+      C_plus_plus_14,
+      Fortran03,
+      Fortran08,
+      RenderScript,
+      BLISS
+    }
+  }
+
   class Function extends Constant {
     static create(functionType: FunctionType, linkageTypes: LinkageTypes, name?: string, module?: Module): Function;
 
