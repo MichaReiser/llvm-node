@@ -1,8 +1,14 @@
+#include <iostream>
 #include "di-builder.h"
 #include "di-file.h"
 #include "di-compile-unit.h"
+#include "di-basic-type.h"
+#include "di-subroutine-type.h"
+#include "di-type.h"
+#include "di-file.h"
 #include "module.h"
 #include "../util/string.h"
+#include "../util/array.h"
 
 NAN_MODULE_INIT(DIBuilderWrapper::Init) {
     v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New<v8::FunctionTemplate>(New);
@@ -11,6 +17,8 @@ NAN_MODULE_INIT(DIBuilderWrapper::Init) {
 
     Nan::SetPrototypeMethod(functionTemplate, "createCompileUnit", DIBuilderWrapper::CreateCompileUnit);
     Nan::SetPrototypeMethod(functionTemplate, "createFile", DIBuilderWrapper::CreateFile);
+    Nan::SetPrototypeMethod(functionTemplate, "createBasicType", DIBuilderWrapper::CreateBasicType);
+    Nan::SetPrototypeMethod(functionTemplate, "createSubroutineType", DIBuilderWrapper::CreateSubroutineType);
     Nan::SetPrototypeMethod(functionTemplate, "finalize", DIBuilderWrapper::Finalize);
 
     auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
@@ -50,6 +58,46 @@ NAN_METHOD(DIBuilderWrapper::CreateFile) {
     auto *file = diBuilder->createFile(name, directory);
 
     info.GetReturnValue().Set(DIFileWrapper::of(file));
+}
+
+NAN_METHOD(DIBuilderWrapper::CreateBasicType) {
+    if (info.Length() != 3 || !info[0]->IsString() || !info[1]->IsUint32() || !info[2]->IsUint32()) {
+        return Nan::ThrowTypeError("createBasicType needs to be called with name: string, sizeInBits: number, encoding: dwarf.AttributeEncoding");
+    }
+
+    auto* diBuilder = DIBuilderWrapper::FromValue(info.Holder())->getDIBuilder();
+
+    std::string name = std::string(ToString(info[0]));
+    uint64_t sizeInBits = static_cast<uint64_t>(Nan::To<uint32_t>(info[1]).FromJust());
+    unsigned encoding = Nan::To<unsigned>(info[2]).FromJust();
+
+    auto *type = diBuilder->createBasicType(name, sizeInBits, encoding);
+
+    info.GetReturnValue().Set(DIBasicTypeWrapper::of(type));
+}
+
+NAN_METHOD(DIBuilderWrapper::CreateSubroutineType) {
+    if (info.Length() != 1 || !info[0]->IsArray()) {
+        return Nan::ThrowTypeError("createSubroutineType needs to be called with parameterTypes: DIType[]");
+    }
+
+    auto* diBuilder = DIBuilderWrapper::FromValue(info.Holder())->getDIBuilder();
+
+    auto parameterTypesArray = v8::Array::Cast(*info[0]);
+    std::vector<llvm::Metadata *> parameterTypes { parameterTypesArray->Length() };
+
+    for (size_t i = 0; i < parameterTypesArray->Length(); i++) {
+        auto parameterValue = parameterTypesArray->Get(i);
+        if (!DITypeWrapper::isInstance(parameterValue)) {
+            return Nan::ThrowTypeError("Expected DIType in parameter array");
+        }
+
+        parameterTypes[i] = DITypeWrapper::FromValue(parameterValue)->getDIType();
+    }
+
+    auto *type = diBuilder->createSubroutineType(diBuilder->getOrCreateTypeArray(parameterTypes));
+
+    info.GetReturnValue().Set(DISubroutineTypeWrapper::of(type));
 }
 
 NAN_METHOD(DIBuilderWrapper::CreateCompileUnit) {

@@ -228,6 +228,12 @@ declare namespace llvm {
     private constructor();
   }
 
+  class DIBasicType extends DIType {
+    readonly isSigned: bool;
+
+    private constructor();
+  }
+
   class DIBuilder {
     constructor(module: Module);
 
@@ -235,16 +241,33 @@ declare namespace llvm {
 
     createFile(filename: string, directory: string): DIFile;
 
+    createBasicType(name: string, sizeInBits: number, encoding: dwarf.AttributeEncoding): DIBasicType;
+
+    createSubroutineType(parameterTypes: DIType[]): DISubroutineType;
+
     finalize();
   }
 
   class DICompileUnit {
-
+    private constructor();
   }
 
   class DIFile {
     readonly filename: string;
     readonly directory: string;
+    readonly name: string;
+
+    private constructor();
+  }
+
+  class DISubroutineType extends DIType {
+    getTypes(): DIType[];
+
+    private constructor();
+  }
+
+  class DIType extends DIScope {
+    readonly line: number;
 
     private constructor();
   }
@@ -288,6 +311,27 @@ declare namespace llvm {
       Fortran08,
       RenderScript,
       BLISS
+    }
+
+    enum AttributeEncoding {
+      address,
+      boolean,
+      complex_float,
+      float,
+      signed,
+      signed_char,
+      unsigned,
+      unsigned_char,
+      imaginary_float,
+      packed_decimal,
+      numeric_string,
+      edited,
+      signed_fixed,
+      unsigned_fixed,
+      decimal_float,
+      UTF,
+      UCS,
+      ASCII
     }
   }
 
