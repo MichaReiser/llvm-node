@@ -78,6 +78,29 @@ describe("IRBuilder", () => {
     expect(ashr).toEqual(llvm.ConstantInt.get(context, 2));
   });
 
+  test("create createAtomicRMW returns a value", () => {
+    const { builder, context } = createBuilderWithBlock();
+
+    // let %0: i32 = 3;
+    const value = builder.createAlloca(
+        llvm.Type.getInt32Ty(context)
+    );
+
+    builder.createStore(
+        llvm.ConstantInt.get(context, 3),
+        value
+    );
+
+    const atomicRMW = builder.createAtomicRMW(
+      llvm.AtomicRMWInst.BinOp.Add,
+      value,
+      llvm.ConstantInt.get(context, 1),
+      llvm.AtomicOrdering.AcquireRelease
+    );
+
+    expect(atomicRMW).toBeInstanceOf(llvm.Value);
+  });
+
   test("createBitCast returns a value", () => {
     const { builder, context } = createBuilderWithBlock();
 

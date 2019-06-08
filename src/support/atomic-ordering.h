@@ -1,0 +1,8 @@
+#ifndef LLVM_NODE_ATOMIC_ORDERING_H
+#define LLVM_NODE_ATOMIC_ORDERING_H
+
+#include <nan.h>
+
+NAN_MODULE_INIT(InitAtomicOrdering);
+
+#endif //LLVM_NODE_ATOMIC_ORDERING_H

@@ -33,12 +33,14 @@
 #include "visibility-types.h"
 #include "constant-aggregate-zero.h"
 #include "attribute.h"
+#include "atomic-rmw-inst.h"
 #include "undef-value.h"
 #include "constant-expr.h"
 #include "integer-type.h"
 
 NAN_MODULE_INIT(InitIR) {
     AllocaInstWrapper::Init(target);
+    InitAtomicRMWInst(target);
     ArgumentWrapper::Init(target);
     ArrayTypeWrapper::Init(target);
     InitAttribute(target);
