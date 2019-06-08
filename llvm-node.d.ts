@@ -98,6 +98,16 @@ declare namespace llvm {
     Protected
   }
 
+  enum AtomicOrdering {
+    NotAtomic,
+    Unordered,
+    Monotonic,
+    Acquire,
+    Release,
+    AcquireRelease,
+    SequentiallyConsistent
+  }
+
   class Value {
     static MaxAlignmentExponent: number;
     static MaximumAlignment: number;
@@ -536,6 +546,8 @@ declare namespace llvm {
 
     createAShr(lhs: Value, rhs: Value, name?: string): Value;
 
+    createAtomicRMW(op: AtomicRMWInst.BinOp, ptr: Value, value: Value, ordering: AtomicOrdering): Value;
+
     createBitCast(value: Value, destType: Type, name?: string): Value;
 
     createBr(basicBlock: BasicBlock): Value;
@@ -658,6 +670,23 @@ declare namespace llvm {
     createZExt(value: Value, destType: Type, name?: string): Value;
 
     getInsertBlock(): BasicBlock | undefined;
+  }
+
+  namespace AtomicRMWInst {
+    enum BinOp {
+      Add,
+      Sub,
+      And,
+      Nand,
+      Or,
+      Xor,
+      Max,
+      Min,
+      UMax,
+      UMin,
+      FAdd,
+      FSub
+    }
   }
 
   class LLVMContext {
