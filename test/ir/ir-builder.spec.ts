@@ -1,5 +1,5 @@
 import * as llvm from "../../";
-import { createBuilderWithBlock } from "../test-utils";
+import { createBuilder, createBuilderWithBlock } from "../test-utils";
 
 describe("IRBuilder", () => {
   test("createAdd returns a value", () => {
@@ -790,6 +790,18 @@ describe("IRBuilder", () => {
     expect(rem).toEqual(llvm.ConstantInt.get(context, 1));
   });
 
+  test("CreateURem", () => {
+    const { builder, context } = createBuilderWithBlock();
+
+    const rem = builder.CreateURem(
+      llvm.ConstantInt.get(context, 11),
+      llvm.ConstantInt.get(context, 2)
+    );
+
+    expect(rem).toBeInstanceOf(llvm.Value);
+    expect(rem).toEqual(llvm.ConstantInt.get(context, 1));
+  });
+
   test("createSITToFP", () => {
     const { builder, context } = createBuilderWithBlock();
 
@@ -841,5 +853,11 @@ describe("IRBuilder", () => {
     builder.setInsertionPoint(block);
 
     expect(builder.getInsertBlock()).toEqual(block);
+  });
+
+  test("getInsertBlock returns undefined if insertion point has not been set", () => {
+    const { builder } = createBuilder();
+
+    expect(builder.getInsertBlock()).toBeUndefined();
   });
 });

@@ -120,7 +120,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createNot", IRBuilderWrapper::CreateNot);
     Nan::SetPrototypeMethod(functionTemplate, "createOr", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateOr>>);
     Nan::SetPrototypeMethod(functionTemplate, "createXor", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateXor>>);
-    Nan::SetPrototypeMethod(functionTemplate, "createPhi", IRBuilderWrapper::CreatePHI);
+    Nan::SetPrototypeMethod(functionTemplate, "createPhi", IRBuilderWrapper::CreatePhi);
     Nan::SetPrototypeMethod(functionTemplate, "createPtrToInt", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreatePtrToInt>);
     Nan::SetPrototypeMethod(functionTemplate, "createRet", IRBuilderWrapper::CreateRet);
     Nan::SetPrototypeMethod(functionTemplate, "createRetVoid", IRBuilderWrapper::CreateRetVoid);
@@ -129,6 +129,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createShl", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateShl>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSub", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSub>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSRem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSRem>>);
+    Nan::SetPrototypeMethod(functionTemplate, "CreateURem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateURem>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateSIToFP>);
     Nan::SetPrototypeMethod(functionTemplate, "createUIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateUIToFP>);
     Nan::SetPrototypeMethod(functionTemplate, "createStore", IRBuilderWrapper::CreateStore);
@@ -577,7 +578,7 @@ NAN_METHOD(IRBuilderWrapper::CreateGlobalStringPtr) {
     info.GetReturnValue().Set(ValueWrapper::of(value));
 }
 
-NAN_METHOD(IRBuilderWrapper::CreatePHI) {
+NAN_METHOD(IRBuilderWrapper::CreatePhi) {
     if (info.Length() < 2 || !TypeWrapper::isInstance(info[0]) || !info[1]->IsUint32()
             || (info.Length() == 3 && !(info[2]->IsString() || info[2]->IsUndefined()))
             || info.Length() > 3) {
@@ -637,7 +638,12 @@ NAN_METHOD(IRBuilderWrapper::CreateSelect) {
 NAN_METHOD(IRBuilderWrapper::GetInsertBlock) {
     auto* builder = IRBuilderWrapper::FromValue(info.Holder());
     auto* block = builder->irBuilder.GetInsertBlock();
-    info.GetReturnValue().Set(BasicBlockWrapper::of(block));
+
+    if (block) {
+        return info.GetReturnValue().Set(BasicBlockWrapper::of(block));
+    }
+
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(IRBuilderWrapper::SetInsertionPoint) {

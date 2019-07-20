@@ -10,7 +10,7 @@ NAN_METHOD(TargetRegistryWrapper::lookupTarget) {
         const llvm::Target* result = llvm::TargetRegistry::lookupTarget(triple, error);
 
         if (!result) {
-            std::string msg = "Failed to lookup target: " + error;
+            std::string msg = "Failed to lookup target '" + triple + "': " + error;
             Nan::ThrowError(msg.c_str());
             return;
         }
@@ -24,8 +24,10 @@ NAN_METHOD(TargetRegistryWrapper::lookupTarget) {
 NAN_MODULE_INIT(TargetRegistryWrapper::Init) {
     v8::Local<v8::ObjectTemplate> tpl = Nan::New<v8::ObjectTemplate>();
     Nan::SetMethod(tpl, "lookupTarget", TargetRegistryWrapper::lookupTarget);
-    
-    Nan::Set(target, Nan::New("TargetRegistry").ToLocalChecked(), tpl->NewInstance());
+
+    auto targetRegistry = Nan::NewInstance(tpl).ToLocalChecked();
+
+    Nan::Set(target, Nan::New("TargetRegistry").ToLocalChecked(), targetRegistry);
 }
 
 //--------------------------------------------------------------

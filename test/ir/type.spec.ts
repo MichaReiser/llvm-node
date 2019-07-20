@@ -9,7 +9,7 @@ describe("ir/type", () => {
 
     for (const typeId of Object.keys(llvm.Type.TypeID)) {
       it(`defines ${typeId}`, () => {
-        expect(llvm.Type.TypeID[typeId]).toBeDefined();
+        expect((llvm.Type.TypeID as any)[typeId]).toBeDefined();
       });
     }
   });
@@ -21,6 +21,14 @@ describe("ir/type", () => {
 
     expect(ty).toBeInstanceOf(llvm.Type);
     expect(ty.isDoubleTy()).toBe(true);
+    expect(ty.isVoidTy()).toBe(false);
+  });
+
+  test("FP128Ty returns a type for which isFP128Ty is true", () => {
+    const ty = llvm.Type.getFP128Ty(context);
+
+    expect(ty).toBeInstanceOf(llvm.Type);
+    expect(ty.isFP128Ty()).toBe(true);
     expect(ty.isVoidTy()).toBe(false);
   });
 
@@ -52,46 +60,57 @@ describe("ir/type", () => {
     const ty = llvm.Type.getInt1Ty(context);
 
     expect(ty).toBeInstanceOf(llvm.Type);
+    expect(ty).toBeInstanceOf(llvm.IntegerType);
     expect(ty.isIntegerTy()).toBe(true);
     expect(ty.isVoidTy()).toBe(false);
+    expect(ty.getBitWidth()).toBe(1);
   });
 
   test("int8 returns a type for which isIntegerTy is true", () => {
     const ty = llvm.Type.getInt8Ty(context);
 
     expect(ty).toBeInstanceOf(llvm.Type);
+    expect(ty).toBeInstanceOf(llvm.IntegerType);
     expect(ty.isIntegerTy()).toBe(true);
     expect(ty.isVoidTy()).toBe(false);
+    expect(ty.getBitWidth()).toBe(8);
   });
 
   test("int16 returns a type for which isIntegerTy is true", () => {
     const ty = llvm.Type.getInt16Ty(context);
 
     expect(ty).toBeInstanceOf(llvm.Type);
+    expect(ty).toBeInstanceOf(llvm.IntegerType);
     expect(ty.isIntegerTy()).toBe(true);
     expect(ty.isVoidTy()).toBe(false);
+    expect(ty.getBitWidth()).toBe(16);
   });
 
   test("int32 returns a type for which isIntegerTy is true", () => {
     const ty = llvm.Type.getInt32Ty(context);
 
     expect(ty).toBeInstanceOf(llvm.Type);
+    expect(ty).toBeInstanceOf(llvm.IntegerType);
     expect(ty.isIntegerTy()).toBe(true);
     expect(ty.isVoidTy()).toBe(false);
+    expect(ty.getBitWidth()).toBe(32);
   });
 
   test("int64 returns a type for which isIntegerTy is true", () => {
     const ty = llvm.Type.getInt64Ty(context);
 
     expect(ty).toBeInstanceOf(llvm.Type);
+    expect(ty).toBeInstanceOf(llvm.IntegerType);
     expect(ty.isIntegerTy()).toBe(true);
     expect(ty.isVoidTy()).toBe(false);
+    expect(ty.getBitWidth()).toBe(64);
   });
 
   test("int128 returns a type for which isIntegerTy is true", () => {
     const ty = llvm.Type.getInt128Ty(context);
 
     expect(ty).toBeInstanceOf(llvm.Type);
+    expect(ty).toBeInstanceOf(llvm.IntegerType);
     expect(ty.isIntegerTy()).toBe(true);
     expect(ty.isVoidTy()).toBe(false);
   });
@@ -100,8 +119,10 @@ describe("ir/type", () => {
     const ty = llvm.Type.getIntNTy(context, 11);
 
     expect(ty).toBeInstanceOf(llvm.Type);
+    expect(ty).toBeInstanceOf(llvm.IntegerType);
     expect(ty.isIntegerTy()).toBe(true);
     expect(ty.isVoidTy()).toBe(false);
+    expect(ty.getBitWidth()).toBe(11);
   });
 
   test("int1Ptr returns a type for which isPointerTy is true", () => {
@@ -122,6 +143,22 @@ describe("ir/type", () => {
 
   test("int32Ptr returns a type for which isPointerTy is true", () => {
     const ty = llvm.Type.getInt32PtrTy(context);
+
+    expect(ty).toBeInstanceOf(llvm.Type);
+    expect(ty.isPointerTy()).toBe(true);
+    expect(ty.isVoidTy()).toBe(false);
+  });
+
+  test("getDoublePtrTy returns a type for which isPointerTy is true", () => {
+    const ty = llvm.Type.getDoublePtrTy(context);
+
+    expect(ty).toBeInstanceOf(llvm.Type);
+    expect(ty.isPointerTy()).toBe(true);
+    expect(ty.isVoidTy()).toBe(false);
+  });
+
+  test("getFloatPtrTy returns a type for which isPointerTy is true", () => {
+    const ty = llvm.Type.getFloatPtrTy(context);
 
     expect(ty).toBeInstanceOf(llvm.Type);
     expect(ty.isPointerTy()).toBe(true);
@@ -182,5 +219,13 @@ describe("ir/type", () => {
         .getPointerTo()
         .toString()
     ).toBe("double*");
+  });
+
+  test("isHalfTy returns true for a half type", () => {
+    expect(llvm.Type.getHalfTy(context).isHalfTy()).toBe(true);
+  });
+
+  test("isHalfTy returns false for a float", () => {
+    expect(llvm.Type.getFloatTy(context).isHalfTy()).toBe(false);
   });
 });

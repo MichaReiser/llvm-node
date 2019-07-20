@@ -4,6 +4,7 @@
 
 #include "constant-int.h"
 #include "llvm-context.h"
+#include "../util/string.h"
 
 NAN_MODULE_INIT(ConstantIntWrapper::Init) {
     auto constantInt = Nan::GetFunction(Nan::New(constantIntTemplate())).ToLocalChecked();
@@ -27,15 +28,14 @@ NAN_METHOD(ConstantIntWrapper::New) {
 }
 
 NAN_METHOD(ConstantIntWrapper::get) {
-    if (info.Length() < 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsNumber() ||
+    if (info.Length() < 2 || !LLVMContextWrapper::isInstance(info[0]) || (!info[1]->IsNumber() && !info[1]->IsString()) ||
             (info.Length() > 2 && !info[2]->IsNumber() && !info[2]->IsUndefined()) ||
             (info.Length() > 3 && !info[3]->IsBoolean()) ||
             info.Length() > 4) {
-        return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number, numBits = 32, signed= true");
+        return Nan::ThrowTypeError("get needs to be called with: context: LLVMContext, value: number|string, numBits = 32, signed= true");
     }
 
     auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
-    int64_t number = Nan::To<int64_t >(info[1]).FromJust();
     uint32_t numBits = 32;
     bool isSigned = true;
 
@@ -47,9 +47,17 @@ NAN_METHOD(ConstantIntWrapper::get) {
         isSigned = Nan::To<bool>(info[3]).FromJust();
     }
 
-    auto* constant = llvm::ConstantInt::get(context, llvm::APInt { numBits, static_cast<uint64_t>(number), isSigned } );
+    if (info[1]->IsString()) {
+        auto number = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
+        auto* constant = llvm::ConstantInt::get(context, llvm::APInt { numBits, llvm::StringRef(number.c_str()), 10 } );
 
-    info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
+        info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
+    } else {
+        int64_t number = Nan::To<int64_t>(info[1]).FromJust();
+        auto* constant = llvm::ConstantInt::get(context, llvm::APInt { numBits, static_cast<uint64_t>(number), isSigned } );
+
+        info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
+    }
 }
 
 NAN_METHOD(ConstantIntWrapper::getTrue) {
@@ -74,9 +82,18 @@ NAN_METHOD(ConstantIntWrapper::getFalse) {
     info.GetReturnValue().Set(ConstantIntWrapper::of(constant));
 }
 
+NAN_METHOD(ConstantIntWrapper::toString) {
+    auto* wrapper = ConstantIntWrapper::FromValue(info.Holder());
+    auto constantInt = wrapper->getConstantInt();
+    auto value = constantInt->getValue();
+
+    info.GetReturnValue().Set(Nan::New<v8::String>(value.toString(10, true)).ToLocalChecked());
+}
+
 NAN_GETTER(ConstantIntWrapper::getValueApf) {
     auto* wrapper = ConstantIntWrapper::FromValue(info.Holder());
-    auto value = wrapper->getConstantInt()->getValue();
+    auto constantInt = wrapper->getConstantInt();
+    auto value = constantInt->getValue();
 
     info.GetReturnValue().Set(Nan::New(value.signedRoundToDouble()));
 }
@@ -106,6 +123,7 @@ Nan::Persistent<v8::FunctionTemplate>& ConstantIntWrapper::constantIntTemplate()
         Nan::SetMethod(localTemplate, "get", ConstantIntWrapper::get);
         Nan::SetMethod(localTemplate, "getFalse", ConstantIntWrapper::getFalse);
         Nan::SetMethod(localTemplate, "getTrue", ConstantIntWrapper::getTrue);
+        Nan::SetPrototypeMethod(localTemplate, "toString", ConstantIntWrapper::toString);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("value").ToLocalChecked(), ConstantIntWrapper::getValueApf);
 
         functionTemplate.Reset(localTemplate);

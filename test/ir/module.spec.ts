@@ -1,5 +1,5 @@
 import * as llvm from "../../";
-import { createModule, createBuilder, createBuilderWithBlock } from "../test-utils";
+import { createModule, createBuilder } from "../test-utils";
 
 describe("ir/module", () => {
   describe("constructor", () => {
@@ -141,30 +141,32 @@ describe("ir/module", () => {
   describe("getOrInsertFunction", () => {
     test("returns a new function if not yet existing in the module", () => {
       const { module, context } = createModule();
-
-      const fun = module.getOrInsertFunction(
-        "fib",
-        llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [llvm.Type.getDoubleTy(context)], false)
+      const functionType = llvm.FunctionType.get(
+        llvm.Type.getDoubleTy(context),
+        [llvm.Type.getDoubleTy(context)],
+        false
       );
 
-      expect(fun).toBeDefined();
-      expect(module.getFunction("fib")).toEqual(fun);
+      const functionCallee = module.getOrInsertFunction("fib", functionType);
+
+      expect(functionCallee).toBeDefined();
+      expect(module.getFunction("fib")).toEqual(functionCallee.callee);
+      expect(functionCallee.functionType).toEqual(functionType);
     });
 
     test("returns the existing function if a function with the given name already exist", () => {
       const { module, context } = createModule();
 
-      const fun = llvm.Function.create(
-        llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false),
-        llvm.LinkageTypes.ExternalLinkage,
-        "sin",
-        module
-      );
-      const queriedFn = module.getOrInsertFunction(
+      const functionType = llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false);
+      const fun = llvm.Function.create(functionType, llvm.LinkageTypes.ExternalLinkage, "sin", module);
+
+      const functionCallee = module.getOrInsertFunction(
         "sin",
         llvm.FunctionType.get(llvm.Type.getDoubleTy(context), [], false)
       );
-      expect(queriedFn).toEqual(fun);
+
+      expect(functionCallee.callee).toEqual(fun);
+      expect(functionCallee.functionType).toEqual(functionType);
     });
   });
 
@@ -209,7 +211,7 @@ describe("ir/module", () => {
 
   describe("getTypeByName", () => {
     test("returns null if a type with the given name does not exist", () => {
-      const {module, context} = createModule();
+      const { module, context } = createModule();
 
       const type = module.getTypeByName("DoesNotExist");
 
@@ -217,14 +219,14 @@ describe("ir/module", () => {
     });
 
     test("returns the type with the given name if it exists", () => {
-        const {module, context} = createModule();
-        const structType = llvm.StructType.create(context, "IntTuple");
-        structType.setBody([llvm.Type.getInt32Ty(context), llvm.Type.getInt32Ty(context)]);
+      const { module, context } = createModule();
+      const structType = llvm.StructType.create(context, "IntTuple");
+      structType.setBody([llvm.Type.getInt32Ty(context), llvm.Type.getInt32Ty(context)]);
 
-        const retrieved = module.getTypeByName("IntTuple");
+      const retrieved = module.getTypeByName("IntTuple");
 
-        expect(retrieved).toBeInstanceOf(llvm.StructType);
-        expect(retrieved).toEqual(structType);
+      expect(retrieved).toBeInstanceOf(llvm.StructType);
+      expect(retrieved).toEqual(structType);
     });
   });
 });

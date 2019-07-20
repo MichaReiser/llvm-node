@@ -144,28 +144,17 @@ v8::Local<v8::Object> ValueWrapper::of(llvm::Value *value)
 {
     v8::Local<v8::Object> result{};
 
-    if (llvm::Constant::classof(value))
-    {
+    if (llvm::Constant::classof(value)) {
         result = ConstantWrapper::of(static_cast<llvm::Constant *>(value));
-    }
-    else if (llvm::BasicBlock::classof(value))
-    {
+    } else if (llvm::BasicBlock::classof(value)) {
         result = BasicBlockWrapper::of(static_cast<llvm::BasicBlock *>(value));
-    }
-    else if (llvm::PHINode::classof(value))
-    {
+    } else if (llvm::PHINode::classof(value)) {
         result = PhiNodeWrapper::of(static_cast<llvm::PHINode *>(value));
-    }
-    else if (llvm::AllocaInst::classof(value))
-    {
+    } else if (llvm::AllocaInst::classof(value)) {
         result = AllocaInstWrapper::of(static_cast<llvm::AllocaInst *>(value));
-    }
-    else if (llvm::CallInst::classof(value))
-    {
+    } else if (llvm::CallInst::classof(value)) {
         result = CallInstWrapper::of(static_cast<llvm::CallInst *>(value));
-    }
-    else
-    {
+    } else {
         auto constructorFunction = Nan::GetFunction(Nan::New(valueTemplate())).ToLocalChecked();
         v8::Local<v8::Value> args[1] = {Nan::New<v8::External>(value)};
         result = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();

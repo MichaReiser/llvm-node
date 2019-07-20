@@ -175,8 +175,15 @@ declare namespace llvm {
 
   class ConstantFP extends Constant {
     static get(context: LLVMContext, value: number): ConstantFP;
+    static get(type: Type, value: string): Constant;
+
+    static getZeroValueForNegation(type: Type): Constant;
+
+    static getNegativeZero(type: Type): Constant;
 
     static getNaN(type: Type): Constant;
+
+    static getInfinity(type: Type, negative?: boolean /* = false */): Constant;
 
     private constructor();
 
@@ -184,7 +191,7 @@ declare namespace llvm {
   }
 
   class ConstantInt extends Constant {
-    static get(context: LLVMContext, value: number, numBits?: number, signed?: boolean): ConstantInt;
+    static get(context: LLVMContext, value: number | string, numBits?: number, signed?: boolean): ConstantInt;
 
     static getFalse(context: LLVMContext): ConstantInt;
 
@@ -193,6 +200,8 @@ declare namespace llvm {
     private constructor();
 
     readonly value: number;
+
+    public toString(): string;
   }
 
   class ConstantPointerNull extends Constant {
@@ -288,7 +297,7 @@ declare namespace llvm {
 
     hasRetAttr(kind: AttrKind): boolean;
 
-    paramHasAttr(index, kind: AttrKind): boolean;
+    paramHasAttr(index: number, kind: AttrKind): boolean;
 
     getNumArgOperands(): number;
   }
@@ -385,29 +394,37 @@ declare namespace llvm {
 
     static getDoubleTy(context: LLVMContext): Type;
 
+    static getFP128Ty(context: LLVMContext): Type;
+
     static getVoidTy(context: LLVMContext): Type;
 
     static getLabelTy(context: LLVMContext): Type;
 
-    static getInt1Ty(context: LLVMContext): Type;
+    static getInt1Ty(context: LLVMContext): IntegerType;
 
-    static getInt8Ty(context: LLVMContext): Type;
+    static getInt8Ty(context: LLVMContext): IntegerType;
 
-    static getInt16Ty(context: LLVMContext): Type;
+    static getInt16Ty(context: LLVMContext): IntegerType;
 
-    static getInt32Ty(context: LLVMContext): Type;
+    static getInt32Ty(context: LLVMContext): IntegerType;
 
-    static getInt64Ty(context: LLVMContext): Type;
+    static getInt64Ty(context: LLVMContext): IntegerType;
 
-    static getInt128Ty(context: LLVMContext): Type;
+    static getInt128Ty(context: LLVMContext): IntegerType;
 
-    static getIntNTy(context: LLVMContext, N: number): Type;
+    static getIntNTy(context: LLVMContext, N: number): IntegerType;
 
     static getInt1PtrTy(context: LLVMContext, AS?: number): PointerType;
 
     static getInt8PtrTy(context: LLVMContext, AS?: number): PointerType;
 
     static getInt32PtrTy(context: LLVMContext, AS?: number): PointerType;
+
+    static getDoublePtrTy(context: LLVMContext, AS?: number): PointerType;
+
+    static getFloatPtrTy(context: LLVMContext, AS?: number): PointerType;
+
+    static getHalfTy(context: LLVMContext): Type;
 
     protected constructor();
 
@@ -421,6 +438,8 @@ declare namespace llvm {
 
     isDoubleTy(): boolean;
 
+    isFP128Ty(): boolean;
+
     isLabelTy(): boolean;
 
     isIntegerTy(bitWidth?: number): boolean;
@@ -431,6 +450,8 @@ declare namespace llvm {
 
     isArrayTy(): boolean;
 
+    isHalfTy(): boolean;
+
     isPointerTy(): this is PointerType;
 
     getPointerTo(addressSpace?: number): PointerType;
@@ -438,6 +459,12 @@ declare namespace llvm {
     getPrimitiveSizeInBits(): number;
 
     toString(): string;
+  }
+
+  class IntegerType extends Type {
+    private constructor();
+
+    getBitWidth(): number;
   }
 
   class FunctionType extends Type {
@@ -481,7 +508,7 @@ declare namespace llvm {
 
     static get(context: LLVMContext, elements: Type[], isPacked?: boolean): StructType;
 
-    name: string;
+    name: string | undefined;
     readonly numElements: number;
 
     private constructor();
@@ -626,9 +653,11 @@ declare namespace llvm {
 
     createSRem(lhs: Value, rhs: Value, name?: string): Value;
 
+    CreateURem(lhs: Value, rhs: Value, name?: string): Value;
+
     createZExt(value: Value, destType: Type, name?: string): Value;
 
-    getInsertBlock(): BasicBlock;
+    getInsertBlock(): BasicBlock | undefined;
   }
 
   class LLVMContext {
@@ -636,6 +665,11 @@ declare namespace llvm {
 
     // any property that makes ts emits an error if any other object is passed to a method that is not an llvm context
     private __marker: number;
+  }
+
+  interface FunctionCallee {
+    callee: Value;
+    functionType: FunctionType;
   }
 
   class Module {
@@ -652,9 +686,9 @@ declare namespace llvm {
 
     print(): string;
 
-    getFunction(name: string): Function;
+    getFunction(name: string): Function | undefined;
 
-    getOrInsertFunction(name: string, functionType: FunctionType): Constant;
+    getOrInsertFunction(name: string, functionType: FunctionType): FunctionCallee;
 
     getGlobalVariable(name: string, allowInternal?: boolean): GlobalVariable;
 
@@ -679,11 +713,11 @@ declare namespace llvm {
   }
 
   export const config: Readonly<{
-      LLVM_VERSION_MAJOR: number;
-      LLVM_VERSION_MINOR: number;
-      LLVM_VERSION_PATCH: number;
-      LLVM_VERSION_STRING: string;
-      LLVM_DEFAULT_TARGET_TRIPLE: string;
+    LLVM_VERSION_MAJOR: number;
+    LLVM_VERSION_MINOR: number;
+    LLVM_VERSION_PATCH: number;
+    LLVM_VERSION_STRING: string;
+    LLVM_DEFAULT_TARGET_TRIPLE: string;
   }>;
 }
 

@@ -44,7 +44,7 @@ NAN_METHOD(DataLayoutWrapper::New) {
         return Nan::ThrowTypeError("DataLayout functionTemplate needs to be called with single string argument");
     }
 
-    llvm::DataLayout layout { ToString(info[0]->ToString()) };
+    llvm::DataLayout layout { ToString(info[0]) };
     DataLayoutWrapper* wrapper = new DataLayoutWrapper { layout };
     wrapper->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
