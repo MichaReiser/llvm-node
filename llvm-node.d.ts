@@ -683,9 +683,7 @@ declare namespace llvm {
       Max,
       Min,
       UMax,
-      UMin,
-      FAdd,
-      FSub
+      UMin
     }
   }
 

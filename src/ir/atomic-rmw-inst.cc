@@ -15,8 +15,6 @@ NAN_MODULE_INIT(InitAtomicRMWInst) {
     Nan::Set(binOp, Nan::New("Min").ToLocalChecked(), Nan::New(static_cast<uint32_t>(llvm::AtomicRMWInst::BinOp::Min)));
     Nan::Set(binOp, Nan::New("UMax").ToLocalChecked(), Nan::New(static_cast<uint32_t>(llvm::AtomicRMWInst::BinOp::UMax)));
     Nan::Set(binOp, Nan::New("UMin").ToLocalChecked(), Nan::New(static_cast<uint32_t>(llvm::AtomicRMWInst::BinOp::UMin)));
-    Nan::Set(binOp, Nan::New("FAdd").ToLocalChecked(), Nan::New(static_cast<uint32_t>(llvm::AtomicRMWInst::BinOp::FAdd)));
-    Nan::Set(binOp, Nan::New("FSub").ToLocalChecked(), Nan::New(static_cast<uint32_t>(llvm::AtomicRMWInst::BinOp::FSub)));
 
     Nan::Set(atomicRMWInst, Nan::New("BinOp").ToLocalChecked(), binOp);
 
