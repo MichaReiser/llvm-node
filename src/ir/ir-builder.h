@@ -37,6 +37,7 @@ private:
     static NAN_METHOD(CreateAlignedStore);
     static NAN_METHOD(CreateAnd);
     static NAN_METHOD(CreateAShr);
+    static NAN_METHOD(CreateAtomicRMW);
     static NAN_METHOD(CreateBitCast);
     static NAN_METHOD(CreateBr);
     static NAN_METHOD(CreateCall);
