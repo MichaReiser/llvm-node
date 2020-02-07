@@ -54,7 +54,7 @@ NAN_METHOD(DataLayoutWrapper::getStringRepresentation) {
     DataLayoutWrapper* wrapper = DataLayoutWrapper::FromValue(info.Holder());
     std::string representation = wrapper->layout.getStringRepresentation();
 
-    info.GetReturnValue().Set(v8::String::NewFromUtf8(info.GetIsolate(), representation.c_str()));
+    info.GetReturnValue().Set(v8::String::NewFromUtf8(info.GetIsolate(), representation.c_str()).ToLocalChecked());
 }
 
 NAN_METHOD(DataLayoutWrapper::getPointerSize) {
