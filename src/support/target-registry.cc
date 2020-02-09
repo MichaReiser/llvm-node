@@ -73,13 +73,13 @@ NAN_METHOD(TargetWrapper::createTargetMachine) {
 
 NAN_GETTER(TargetWrapper::getName) {
     TargetWrapper* wrapper = TargetWrapper::FromValue(info.Holder());
-    auto result = v8::String::NewFromUtf8(info.GetIsolate(), wrapper->target->getName()).ToLocalChecked();
+    auto result = Nan::MakeMaybe(v8::String::NewFromUtf8(info.GetIsolate(), wrapper->target->getName())).ToLocalChecked();
     info.GetReturnValue().Set(result);
 }
 
 NAN_GETTER(TargetWrapper::getShortDescription) {
     TargetWrapper* wrapper = TargetWrapper::FromValue(info.Holder());
-    auto result = v8::String::NewFromUtf8(info.GetIsolate(), wrapper->target->getShortDescription()).ToLocalChecked();
+    auto result = Nan::MakeMaybe(v8::String::NewFromUtf8(info.GetIsolate(), wrapper->target->getShortDescription())).ToLocalChecked();
     info.GetReturnValue().Set(result);
 }
 
