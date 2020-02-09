@@ -1,19 +1,19 @@
 language: node_js
 node_js:
   - node
+  - "12"
   - "11"
   - "10"
   - "8"
-  - "6"
 cache: yarn
 env:
   matrix:
-    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main" LLVM_VERSION=4.0
-    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main" LLVM_VERSION=5.0
-    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main" LLVM_VERSION=6.0
-    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-7 main" LLVM_VERSION=7
-    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-8 main" LLVM_VERSION=8
-    - LLVM_DEB="deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main" LLVM_VERSION=9
+    - LLVM_DEB="deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-4.0 main" LLVM_VERSION=4.0
+    - LLVM_DEB="deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main" LLVM_VERSION=5.0
+    - LLVM_DEB="deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-6.0 main" LLVM_VERSION=6.0
+    - LLVM_DEB="deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-7 main" LLVM_VERSION=7
+    - LLVM_DEB="deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" LLVM_VERSION=8
+    - LLVM_DEB="deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" LLVM_VERSION=9
 before_install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
