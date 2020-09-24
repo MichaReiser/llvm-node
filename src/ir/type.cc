@@ -223,7 +223,7 @@ NAN_METHOD(TypeWrapper::getIntNTy)
 NAN_METHOD(TypeWrapper::getPrimitiveSizeInBits)
 {
     auto *type = TypeWrapper::FromValue(info.Holder())->getType();
-    info.GetReturnValue().Set(Nan::New(type->getPrimitiveSizeInBits()));
+    info.GetReturnValue().Set(Nan::New(static_cast<uint32_t>(type->getPrimitiveSizeInBits())));
 }
 
 Nan::Persistent<v8::FunctionTemplate> &TypeWrapper::typeTemplate()
