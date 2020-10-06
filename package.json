@@ -25,6 +25,11 @@
     "cmake-js": "^6.0.0",
     "nan": "^2.14.0"
   },
+  "browser": {
+    "fs": true,
+    "os": true,
+    "path": true
+  },
   "scripts": {
     "configure": "cmake-js configure",
     "build": "cmake-js compile",
@@ -49,5 +54,10 @@
       "tsx",
       "js"
     ]
+  },
+  "cmake-js": {
+    "runtime": "electron",
+    "runtimeVersion": "8.5.2",
+    "arch": "x64"
   }
 }
