@@ -2,6 +2,7 @@
 // Created by Micha Reiser on 01.03.17.
 //
 
+#include <llvm/Support/raw_ostream.h>
 #include "function.h"
 #include "function-type.h"
 #include "../util/string.h"
@@ -53,6 +54,8 @@ Nan::Persistent<v8::FunctionTemplate> &FunctionWrapper::functionTemplate() {
         Nan::SetPrototypeMethod(localTemplate, "getEntryBlock", FunctionWrapper::getEntryBlock);
         Nan::SetPrototypeMethod(localTemplate, "getBasicBlocks", FunctionWrapper::getBasicBlocks);
         Nan::SetPrototypeMethod(localTemplate, "viewCFG", FunctionWrapper::viewCFG);
+        Nan::SetPrototypeMethod(localTemplate, "eraseFromParent", FunctionWrapper::eraseFromParent);
+        Nan::SetPrototypeMethod(localTemplate, "print", FunctionWrapper::print);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("callingConv").ToLocalChecked(), FunctionWrapper::getCallingConv, FunctionWrapper::setCallingConv);
         Nan::SetAccessor(localTemplate->InstanceTemplate(), Nan::New("visibility").ToLocalChecked(), FunctionWrapper::getVisibility, FunctionWrapper::setVisibility);
 
@@ -231,6 +234,20 @@ NAN_SETTER(FunctionWrapper::setVisibility) {
 
 NAN_METHOD(FunctionWrapper::viewCFG) {
     FunctionWrapper::FromValue(info.Holder())->getFunction()->viewCFG();
+}
+
+NAN_METHOD(FunctionWrapper::eraseFromParent) {
+    FunctionWrapper::FromValue(info.Holder())->getFunction()->eraseFromParent();
+}
+
+NAN_METHOD(FunctionWrapper::print) {
+    auto* function = FunctionWrapper::FromValue(info.Holder())->getFunction();
+    std::string outs;
+    llvm::raw_string_ostream os(outs);
+    function->print(os);
+    os.flush();
+    auto result = Nan::New<v8::String>(outs).ToLocalChecked();
+    info.GetReturnValue().Set(result);
 }
 
 llvm::Function *FunctionWrapper::getFunction() {

@@ -254,6 +254,10 @@ declare namespace llvm {
     getBasicBlocks(): BasicBlock[];
 
     viewCFG(): void;
+
+    eraseFromParent(): void;
+
+    print(): string;
   }
 
   class GlobalVariable extends Constant {
