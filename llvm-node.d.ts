@@ -110,6 +110,8 @@ declare namespace llvm {
     dump?: () => void;
 
     hasName(): boolean;
+    getName(): string;
+    setName(name: string): void;
 
     /**
      * Deletes the value. It is, therefore, forbidden to use the value any further
@@ -121,6 +123,8 @@ declare namespace llvm {
     replaceAllUsesWith(value: Value): void;
 
     useEmpty(): boolean;
+
+    print(): string;
   }
 
   class Argument extends Value {

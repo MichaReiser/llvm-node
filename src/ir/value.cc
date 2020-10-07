@@ -4,6 +4,7 @@
 
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instructions.h>
+#include <llvm/Support/raw_ostream.h>
 #include "../util/string.h"
 #include "value.h"
 #include "basic-block.h"
@@ -41,6 +42,7 @@ Nan::Persistent<v8::FunctionTemplate> &ValueWrapper::valueTemplate()
         Nan::SetPrototypeMethod(localTemplate, "deleteValue", ValueWrapper::deleteValue);
         Nan::SetPrototypeMethod(localTemplate, "replaceAllUsesWith", ValueWrapper::replaceAllUsesWith);
         Nan::SetPrototypeMethod(localTemplate, "useEmpty", ValueWrapper::useEmpty);
+        Nan::SetPrototypeMethod(localTemplate, "print", ValueWrapper::print);
 
         auto function = Nan::GetFunction(localTemplate).ToLocalChecked();
         Nan::Set(function, Nan::New("MaxAlignmentExponent").ToLocalChecked(), Nan::New(llvm::Value::MaxAlignmentExponent));
@@ -138,6 +140,16 @@ NAN_METHOD(ValueWrapper::useEmpty)
 {
     auto *value = ValueWrapper::FromValue(info.Holder())->getValue();
     info.GetReturnValue().Set(Nan::New(value->use_empty()));
+}
+
+NAN_METHOD(ValueWrapper::print) {
+    auto* value = ValueWrapper::FromValue(info.Holder())->getValue();
+    std::string outs;
+    llvm::raw_string_ostream os(outs);
+    value->print(os);
+    os.flush();
+    auto result = Nan::New<v8::String>(outs).ToLocalChecked();
+    info.GetReturnValue().Set(result);
 }
 
 v8::Local<v8::Object> ValueWrapper::of(llvm::Value *value)
