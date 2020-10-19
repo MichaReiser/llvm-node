@@ -34,6 +34,8 @@
 #include "visibility-types.h"
 #include "attribute.h"
 #include "undef-value.h"
+#include "pass.h"
+#include "pass-manager.h"
 
 NAN_MODULE_INIT(InitIR) {
     AllocaInstWrapper::Init(target);
@@ -68,4 +70,9 @@ NAN_MODULE_INIT(InitIR) {
     ValueWrapper::Init(target);
     InitVerifier(target);
     InitVisibilityTypes(target);
+    PassWrapper::Init(target);
+    ModulePassWrapper::Init(target);
+    FunctionPassWrapper::Init(target);
+    PassManagerWrapper::Init(target);
+    FunctionPassManagerWrapper::Init(target);
 }

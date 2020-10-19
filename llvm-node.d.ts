@@ -727,6 +727,106 @@ declare namespace llvm {
     LLVM_VERSION_STRING: string;
     LLVM_DEFAULT_TARGET_TRIPLE: string;
   }>;
+
+  // Pass
+
+  /// Different types of internal pass managers. External pass managers
+  /// (PassManager and FunctionPassManager) are not represented here.
+  /// Ordering of pass manager types is important here.
+  enum PassManagerType {
+    PMT_Unknown = 0,
+    PMT_ModulePassManager = 1, ///< MPPassManager
+    PMT_CallGraphPassManager,  ///< CGPassManager
+    PMT_FunctionPassManager,   ///< FPPassManager
+    PMT_LoopPassManager,       ///< LPPassManager
+    PMT_RegionPassManager,     ///< RGPassManager
+    PMT_Last
+  }
+
+  // Different types of passes.
+  enum PassKind {
+    PT_Region,
+    PT_Loop,
+    PT_Function,
+    PT_CallGraphSCC,
+    PT_Module,
+    PT_PassManager
+  }
+
+  class Pass extends Constant {
+    readonly passKind: PassKind;
+    readonly passName: string;
+    readonly passId: number;
+    readonly potentialPassManagerType: PassManagerType;
+
+    // static createPass(id: number): Pass;
+
+    constructor(pk: PassKind, pid: string);
+
+    doInitialization(module: Module): boolean;
+
+    doFinalization(module: Module): boolean;
+
+    verifyAnalysis(): void;
+
+    print(): string;
+  }
+
+  class ModulePass extends Pass {
+    constructor(pid: string);
+
+    runOnModule(module: Module): boolean;
+  }
+
+  class FunctionPass extends Pass {
+    constructor(pid: string);
+
+    runOnFunction(fn: Function): boolean;
+  }
+
+  // Pass manager
+
+  class PassManager {
+    add(pass: Pass): void;
+
+    run(module: Module): boolean;
+  }
+
+  class FunctionPassManager extends PassManager {
+    constructor(module: Module);
+
+    runForFunction(fn: Function): boolean;
+
+    doInitialization(): boolean;
+
+    doFinalization(): boolean;
+  }
+
+  function createInstructionCombiningPass(): FunctionPass;
+
+  function createReassociatePass(): FunctionPass;
+
+  function createGVNPass(): FunctionPass;
+
+  function createCFGSimplificationPass(): FunctionPass;
+
+  // Jit
+
+  class JitSymbol {
+    readonly fn: Function;
+
+    call(): number;
+  }
+
+  class KaleidoscopeJit {
+    readonly targetMachine: TargetMachine;
+
+    addModule(module: Module): number;
+
+    removeModule(key: number): void;
+
+    findSymbol(name: string): JitSymbol;
+  }
 }
 
 export = llvm;
