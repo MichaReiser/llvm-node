@@ -14,6 +14,7 @@ env:
     - LLVM_DEB="deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" LLVM_VERSION=8
     - LLVM_DEB="deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" LLVM_VERSION=9
     - LLVM_DEB="deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-10 main" LLVM_VERSION=10
+    - LLVM_DEB="deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-11 main" LLVM_VERSION=11
 before_install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
