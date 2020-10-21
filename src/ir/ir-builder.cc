@@ -326,7 +326,7 @@ Nan::NAN_METHOD_RETURN_TYPE IRBuilderWrapper::CreateInBoundsGEPWithType(Nan::NAN
     std::vector<llvm::Value*> idxList { indexValues->Length() };
 
     for (uint32_t i = 0; i < indexValues->Length(); ++i) {
-        auto idx = indexValues->Get(i);
+        auto idx = indexValues->Get(info.GetIsolate()->GetCurrentContext(), i).ToLocalChecked();
 
         if (!ValueWrapper::isInstance(idx)) {
             return Nan::ThrowTypeError("Value expected for idxList element");
@@ -356,7 +356,7 @@ Nan::NAN_METHOD_RETURN_TYPE IRBuilderWrapper::CreateInBoundsGEPWithoutType(Nan::
     std::vector<llvm::Value*> idxList { indexValues->Length() };
 
     for (uint32_t i = 0; i < indexValues->Length(); ++i) {
-        auto idx = indexValues->Get(i);
+        auto idx = indexValues->Get(info.GetIsolate()->GetCurrentContext(), i).ToLocalChecked();
 
         if (!ValueWrapper::isInstance(idx)) {
             return Nan::ThrowTypeError("Value expected for idxList element");
@@ -534,10 +534,10 @@ NAN_METHOD(IRBuilderWrapper::CreateCall) {
     std::vector<llvm::Value*> args { argsArray->Length() };
 
     for (uint32_t i = 0; i < argsArray->Length(); ++i) {
-        if (!ValueWrapper::isInstance(argsArray->Get(i))) {
+        if (!ValueWrapper::isInstance(argsArray->Get(info.GetIsolate()->GetCurrentContext(), i).ToLocalChecked())) {
             return Nan::ThrowTypeError("Expected Value");
         }
-        args[i] = ValueWrapper::FromValue(argsArray->Get(i))->getValue();
+        args[i] = ValueWrapper::FromValue(argsArray->Get(info.GetIsolate()->GetCurrentContext(), i).ToLocalChecked())->getValue();
     }
 
     llvm::CallInst* callInst {};

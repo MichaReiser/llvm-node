@@ -165,7 +165,7 @@ NAN_METHOD(FunctionWrapper::getArguments) {
 
     uint32_t i = 0;
     for (auto &arg : wrapper->getFunction()->args()) {
-        result->Set(i, ArgumentWrapper::of(&arg));
+        result->Set(info.GetIsolate()->GetCurrentContext(), i, ArgumentWrapper::of(&arg)).ToChecked();
         ++i;
     }
 
@@ -189,7 +189,7 @@ NAN_METHOD(FunctionWrapper::getBasicBlocks) {
 
     uint32_t i = 0;
     for (auto &arg : *function) {
-        result->Set(i, BasicBlockWrapper::of(&arg));
+        result->Set(info.GetIsolate()->GetCurrentContext(), i, BasicBlockWrapper::of(&arg)).ToChecked();
         ++i;
     }
 
