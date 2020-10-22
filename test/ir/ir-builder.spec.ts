@@ -78,6 +78,29 @@ describe("IRBuilder", () => {
     expect(ashr).toEqual(llvm.ConstantInt.get(context, 2));
   });
 
+  test("create createAtomicRMW returns a value", () => {
+    const { builder, context } = createBuilderWithBlock();
+
+    // let %0: i32 = 3;
+    const value = builder.createAlloca(
+        llvm.Type.getInt32Ty(context)
+    );
+
+    builder.createStore(
+        llvm.ConstantInt.get(context, 3),
+        value
+    );
+
+    const atomicRMW = builder.createAtomicRMW(
+      llvm.AtomicRMWInst.BinOp.Add,
+      value,
+      llvm.ConstantInt.get(context, 1),
+      llvm.AtomicOrdering.AcquireRelease
+    );
+
+    expect(atomicRMW).toBeInstanceOf(llvm.Value);
+  });
+
   test("createBitCast returns a value", () => {
     const { builder, context } = createBuilderWithBlock();
 
@@ -88,7 +111,7 @@ describe("IRBuilder", () => {
 
     expect(cast).toBeInstanceOf(llvm.Value);
     expect(cast.type).toEqual(
-      llvm.PointerType.get(llvm.Type.getInt32Ty(context), 0)
+      llvm.Type.getInt8PtrTy(context)
     );
   });
 
@@ -790,10 +813,22 @@ describe("IRBuilder", () => {
     expect(rem).toEqual(llvm.ConstantInt.get(context, 1));
   });
 
-  test("CreateURem", () => {
+  test("createUDiv", () => {
     const { builder, context } = createBuilderWithBlock();
 
-    const rem = builder.CreateURem(
+    const div = builder.createUDiv(
+      llvm.ConstantInt.get(context, -1, 32, false),
+      llvm.ConstantInt.get(context, 2, 32)
+    );
+
+    expect(div).toBeInstanceOf(llvm.Value);
+    expect(div).toEqual(llvm.ConstantInt.get(context, 2147483647, 32));
+  });
+
+  test("createURem", () => {
+    const { builder, context } = createBuilderWithBlock();
+
+    const rem = builder.createURem(
       llvm.ConstantInt.get(context, 11),
       llvm.ConstantInt.get(context, 2)
     );

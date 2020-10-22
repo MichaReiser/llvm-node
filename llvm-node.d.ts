@@ -98,6 +98,16 @@ declare namespace llvm {
     Protected
   }
 
+  enum AtomicOrdering {
+    NotAtomic,
+    Unordered,
+    Monotonic,
+    Acquire,
+    Release,
+    AcquireRelease,
+    SequentiallyConsistent
+  }
+
   class Value {
     static MaxAlignmentExponent: number;
     static MaximumAlignment: number;
@@ -171,6 +181,32 @@ declare namespace llvm {
     isOneValue(): boolean;
 
     isAllOnesValue(): boolean;
+  }
+
+  class ConstantAggregateZero extends Constant {
+      static get(type: Type): Constant;
+
+      private constructor();
+  }
+
+  class ConstantExpr extends Constant {
+    static getPointerCast(constant: Constant, type: Type): Constant;
+
+    static getIntegerCast(constant: Constant, type: Type): Constant;
+
+    static getFPCast(constant: Constant, type: Type): Constant;
+
+    static getBitCast(constant: Constant, type: Type): Constant;
+
+    static getGetElementPtr(type: Type, constant: Constant, idxList: Constant[], inBounds?: boolean): Constant;
+
+    static getOr(constant1: Constant, constant2: Constant): Constant;
+
+    static getPointerBitCastOrAddrSpaceCast(constant: Constant, type: Type): Constant;
+
+    static getAlignOf(type: Type): Constant;
+
+    static getSizeOf(type: Type): Constant;
   }
 
   class ConstantFP extends Constant {
@@ -367,7 +403,11 @@ declare namespace llvm {
 
     getTypeStoreSize(type: Type): number;
 
-    getIntPtrType(context: LLVMContext, as: number): Type;
+    getTypeAllocSize(type: Type): number;
+
+    getTypeAllocSizeInBits(type: Type): number;
+
+    getIntPtrType(context: LLVMContext, as: number): IntegerType;
   }
 
   class Type {
@@ -450,6 +490,7 @@ declare namespace llvm {
 
     isArrayTy(): boolean;
 
+    isFloatingPointTy(): boolean;
     isHalfTy(): boolean;
 
     isPointerTy(): this is PointerType;
@@ -457,6 +498,7 @@ declare namespace llvm {
     getPointerTo(addressSpace?: number): PointerType;
 
     getPrimitiveSizeInBits(): number;
+
 
     toString(): string;
   }
@@ -536,6 +578,8 @@ declare namespace llvm {
 
     createAShr(lhs: Value, rhs: Value, name?: string): Value;
 
+    createAtomicRMW(op: AtomicRMWInst.BinOp, ptr: Value, value: Value, ordering: AtomicOrdering): Value;
+
     createBitCast(value: Value, destType: Type, name?: string): Value;
 
     createBr(basicBlock: BasicBlock): Value;
@@ -583,6 +627,7 @@ declare namespace llvm {
     createFSub(lhs: Value, rhs: Value, name?: string): Value;
 
     createFPToSI(value: Value, type: Type, name?: string): Value;
+    createFPToUI(value: Value, type: Type, name?: string): Value;
 
     createGlobalString(str: string, name?: string, addressSpace?: number): Value;
 
@@ -615,6 +660,8 @@ declare namespace llvm {
 
     createICmpULT(lhs: Value, rhs: Value, name?: string): Value;
 
+    createIsNull(ptr: Value, name?: string): Value;
+
     createLoad(ptr: Value, name?: string): Value;
 
     createLShr(lhs: Value, rhs: Value, name?: string): Value;
@@ -632,6 +679,8 @@ declare namespace llvm {
     createPhi(type: Type, numReservedValues: number, name?: string): PhiNode;
 
     createPtrToInt(value: Value, destType: Type, name?: string): Value;
+
+    createIntToPtr(value: Value, destType: Type, name?: string): Value;
 
     createRet(value: Value): Value;
 
@@ -653,11 +702,34 @@ declare namespace llvm {
 
     createSRem(lhs: Value, rhs: Value, name?: string): Value;
 
-    CreateURem(lhs: Value, rhs: Value, name?: string): Value;
+    createUDiv(lhs: Value, rhs: Value, name?: string): Value;
+
+    createURem(lhs: Value, rhs: Value, name?: string): Value;
+
+    createUnreachable(): Value;
 
     createZExt(value: Value, destType: Type, name?: string): Value;
 
+    createZExtOrTrunc(value: Value, destType: Type, name?: string): Value;
+
+    createSExtOrTrunc(value: Value, destType: Type, name?: string): Value;
+
     getInsertBlock(): BasicBlock | undefined;
+  }
+
+  namespace AtomicRMWInst {
+    enum BinOp {
+      Add,
+      Sub,
+      And,
+      Nand,
+      Or,
+      Xor,
+      Max,
+      Min,
+      UMax,
+      UMin
+    }
   }
 
   class LLVMContext {

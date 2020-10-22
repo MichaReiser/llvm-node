@@ -1,4 +1,3 @@
-
 #include "integer-type.h"
 
 NAN_MODULE_INIT(IntegerTypeWrapper::Init) {
@@ -13,32 +12,27 @@ NAN_METHOD(IntegerTypeWrapper::New)
     }
 
     if (info.Length() < 1 || !info[0]->IsExternal()) {
-        return Nan::ThrowTypeError("Expected type pointer");
+        return Nan::ThrowTypeError("Expected pointer type pointer");
     }
 
-    auto *type = static_cast<llvm::IntegerType *>(v8::External::Cast(*info[0])->Value());
-    auto *wrapper = new IntegerTypeWrapper { type };
+    auto* type = static_cast<llvm::IntegerType*>(v8::External::Cast(*info[0])->Value());
+    auto* wrapper = new IntegerTypeWrapper { type };
     wrapper->Wrap(info.This());
 
     info.GetReturnValue().Set(info.This());
 }
 
-v8::Local<v8::Object> IntegerTypeWrapper::of(llvm::IntegerType* integerType) {
-    auto constructorFunction = Nan::GetFunction(Nan::New(integerTypeTemplate())).ToLocalChecked();
-    v8::Local<v8::Value> args[1] = { Nan::New<v8::External> (integerType) };
+NAN_METHOD(IntegerTypeWrapper::get) {
+    if (info.Length() != 2 || !LLVMContextWrapper::isInstance(info[0]) || !info[1]->IsUint32()) {
+        return Nan::ThrowTypeError("IntegerTypeWrapper.get needs to be called with: context: LLVMContext, bitWidth: uint32");
+    }
 
-    auto instance = Nan::NewInstance(constructorFunction, 1, args).ToLocalChecked();
+    auto& context = LLVMContextWrapper::FromValue(info[0])->getContext();
+    unsigned bitWidth = Nan::To<unsigned>(info[1]).FromJust();
 
-    Nan::EscapableHandleScope escapeScope {};
-    return escapeScope.Escape(instance);
-}
+    auto* integerType = llvm::IntegerType::get(context, bitWidth);
 
-bool IntegerTypeWrapper::isInstance(v8::Local<v8::Value> value) {
-    return Nan::New(integerTypeTemplate())->HasInstance(value);
-}
-
-llvm::IntegerType* IntegerTypeWrapper::getIntegerType() {
-    return static_cast<llvm::IntegerType*>(getType());
+    info.GetReturnValue().Set(IntegerTypeWrapper::of(integerType));
 }
 
 NAN_METHOD(IntegerTypeWrapper::getBitWidth) {
@@ -48,19 +42,40 @@ NAN_METHOD(IntegerTypeWrapper::getBitWidth) {
     info.GetReturnValue().Set(Nan::New(bitWidth));
 }
 
-v8::Persistent<v8::FunctionTemplate>& IntegerTypeWrapper::integerTypeTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> tmpl {};
+v8::Local<v8::Object> IntegerTypeWrapper::of(llvm::IntegerType *type) {
+    Nan::EscapableHandleScope escapeScope {};
 
-    if (tmpl.IsEmpty()) {
-        auto integerTypeWrapperTemplate = Nan::New<v8::FunctionTemplate>(IntegerTypeWrapper::New);
-        integerTypeWrapperTemplate->SetClassName(Nan::New("IntegerType").ToLocalChecked());
-        integerTypeWrapperTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-        integerTypeWrapperTemplate->Inherit(Nan::New(typeTemplate()));
+    v8::Local<v8::FunctionTemplate> functionTemplate = Nan::New(integerTypeTemplate());
+    auto constructorFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
+    v8::Local<v8::Value> argv[1] = { Nan::New<v8::External>(type) };
+    v8::Local<v8::Object> object = Nan::NewInstance(constructorFunction, 1, argv).ToLocalChecked();
 
-        Nan::SetPrototypeMethod(integerTypeWrapperTemplate, "getBitWidth", IntegerTypeWrapper::getBitWidth);
+    return escapeScope.Escape(object);
+}
 
-        tmpl.Reset(integerTypeWrapperTemplate);
+Nan::Persistent<v8::FunctionTemplate>& IntegerTypeWrapper::integerTypeTemplate() {
+    static Nan::Persistent<v8::FunctionTemplate> persistentTemplate {};
+
+    if (persistentTemplate.IsEmpty()) {
+        v8::Local<v8::FunctionTemplate> integerTypeTemplate = Nan::New<v8::FunctionTemplate>(IntegerTypeWrapper::New);
+
+        Nan::SetMethod(integerTypeTemplate, "get", IntegerTypeWrapper::get);
+        integerTypeTemplate->SetClassName(Nan::New("IntegerType").ToLocalChecked());
+        integerTypeTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+        integerTypeTemplate->Inherit(Nan::New(typeTemplate()));
+
+        Nan::SetPrototypeMethod(integerTypeTemplate, "getBitWidth", IntegerTypeWrapper::getBitWidth);
+
+        persistentTemplate.Reset(integerTypeTemplate);
     }
 
-    return tmpl;
+    return persistentTemplate;
+}
+
+bool IntegerTypeWrapper::isInstance(v8::Local<v8::Value> object) {
+    return Nan::New(integerTypeTemplate())->HasInstance(object);
+}
+
+llvm::IntegerType *IntegerTypeWrapper::getIntegerType() {
+    return static_cast<llvm::IntegerType*>(getType());
 }

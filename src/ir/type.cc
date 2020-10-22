@@ -10,6 +10,7 @@
 #include "integer-type.h"
 #include "array-type.h"
 #include "struct-type.h"
+#include "integer-type.h"
 
 NAN_MODULE_INIT(TypeWrapper::Init)
 {
@@ -267,6 +268,7 @@ Nan::Persistent<v8::FunctionTemplate> &TypeWrapper::typeTemplate()
         Nan::SetPrototypeMethod(typeTemplate, "isStructTy", &isOfType<&llvm::Type::isStructTy>);
         Nan::SetPrototypeMethod(typeTemplate, "isArrayTy", &isOfType<&llvm::Type::isArrayTy>);
         Nan::SetPrototypeMethod(typeTemplate, "isPointerTy", &isOfType<&llvm::Type::isPointerTy>);
+        Nan::SetPrototypeMethod(typeTemplate, "isFloatingPointTy", &isOfType<&llvm::Type::isFloatingPointTy>);
         Nan::SetPrototypeMethod(typeTemplate, "isHalfTy", &isOfType<&llvm::Type::isHalfTy>);
         Nan::SetAccessor(typeTemplate->InstanceTemplate(), Nan::New("typeID").ToLocalChecked(), TypeWrapper::getTypeID);
         Nan::SetPrototypeMethod(typeTemplate, "getPointerTo", TypeWrapper::getPointerTo);

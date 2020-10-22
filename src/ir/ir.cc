@@ -19,7 +19,6 @@
 #include "alloca-inst.h"
 #include "pointer-type.h"
 #include "array-type.h"
-#include "integer-type.h"
 #include "calling-conv.h"
 #include "call-inst.h"
 #include "struct-type.h"
@@ -32,14 +31,18 @@
 #include "constant-struct.h"
 #include "constant-array.h"
 #include "visibility-types.h"
+#include "constant-aggregate-zero.h"
 #include "attribute.h"
+#include "atomic-rmw-inst.h"
 #include "undef-value.h"
+#include "constant-expr.h"
+#include "integer-type.h"
 
 NAN_MODULE_INIT(InitIR) {
     AllocaInstWrapper::Init(target);
+    InitAtomicRMWInst(target);
     ArgumentWrapper::Init(target);
     ArrayTypeWrapper::Init(target);
-    IntegerTypeWrapper::Init(target);
     InitAttribute(target);
     BasicBlockWrapper::Init(target);
     ConstantStructWrapper::Init(target);
@@ -48,7 +51,9 @@ NAN_MODULE_INIT(InitIR) {
     CallInstWrapper::Init(target);
     ConstantWrapper::Init(target);
     ConstantArrayWrapper::Init(target);
+    ConstantAggregateZeroWrapper::Init(target);
     ConstantDataArrayWrapper::Init(target);
+    ConstantExprWrapper::Init(target);
     ConstantFPWrapper::Init(target);
     ConstantIntWrapper::Init(target);
     ConstantPointerNullWrapper::Init(target);
@@ -58,6 +63,7 @@ NAN_MODULE_INIT(InitIR) {
     GlobalVariableWrapper::Init(target);
     IRBuilderWrapper::Init(target);
     InitLinkageTypes(target);
+    IntegerTypeWrapper::Init(target);
     ModuleWrapper::Init(target);
     LLVMContextWrapper::Init(target);
     PhiNodeWrapper::Init(target);

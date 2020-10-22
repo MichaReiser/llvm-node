@@ -74,6 +74,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createAlignedStore", IRBuilderWrapper::CreateAlignedStore);
     Nan::SetPrototypeMethod(functionTemplate, "createAnd", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateAnd>>);
     Nan::SetPrototypeMethod(functionTemplate, "createAShr", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateAShr>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createAtomicRMW", IRBuilderWrapper::CreateAtomicRMW);
     Nan::SetPrototypeMethod(functionTemplate, "createBitCast", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateBitCast>);
     Nan::SetPrototypeMethod(functionTemplate, "createBr", IRBuilderWrapper::CreateBr);
     Nan::SetPrototypeMethod(functionTemplate, "createCall", IRBuilderWrapper::CreateCall);
@@ -92,10 +93,12 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpULT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpULT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpUEQ", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpUEQ>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFCmpUNE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpUNE>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFCmpUNO", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFCmpUNO>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFDiv", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFDiv>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFMul", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFMul>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFNeg", IRBuilderWrapper::CreateFNeg);
     Nan::SetPrototypeMethod(functionTemplate, "createFPToSI", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateFPToSI>);
+    Nan::SetPrototypeMethod(functionTemplate, "createFPToUI", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateFPToUI>);
     Nan::SetPrototypeMethod(functionTemplate, "createFRem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFRem>>);
     Nan::SetPrototypeMethod(functionTemplate, "createFSub", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateFSub>>);
     Nan::SetPrototypeMethod(functionTemplate, "createGlobalString", IRBuilderWrapper::CreateGlobalString);
@@ -113,6 +116,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createICmpUGT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpUGT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpULT", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpULT>>);
     Nan::SetPrototypeMethod(functionTemplate, "createICmpULE", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateICmpULE>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createIsNull", IRBuilderWrapper::CreateIsNull);
     Nan::SetPrototypeMethod(functionTemplate, "createLoad", IRBuilderWrapper::CreateLoad);
     Nan::SetPrototypeMethod(functionTemplate, "createLShr", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateLShr>>);
     Nan::SetPrototypeMethod(functionTemplate, "createMul", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateMul>>);
@@ -121,6 +125,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createOr", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateOr>>);
     Nan::SetPrototypeMethod(functionTemplate, "createXor", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateXor>>);
     Nan::SetPrototypeMethod(functionTemplate, "createPhi", IRBuilderWrapper::CreatePhi);
+    Nan::SetPrototypeMethod(functionTemplate, "createIntToPtr", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateIntToPtr>);
     Nan::SetPrototypeMethod(functionTemplate, "createPtrToInt", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreatePtrToInt>);
     Nan::SetPrototypeMethod(functionTemplate, "createRet", IRBuilderWrapper::CreateRet);
     Nan::SetPrototypeMethod(functionTemplate, "createRetVoid", IRBuilderWrapper::CreateRetVoid);
@@ -129,11 +134,15 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createShl", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateShl>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSub", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSub>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSRem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateSRem>>);
-    Nan::SetPrototypeMethod(functionTemplate, "CreateURem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateURem>>);
     Nan::SetPrototypeMethod(functionTemplate, "createSIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateSIToFP>);
+    Nan::SetPrototypeMethod(functionTemplate, "createUDiv", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateUDiv>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createURem", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateURem>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createUnreachable", IRBuilderWrapper::CreateUnreachable);
     Nan::SetPrototypeMethod(functionTemplate, "createUIToFP", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateUIToFP>);
     Nan::SetPrototypeMethod(functionTemplate, "createStore", IRBuilderWrapper::CreateStore);
     Nan::SetPrototypeMethod(functionTemplate, "createZExt", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateZExt>);
+    Nan::SetPrototypeMethod(functionTemplate, "createZExtOrTrunc", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateZExtOrTrunc>);
+    Nan::SetPrototypeMethod(functionTemplate, "createSExtOrTrunc", &IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateSExtOrTrunc>);
     Nan::SetPrototypeMethod(functionTemplate, "getInsertBlock", IRBuilderWrapper::GetInsertBlock);
     Nan::SetPrototypeMethod(functionTemplate, "setInsertionPoint", IRBuilderWrapper::SetInsertionPoint);
 
@@ -257,6 +266,26 @@ NAN_METHOD(IRBuilderWrapper::CreateAlloca) {
     auto* alloc = irBuilder.CreateAlloca(type, value, name);
 
     info.GetReturnValue().Set(AllocaInstWrapper::of(alloc));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateAtomicRMW) {
+    if (info.Length() < 4 || !info[0]->IsUint32()
+            || !ValueWrapper::isInstance(info[1])
+            || !ValueWrapper::isInstance(info[2])
+            || !info[3]->IsUint32()) {
+        return Nan::ThrowTypeError("createAtomicRMW needs to be called with: op: AtomicRMWInst.BinOp, ptr: Value, value: Value, ordering: AtomicOrdering");
+    }
+
+    auto& irBuilder = IRBuilderWrapper::FromValue(info.This())->getIRBuilder();
+
+    auto op = static_cast<llvm::AtomicRMWInst::BinOp>(Nan::To<uint32_t>(info[0]).FromJust());
+    llvm::Value *ptr = ValueWrapper::FromValue(info[1])->getValue();
+    llvm::Value *value = ValueWrapper::FromValue(info[2])->getValue();
+    auto ordering = static_cast<llvm::AtomicOrdering>(Nan::To<uint32_t>(info[3]).FromJust());
+
+    auto *instruction = irBuilder.CreateAtomicRMW(op, ptr, value, ordering);
+
+    info.GetReturnValue().Set(ValueWrapper::of(instruction));
 }
 
 NAN_METHOD(IRBuilderWrapper::CreateExtractValue) {
@@ -393,6 +422,25 @@ NAN_METHOD(IRBuilderWrapper::CreateIntCast) {
 
     auto* casted = IRBuilderWrapper::FromValue(info.Holder())->irBuilder.CreateIntCast(value, type, isSigned, name);
     info.GetReturnValue().Set(ValueWrapper::of(casted));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateIsNull) {
+    if (info.Length() < 1 || !ValueWrapper::isInstance(info[0])
+            || (info.Length() > 1 && !(info[1]->IsString() || info[1]->IsUndefined()))
+            || info.Length() > 2) {
+        return Nan::ThrowTypeError("createIsNull needs to be called with: value: Value, name?: string");
+    }
+
+    auto* value = ValueWrapper::FromValue(info[0])->getValue();
+    std::string name {};
+
+    if (info.Length() > 1 && !info[1]->IsUndefined()) {
+        name = ToString(Nan::To<v8::String>(info[1]).ToLocalChecked());
+    }
+
+    auto& irBuilder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
+    auto* inst = irBuilder.CreateIsNull(value, name);
+    info.GetReturnValue().Set(ValueWrapper::of(inst));
 }
 
 NAN_METHOD(IRBuilderWrapper::CreateLoad) {
@@ -612,6 +660,12 @@ NAN_METHOD(IRBuilderWrapper::CreateRet) {
 NAN_METHOD(IRBuilderWrapper::CreateRetVoid) {
     auto& builder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
     auto* returnInstruction = builder.CreateRetVoid();
+    info.GetReturnValue().Set(ValueWrapper::of(returnInstruction));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateUnreachable) {
+    auto& builder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
+    auto* returnInstruction = builder.CreateUnreachable();
     info.GetReturnValue().Set(ValueWrapper::of(returnInstruction));
 }
 

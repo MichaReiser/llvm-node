@@ -31,13 +31,9 @@ private:
     template<ConvertOperationFn method>
     static NAN_METHOD(ConvertOperation);
 
-    static NAN_METHOD(CreateAdd);
     static NAN_METHOD(CreateAlloca);
     static NAN_METHOD(CreateAlignedLoad);
     static NAN_METHOD(CreateAlignedStore);
-    static NAN_METHOD(CreateAnd);
-    static NAN_METHOD(CreateAShr);
-    static NAN_METHOD(CreateBitCast);
     static NAN_METHOD(CreateBr);
     static NAN_METHOD(CreateCall);
     static NAN_METHOD(CreateCondBr);
@@ -49,6 +45,7 @@ private:
     static NAN_METHOD(CreateInBoundsGEPWithType);
     static NAN_METHOD(CreateInBoundsGEP);
     static NAN_METHOD(CreateIntCast);
+    static NAN_METHOD(CreateIsNull);
     static NAN_METHOD(CreateInsertValue);
     static NAN_METHOD(CreateLoad);
     static NAN_METHOD(CreateNeg);
@@ -56,6 +53,7 @@ private:
     static NAN_METHOD(CreatePhi);
     static NAN_METHOD(CreateRet);
     static NAN_METHOD(CreateRetVoid);
+    static NAN_METHOD(CreateUnreachable);
     static NAN_METHOD(CreateSelect);
     static NAN_METHOD(CreateStore);
     static NAN_METHOD(GetInsertBlock);
