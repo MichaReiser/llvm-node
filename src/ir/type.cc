@@ -32,7 +32,15 @@ NAN_MODULE_INIT(TypeWrapper::Init)
     Nan::Set(typeIds, Nan::New("StructTyID").ToLocalChecked(), Nan::New(llvm::Type::TypeID::StructTyID));
     Nan::Set(typeIds, Nan::New("ArrayTyID").ToLocalChecked(), Nan::New(llvm::Type::TypeID::ArrayTyID));
     Nan::Set(typeIds, Nan::New("PointerTyID").ToLocalChecked(), Nan::New(llvm::Type::TypeID::PointerTyID));
-    Nan::Set(typeIds, Nan::New("VectorTyID").ToLocalChecked(), Nan::New(llvm::Type::TypeID::VectorTyID));
+
+    #if LLVM_VERSION_MAJOR < 11
+        Nan::Set(typeIds, Nan::New("VectorTyID").ToLocalChecked(), Nan::New(llvm::Type::TypeID::VectorTyID));
+    #else
+        Nan::Set(typeIds, Nan::New("FixedVectorTyID").ToLocalChecked(), Nan::New(llvm::Type::TypeID::FixedVectorTyID));
+        Nan::Set(typeIds, Nan::New("ScalableVectorTyID").ToLocalChecked(), Nan::New(llvm::Type::TypeID::ScalableVectorTyID));
+        // Maintain backwards compatibility
+        Nan::Set(typeIds, Nan::New("VeectorTyID").ToLocalChecked(), Nan::New(llvm::Type::TypeID::FixedVectorTyID));
+    #endif
 
     Nan::Set(type, Nan::New("TypeID").ToLocalChecked(), typeIds);
 

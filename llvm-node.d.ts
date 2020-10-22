@@ -73,7 +73,7 @@ declare namespace llvm {
       SwiftSelf,
       UWTable,
       WriteOnly,
-      ZExt
+      ZExt,
     }
   }
 
@@ -89,13 +89,13 @@ declare namespace llvm {
     InternalLinkage,
     PrivateLinkage,
     ExternalWeakLinkage,
-    CommonLinkage
+    CommonLinkage,
   }
 
   enum VisibilityTypes {
     Hidden,
     Default,
-    Protected
+    Protected,
   }
 
   class Value {
@@ -277,7 +277,7 @@ declare namespace llvm {
   enum UnnamedAddr {
     None,
     Local,
-    Global
+    Global,
   }
 
   class PhiNode extends Value {
@@ -347,7 +347,7 @@ declare namespace llvm {
     X86_RegCall,
     AMDGPU_HS,
     MSP430_BUILTIN,
-    MaxID
+    MaxID,
   }
 
   class UndefValue {
@@ -387,6 +387,14 @@ declare namespace llvm {
       StructTyID: number;
       ArrayTyID: number;
       PointerTyID: number;
+
+      // LLVM 11+
+      FixedVectorTyID: number;
+      ScalableVectorTyID: number;
+
+      /**
+       * @deprecated
+       */
       VectorTyID: number;
     };
 
@@ -540,7 +548,12 @@ declare namespace llvm {
 
     createBr(basicBlock: BasicBlock): Value;
 
+    /**
+     * @deprecated
+     */
     createCall(callee: Value, args: Value[], name?: string): CallInst;
+
+    createCall(functionType: FunctionType, callee: Value, args: Value[], name?: string): CallInst;
 
     createCondBr(condition: Value, then: BasicBlock, elseBlock: BasicBlock): Value;
 
