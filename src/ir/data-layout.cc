@@ -44,7 +44,7 @@ NAN_METHOD(DataLayoutWrapper::New) {
         return Nan::ThrowTypeError("DataLayout functionTemplate needs to be called with single string argument");
     }
 
-    llvm::DataLayout layout { ToString(info[0]->ToString()) };
+    llvm::DataLayout layout { ToString(info[0]) };
     DataLayoutWrapper* wrapper = new DataLayoutWrapper { layout };
     wrapper->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
@@ -54,7 +54,7 @@ NAN_METHOD(DataLayoutWrapper::getStringRepresentation) {
     DataLayoutWrapper* wrapper = DataLayoutWrapper::FromValue(info.Holder());
     std::string representation = wrapper->layout.getStringRepresentation();
 
-    info.GetReturnValue().Set(v8::String::NewFromUtf8(info.GetIsolate(), representation.c_str()));
+    info.GetReturnValue().Set(Nan::MakeMaybe(v8::String::NewFromUtf8(info.GetIsolate(), representation.c_str())).ToLocalChecked());
 }
 
 NAN_METHOD(DataLayoutWrapper::getPointerSize) {

@@ -62,7 +62,7 @@ NAN_METHOD(FunctionTypeWrapper::get) {
         std::vector<llvm::Type *> argumentTypes {argumentTypesArray->Length()};
 
         for (size_t i = 0; i < argumentTypesArray->Length(); ++i) {
-            auto argumentTypeObject = argumentTypesArray->Get(i);
+            auto argumentTypeObject = argumentTypesArray->Get(info.GetIsolate()->GetCurrentContext(), i).ToLocalChecked();
             if (!TypeWrapper::isInstance(argumentTypeObject)) {
                 return Nan::ThrowTypeError("Expected Type in arguments array");
             }
@@ -127,7 +127,8 @@ NAN_METHOD(FunctionTypeWrapper::getParams) {
     uint32_t i = 0;
     for (auto paramsIterator = functionTypeWrapper->getFunctionType()->param_begin(); paramsIterator !=
             functionTypeWrapper->getFunctionType()->param_end(); ++paramsIterator) {
-        result->Set(i, TypeWrapper::of(*paramsIterator));
+
+        result->Set(info.GetIsolate()->GetCurrentContext(), i, TypeWrapper::of(*paramsIterator)).ToChecked();
         ++i;
     }
 

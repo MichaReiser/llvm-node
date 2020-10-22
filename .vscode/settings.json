@@ -17,6 +17,29 @@
     "string": "cpp",
     "string_view": "cpp",
     "unordered_set": "cpp",
-    "vector": "cpp"
+    "vector": "cpp",
+    "__functional_base": "cpp",
+    "__node_handle": "cpp",
+    "algorithm": "cpp",
+    "atomic": "cpp",
+    "bitset": "cpp",
+    "chrono": "cpp",
+    "__memory": "cpp",
+    "limits": "cpp",
+    "locale": "cpp",
+    "optional": "cpp",
+    "random": "cpp",
+    "ratio": "cpp",
+    "system_error": "cpp",
+    "tuple": "cpp",
+    "type_traits": "cpp",
+    "istream": "cpp",
+    "ostream": "cpp",
+    "array": "cpp",
+    "utility": "cpp",
+    "cstddef": "cpp"
+  },
+  "cmake.configureSettings": {
+    "LLVM_DIR": "/usr/local/Cellar/llvm/11.0.0/lib/cmake/llvm"
   }
 }

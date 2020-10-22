@@ -24,8 +24,10 @@ NAN_METHOD(TargetRegistryWrapper::lookupTarget) {
 NAN_MODULE_INIT(TargetRegistryWrapper::Init) {
     v8::Local<v8::ObjectTemplate> tpl = Nan::New<v8::ObjectTemplate>();
     Nan::SetMethod(tpl, "lookupTarget", TargetRegistryWrapper::lookupTarget);
-    
-    Nan::Set(target, Nan::New("TargetRegistry").ToLocalChecked(), tpl->NewInstance());
+
+    auto targetRegistry = Nan::NewInstance(tpl).ToLocalChecked();
+
+    Nan::Set(target, Nan::New("TargetRegistry").ToLocalChecked(), targetRegistry);
 }
 
 //--------------------------------------------------------------
@@ -71,13 +73,13 @@ NAN_METHOD(TargetWrapper::createTargetMachine) {
 
 NAN_GETTER(TargetWrapper::getName) {
     TargetWrapper* wrapper = TargetWrapper::FromValue(info.Holder());
-    auto result = v8::String::NewFromUtf8(info.GetIsolate(), wrapper->target->getName());
+    auto result = Nan::MakeMaybe(v8::String::NewFromUtf8(info.GetIsolate(), wrapper->target->getName())).ToLocalChecked();
     info.GetReturnValue().Set(result);
 }
 
 NAN_GETTER(TargetWrapper::getShortDescription) {
     TargetWrapper* wrapper = TargetWrapper::FromValue(info.Holder());
-    auto result = v8::String::NewFromUtf8(info.GetIsolate(), wrapper->target->getShortDescription());
+    auto result = Nan::MakeMaybe(v8::String::NewFromUtf8(info.GetIsolate(), wrapper->target->getShortDescription())).ToLocalChecked();
     info.GetReturnValue().Set(result);
 }
 

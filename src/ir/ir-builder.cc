@@ -13,7 +13,7 @@
 #include "../util/array.h"
 #include "function-type.h"
 
-typedef llvm::Value* (*BinaryOpFn)(llvm::IRBuilder<>& builder, llvm::Value*, llvm::Value*, const llvm::Twine&);
+typedef llvm::Value* (*BinaryOpFn)(IRBuilderBaseType* builder, llvm::Value*, llvm::Value*, const llvm::Twine&);
 template<BinaryOpFn method>
 NAN_METHOD(NANBinaryOperation) {
     if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !ValueWrapper::isInstance(info[1])
@@ -31,35 +31,35 @@ NAN_METHOD(NANBinaryOperation) {
     }
 
     auto* wrapper = IRBuilderWrapper::FromValue(info.Holder());
-    llvm::Value* value = method(wrapper->getIRBuilder(), lhs, rhs, name);
+    llvm::Value* value = method(&wrapper->getIRBuilder(), lhs, rhs, name);
 
     info.GetReturnValue().Set(ValueWrapper::of(value));
 }
 
-typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpFloatFn)(llvm::Value*, llvm::Value*, const llvm::Twine&, llvm::MDNode *FPMathTag);
+typedef llvm::Value* (IRBuilderBaseType::*BinaryOpFloatFn)(llvm::Value*, llvm::Value*, const llvm::Twine&, llvm::MDNode *FPMathTag);
 template<BinaryOpFloatFn method>
-llvm::Value* ToBinaryOp(llvm::IRBuilder<>& builder, llvm::Value* lhs, llvm::Value* rhs, const llvm::Twine& name) {
-    return (builder.*method)(lhs, rhs, name, nullptr);
+llvm::Value* ToBinaryOp(IRBuilderBaseType* builder, llvm::Value* lhs, llvm::Value* rhs, const llvm::Twine& name) {
+    return (builder->*method)(lhs, rhs, name, nullptr);
 }
 
-typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOp)(llvm::Value*, llvm::Value*, const llvm::Twine&);
+typedef llvm::Value* (IRBuilderBaseType::*BinaryOp)(llvm::Value*, llvm::Value*, const llvm::Twine&);
 template<BinaryOp method>
-llvm::Value* ToBinaryOp(llvm::IRBuilder<>& builder, llvm::Value* lhs, llvm::Value* rhs, const llvm::Twine& name) {
-    llvm::Value* value = (builder.*method)(lhs, rhs, name);
+llvm::Value* ToBinaryOp(IRBuilderBaseType* builder, llvm::Value* lhs, llvm::Value* rhs, const llvm::Twine& name) {
+    llvm::Value* value = (builder->*method)(lhs, rhs, name);
     return value;
 }
 
-typedef llvm::Value* (llvm::IRBuilder<>::*BinaryOpWithOneBoolArg)(llvm::Value*, llvm::Value*, const llvm::Twine&, bool isExact);
+typedef llvm::Value* (IRBuilderBaseType::*BinaryOpWithOneBoolArg)(llvm::Value*, llvm::Value*, const llvm::Twine&, bool isExact);
 template<BinaryOpWithOneBoolArg method>
-llvm::Value* ToBinaryOp(llvm::IRBuilder<>& builder, llvm::Value* lhs, llvm::Value* rhs, const llvm::Twine& name) {
-    llvm::Value* value = (builder.*method)(lhs, rhs, name, false);
+llvm::Value* ToBinaryOp(IRBuilderBaseType* builder, llvm::Value* lhs, llvm::Value* rhs, const llvm::Twine& name) {
+    llvm::Value* value = (builder->*method)(lhs, rhs, name, false);
     return value;
 }
 
-typedef llvm::Value* (llvm::IRBuilder<>::*BinaryIntOp)(llvm::Value*, llvm::Value*, const llvm::Twine&, bool HasNUW, bool HasNSW);
+typedef llvm::Value* (IRBuilderBaseType::*BinaryIntOp)(llvm::Value*, llvm::Value*, const llvm::Twine&, bool HasNUW, bool HasNSW);
 template<BinaryIntOp method>
-llvm::Value* ToBinaryOp(llvm::IRBuilder<>& builder, llvm::Value* lhs, llvm::Value* rhs, const llvm::Twine& name) {
-    llvm::Value* value = (builder.*method)(lhs, rhs, name, false, false);
+llvm::Value* ToBinaryOp(IRBuilderBaseType* builder, llvm::Value* lhs, llvm::Value* rhs, const llvm::Twine& name) {
+    llvm::Value* value = (builder->*method)(lhs, rhs, name, false, false);
     return value;
 }
 
@@ -157,22 +157,21 @@ NAN_METHOD(IRBuilderWrapper::New) {
     IRBuilderWrapper* wrapper = nullptr;
     if (LLVMContextWrapper::isInstance(info[0])) {
         auto& llvmContext = LLVMContextWrapper::FromValue(info[0])->getContext();
-        wrapper = new IRBuilderWrapper { llvm::IRBuilder<> { llvmContext } };
+        wrapper = new IRBuilderWrapper { llvmContext };
     } else if (info.Length() == 1 || info[1]->IsUndefined()){
         auto* basicBlock = BasicBlockWrapper::FromValue(info[0])->getBasicBlock();
-        wrapper = new IRBuilderWrapper { llvm::IRBuilder<> { basicBlock, basicBlock->begin() } };
+        wrapper = new IRBuilderWrapper { basicBlock };
     } else {
         auto* basicBlock = BasicBlockWrapper::FromValue(info[0])->getBasicBlock();
-        auto builder = llvm::IRBuilder<> { basicBlock };
-        builder.SetInsertPoint(static_cast<llvm::Instruction*>(ValueWrapper::FromValue(info[1])->getValue()));
-        wrapper = new IRBuilderWrapper { builder };
+        auto* insertPoint = static_cast<llvm::Instruction*>(ValueWrapper::FromValue(info[1])->getValue());
+        wrapper = new IRBuilderWrapper { basicBlock, insertPoint };
     }
 
     wrapper->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
 }
 
-typedef llvm::Value* (llvm::IRBuilder<>::*ConvertOperationFn)(llvm::Value*, llvm::Type*, const llvm::Twine&);
+typedef llvm::Value* (IRBuilderBaseType::*ConvertOperationFn)(llvm::Value*, llvm::Type*, const llvm::Twine&);
 template<ConvertOperationFn method>
 NAN_METHOD(IRBuilderWrapper::ConvertOperation) {
     if (info.Length() < 2 || !ValueWrapper::isInstance(info[0]) || !TypeWrapper::isInstance(info[1])
@@ -203,7 +202,12 @@ NAN_METHOD(IRBuilderWrapper::CreateAlignedLoad) {
     }
 
     auto* ptr = ValueWrapper::FromValue(info[0])->getValue();
-    auto alignment = Nan::To<uint32_t>(info[1]).FromJust();
+    
+    #if LLVM_VERSION_MAJOR < 11 
+        auto alignment = Nan::To<uint32_t>(info[1]).FromJust();
+    #else
+        auto alignment = llvm::MaybeAlign(Nan::To<uint32_t>(info[1]).FromJust());
+    #endif
     std::string name {};
 
     if (info.Length() == 3 && !info[2]->IsUndefined()) {
@@ -222,7 +226,11 @@ NAN_METHOD(IRBuilderWrapper::CreateAlignedStore) {
 
     auto* value = ValueWrapper::FromValue(info[0])->getValue();
     auto* ptr = ValueWrapper::FromValue(info[1])->getValue();
-    auto align = Nan::To<uint32_t>(info[2]).FromJust();
+    #if LLVM_VERSION_MAJOR < 11 
+        auto align = Nan::To<uint32_t>(info[2]).FromJust();
+    #else
+        auto align = llvm::MaybeAlign(Nan::To<uint32_t>(info[2]).FromJust());
+    #endif
     bool isVolatile = false;
 
     if (info.Length() == 4 && !info[3]->IsUndefined()) {
@@ -305,7 +313,7 @@ Nan::NAN_METHOD_RETURN_TYPE IRBuilderWrapper::CreateInBoundsGEPWithType(Nan::NAN
     std::vector<llvm::Value*> idxList { indexValues->Length() };
 
     for (uint32_t i = 0; i < indexValues->Length(); ++i) {
-        auto idx = indexValues->Get(i);
+        auto idx = indexValues->Get(info.GetIsolate()->GetCurrentContext(), i).ToLocalChecked();
 
         if (!ValueWrapper::isInstance(idx)) {
             return Nan::ThrowTypeError("Value expected for idxList element");
@@ -335,7 +343,7 @@ Nan::NAN_METHOD_RETURN_TYPE IRBuilderWrapper::CreateInBoundsGEPWithoutType(Nan::
     std::vector<llvm::Value*> idxList { indexValues->Length() };
 
     for (uint32_t i = 0; i < indexValues->Length(); ++i) {
-        auto idx = indexValues->Get(i);
+        auto idx = indexValues->Get(info.GetIsolate()->GetCurrentContext(), i).ToLocalChecked();
 
         if (!ValueWrapper::isInstance(idx)) {
             return Nan::ThrowTypeError("Value expected for idxList element");
@@ -492,6 +500,7 @@ NAN_METHOD(IRBuilderWrapper::CreateCall) {
     if (info.Length() > 1 && ValueWrapper::isInstance(info[0]) && info[1]->IsArray() &&
             (info.Length() < 3 || info[2]->IsUndefined() || info[2]->IsString())) {
         callee = ValueWrapper::FromValue(info[0])->getValue();
+        functionType = llvm::cast<llvm::FunctionType>(callee->getType()->getPointerElementType());
         argsArray = v8::Array::Cast(*info[1]);
 
         if (info.Length() == 3  && !info[2]->IsUndefined()) {
@@ -513,20 +522,17 @@ NAN_METHOD(IRBuilderWrapper::CreateCall) {
     std::vector<llvm::Value*> args { argsArray->Length() };
 
     for (uint32_t i = 0; i < argsArray->Length(); ++i) {
-        if (!ValueWrapper::isInstance(argsArray->Get(i))) {
+        if (!ValueWrapper::isInstance(argsArray->Get(info.GetIsolate()->GetCurrentContext(), i).ToLocalChecked())) {
             return Nan::ThrowTypeError("Expected Value");
         }
-        args[i] = ValueWrapper::FromValue(argsArray->Get(i))->getValue();
+        args[i] = ValueWrapper::FromValue(argsArray->Get(info.GetIsolate()->GetCurrentContext(), i).ToLocalChecked())->getValue();
     }
 
     llvm::CallInst* callInst {};
     llvm::IRBuilder<>& irBuilder = IRBuilderWrapper::FromValue(info.Holder())->irBuilder;
 
-    if (functionType == nullptr) {
-        callInst = irBuilder.CreateCall(callee, args, name);
-    } else {
-        callInst = irBuilder.CreateCall(functionType, callee, args, name);
-    }
+    
+    callInst = irBuilder.CreateCall(functionType, callee, args, name);
     info.GetReturnValue().Set(CallInstWrapper::of(callInst));
 }
 

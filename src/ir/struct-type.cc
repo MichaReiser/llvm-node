@@ -55,7 +55,7 @@ NAN_METHOD(StructTypeWrapper::get) {
     std::vector<llvm::Type*> elements { array->Length() };
 
     for (size_t i = 0; i < array->Length(); ++i) {
-        auto element = array->Get(i);
+        auto element = array->Get(info.GetIsolate()->GetCurrentContext(), i).ToLocalChecked();
 
         if (!TypeWrapper::isInstance(element)) {
             return Nan::ThrowTypeError("expected Type");
@@ -140,7 +140,7 @@ NAN_METHOD(StructTypeWrapper::setBody) {
     std::vector<llvm::Type*> elements { array->Length() };
 
     for (size_t i = 0; i < array->Length(); ++i) {
-        auto element = array->Get(i);
+        auto element = array->Get(info.GetIsolate()->GetCurrentContext(), i).ToLocalChecked();
 
         if (!TypeWrapper::isInstance(element)) {
             return Nan::ThrowTypeError("expected Type");
