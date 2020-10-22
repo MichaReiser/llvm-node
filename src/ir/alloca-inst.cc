@@ -68,7 +68,11 @@ NAN_SETTER(AllocaInstWrapper::setAlignment) {
     }
 
     auto* wrapper = AllocaInstWrapper::FromValue(info.Holder());
+#if LLVM_VERSION_MAJOR < 10
     wrapper->getAllocaInst()->setAlignment(Nan::To<uint32_t>(value).FromJust());
+#else
+    wrapper->getAllocaInst()->setAlignment(llvm::MaybeAlign(Nan::To<uint32_t>(value).FromJust()));
+#endif
 }
 
 NAN_GETTER(AllocaInstWrapper::getArraySize) {
