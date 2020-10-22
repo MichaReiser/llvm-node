@@ -12,6 +12,12 @@
 #include "value.h"
 #include "../util/string.h"
 
+#if LLVM_VERSION_MAJOR < 11
+    typedef llvm::IRBuilder<> IRBuilderBaseType;
+#else
+    typedef llvm::IRBuilderBase IRBuilderBaseType;
+#endif
+
 class IRBuilderWrapper: public Nan::ObjectWrap, public FromValueMixin<IRBuilderWrapper> {
 public:
     static NAN_MODULE_INIT(Init);
@@ -20,14 +26,20 @@ public:
 private:
     llvm::IRBuilder<> irBuilder;
 
-    explicit IRBuilderWrapper(llvm::IRBuilder<> irBuilder) : irBuilder { irBuilder } {
+    explicit IRBuilderWrapper(llvm::LLVMContext& llvmContext) : irBuilder{ llvmContext } {
+    }
+
+    explicit IRBuilderWrapper(llvm::BasicBlock* basicBlock) : irBuilder { basicBlock } {}
+
+    explicit IRBuilderWrapper(llvm::BasicBlock* basicBlock, llvm::Instruction* insertPoint) : irBuilder { basicBlock } {
+        this->irBuilder.SetInsertPoint(insertPoint);
     }
 
     // static
     static NAN_METHOD(New);
 
     // instance
-    typedef llvm::Value* (llvm::IRBuilder<>::*ConvertOperationFn)(llvm::Value*, llvm::Type*, const llvm::Twine&);
+    typedef llvm::Value* (IRBuilderBaseType::*ConvertOperationFn)(llvm::Value*, llvm::Type*, const llvm::Twine&);
     template<ConvertOperationFn method>
     static NAN_METHOD(ConvertOperation);
 

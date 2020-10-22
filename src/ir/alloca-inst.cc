@@ -67,8 +67,14 @@ NAN_SETTER(AllocaInstWrapper::setAlignment) {
         return Nan::ThrowTypeError("alignment needs to be an uint32");
     }
 
+    #if LLVM_VERSION_MAJOR < 10
+        auto alignment = Nan::To<uint32_t>(value).FromJust();
+    #else
+        auto alignment = llvm::Align(Nan::To<uint32_t>(value).FromJust());
+    #endif
+    
     auto* wrapper = AllocaInstWrapper::FromValue(info.Holder());
-    wrapper->getAllocaInst()->setAlignment(Nan::To<uint32_t>(value).FromJust());
+    wrapper->getAllocaInst()->setAlignment(alignment);
 }
 
 NAN_GETTER(AllocaInstWrapper::getArraySize) {
