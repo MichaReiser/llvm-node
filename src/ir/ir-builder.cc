@@ -74,6 +74,7 @@ NAN_MODULE_INIT(IRBuilderWrapper::Init) {
     Nan::SetPrototypeMethod(functionTemplate, "createAlignedStore", IRBuilderWrapper::CreateAlignedStore);
     Nan::SetPrototypeMethod(functionTemplate, "createAnd", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateAnd>>);
     Nan::SetPrototypeMethod(functionTemplate, "createAShr", &NANBinaryOperation<&ToBinaryOp<&llvm::IRBuilder<>::CreateAShr>>);
+    Nan::SetPrototypeMethod(functionTemplate, "createAtomicRMW", IRBuilderWrapper::CreateAtomicRMW);
     Nan::SetPrototypeMethod(functionTemplate, "createBitCast", IRBuilderWrapper::ConvertOperation<&llvm::IRBuilder<>::CreateBitCast>);
     Nan::SetPrototypeMethod(functionTemplate, "createBr", IRBuilderWrapper::CreateBr);
     Nan::SetPrototypeMethod(functionTemplate, "createCall", IRBuilderWrapper::CreateCall);
@@ -265,6 +266,26 @@ NAN_METHOD(IRBuilderWrapper::CreateAlloca) {
     auto* alloc = irBuilder.CreateAlloca(type, value, name);
 
     info.GetReturnValue().Set(AllocaInstWrapper::of(alloc));
+}
+
+NAN_METHOD(IRBuilderWrapper::CreateAtomicRMW) {
+    if (info.Length() < 4 || !info[0]->IsUint32()
+            || !ValueWrapper::isInstance(info[1])
+            || !ValueWrapper::isInstance(info[2])
+            || !info[3]->IsUint32()) {
+        return Nan::ThrowTypeError("createAtomicRMW needs to be called with: op: AtomicRMWInst.BinOp, ptr: Value, value: Value, ordering: AtomicOrdering");
+    }
+
+    auto& irBuilder = IRBuilderWrapper::FromValue(info.This())->getIRBuilder();
+
+    auto op = static_cast<llvm::AtomicRMWInst::BinOp>(Nan::To<uint32_t>(info[0]).FromJust());
+    llvm::Value *ptr = ValueWrapper::FromValue(info[1])->getValue();
+    llvm::Value *value = ValueWrapper::FromValue(info[2])->getValue();
+    auto ordering = static_cast<llvm::AtomicOrdering>(Nan::To<uint32_t>(info[3]).FromJust());
+
+    auto *instruction = irBuilder.CreateAtomicRMW(op, ptr, value, ordering);
+
+    info.GetReturnValue().Set(ValueWrapper::of(instruction));
 }
 
 NAN_METHOD(IRBuilderWrapper::CreateExtractValue) {
