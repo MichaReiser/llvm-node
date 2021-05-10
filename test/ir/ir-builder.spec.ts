@@ -83,12 +83,12 @@ describe("IRBuilder", () => {
 
     // let %0: i32 = 3;
     const value = builder.createAlloca(
-        llvm.Type.getInt32Ty(context)
+      llvm.Type.getInt32Ty(context)
     );
 
     builder.createStore(
-        llvm.ConstantInt.get(context, 3),
-        value
+      llvm.ConstantInt.get(context, 3),
+      value
     );
 
     const atomicRMW = builder.createAtomicRMW(
@@ -734,6 +734,23 @@ describe("IRBuilder", () => {
     expect(ptrToInt.name).toBe("name");
     expect(ptrToInt.type).toEqual(llvm.Type.getInt32Ty(context));
   });
+
+  test("createIntToPtr", () => {
+    const { builder, context } = createBuilderWithBlock();
+    const alloca = builder.createAlloca(llvm.Type.getInt32Ty(context))
+    const intData = builder.createLoad(alloca)
+
+    const ptrType = llvm.PointerType.get(llvm.Type.getInt8Ty(context), 0)
+    const intToPtr = builder.createIntToPtr(
+      intData,
+      ptrType,
+      "ptr"
+    );
+
+    expect(intToPtr).toBeInstanceOf(llvm.Value);
+    expect(intToPtr.name).toBe("ptr");
+    expect(intToPtr.type).toEqual(ptrType);
+  })
 
   test("createRet", () => {
     const { builder, context } = createBuilderWithBlock();
