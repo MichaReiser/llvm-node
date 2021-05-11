@@ -658,6 +658,8 @@ declare namespace llvm {
 
     createPtrToInt(value: Value, destType: Type, name?: string): Value;
 
+    createIntToPtr(value: Value, destType: Type, name?: string): Value;
+
     createRet(value: Value): Value;
 
     createRetVoid(): Value;
