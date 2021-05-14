@@ -46,7 +46,7 @@ jobs:
         run: yarn --non-interactive --frozen-lockfile --ignore-scripts
 
       - name: Build
-        run: yarn build
+        run: CMAKE_BUILD_PARALLEL_LEVEL=$(nproc) yarn build
 
       - name: Validate typescript definitions
         run: yarn tsc --strict --noEmit --types . llvm-node.d.ts
@@ -93,7 +93,7 @@ jobs:
         run: yarn --non-interactive --frozen-lockfile --ignore-scripts
 
       - name: Build
-        run: yarn build
+        run: CMAKE_BUILD_PARALLEL_LEVEL=$(nproc) yarn build
 
       - name: Test
         run: yarn test --ci --coverage
