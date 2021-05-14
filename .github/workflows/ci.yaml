@@ -8,7 +8,7 @@ on:
     - cron: "0 1 * * *"
 jobs:
   node-compatibility:
-    name: "Node ${{ matrix.node }} (LLVM 11)"
+    name: "Node ${{ matrix.node }} (LLVM 12)"
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -20,10 +20,10 @@ jobs:
       - name: Install LLVM
         run: |
           wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-          echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | sudo tee -a /etc/apt/sources.list
+          echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main" | sudo tee -a /etc/apt/sources.list
           sudo apt-get update -qq
-          sudo apt-get install libllvm11 llvm-11 llvm-11-dev
-          npm config set cmake_LLVM_DIR $(llvm-config-11 --cmakedir)
+          sudo apt-get install libllvm12 llvm-12 llvm-12-dev
+          npm config set cmake_LLVM_DIR $(llvm-config-12 --cmakedir)
 
       - name: Set-up yarn cache
         uses: actions/cache@v2
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        llvm: [11, 10, 9]
+        llvm: [12, 11, 10, 9]
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
