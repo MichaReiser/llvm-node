@@ -131,7 +131,12 @@ NAN_METHOD(ModuleWrapper::getTypeByName) {
 
     const std::string name = ToString(info[0]);
     const llvm::Module* module = ModuleWrapper::FromValue(info.Holder())->getModule();
+
+    #if LLVM_VERSION_MAJOR < 12
     llvm::StructType* type = module->getTypeByName(name);
+    #else
+    llvm::StructType* type = llvm::StructType::getTypeByName(module->getContext(), name);
+    #endif
 
     if (type == nullptr) {
         info.GetReturnValue().Set(Nan::Null());
