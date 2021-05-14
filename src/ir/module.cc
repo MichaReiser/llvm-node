@@ -95,15 +95,10 @@ NAN_METHOD(ModuleWrapper::getOrInsertFunction) {
 
     auto functionCallee = Nan::New<v8::Object>();
 
-    #if LLVM_VERSION_MAJOR < 9
-        Nan::Set(functionCallee, Nan::New("callee").ToLocalChecked(), ConstantWrapper::of(module->getOrInsertFunction(name, fnType)));
-        Nan::Set(functionCallee, Nan::New("functionType").ToLocalChecked(), FunctionTypeWrapper::of(fnType));
-    #else
-        auto llvmCallee = module->getOrInsertFunction(name, fnType);
-        Nan::Set(functionCallee, Nan::New("callee").ToLocalChecked(), ValueWrapper::of(llvmCallee.getCallee()));
-        Nan::Set(functionCallee, Nan::New("functionType").ToLocalChecked(), FunctionTypeWrapper::of(llvmCallee.getFunctionType()));
-    #endif
-
+    auto llvmCallee = module->getOrInsertFunction(name, fnType);
+    Nan::Set(functionCallee, Nan::New("callee").ToLocalChecked(), ValueWrapper::of(llvmCallee.getCallee()));
+    Nan::Set(functionCallee, Nan::New("functionType").ToLocalChecked(), FunctionTypeWrapper::of(llvmCallee.getFunctionType()));
+    
     Nan::EscapableHandleScope scope {};
     info.GetReturnValue().Set(scope.Escape(functionCallee));
 }
