@@ -1,0 +1,87 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  schedule:
+    - cron: "0 1 * * *"
+jobs:
+  node-compatibility:
+    name: "Node ${{ matrix.node }} (LLVM 11)"
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        node: [16, 15, 14, 12]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Install LLVM
+        run: |
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+          echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | sudo tee -a /etc/apt/sources.list
+          sudo apt-get update -qq
+          sudo apt-get install libllvm11 llvm-11 llvm-11-dev
+          npm config set cmake_LLVM_DIR $(llvm-config-11 --cmakedir)
+
+      - name: Set-up yarn cache
+        uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Set-up yarn
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Yarn install
+        run: yarn --non-interactive --frozen-lockfile --ignore-scripts
+
+      - name: Build
+        run: yarn build
+
+      - name: Validate typescript definitions
+        run: yarn tsc --strict --noEmit --types . llvm-node.d.ts
+
+      - name: Test
+        run: yarn test --ci --coverage
+
+  llvm-compatibility:
+    name: "LLVM ${{ matrix.llvm }}"
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        llvm: [11, 10, 9]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Install LLVM
+        run: |
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+          echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-${{ matrix.llvm }} main" | sudo tee -a /etc/apt/sources.list
+          sudo apt-get update -qq
+          sudo apt-get install libllvm${{ matrix.llvm }} llvm-${{ matrix.llvm }} llvm-${{ matrix.llvm }}-dev
+          npm config set cmake_LLVM_DIR $(llvm-config-${{ matrix.llvm }} --cmakedir)
+
+      - name: Set-up yarn cache
+        uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Set-up yarn
+        uses: actions/setup-node@v2
+        with:
+          node-version: "*"
+
+      - name: Yarn install
+        run: yarn --non-interactive --frozen-lockfile --ignore-scripts
+
+      - name: Build
+        run: yarn build
+
+      - name: Test
+        run: yarn test --ci --coverage
