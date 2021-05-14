@@ -114,11 +114,7 @@ NAN_SETTER(ValueWrapper::setName)
 NAN_METHOD(ValueWrapper::deleteValue)
 {
     auto *wrapper = ValueWrapper::FromValue(info.Holder());
-#if LLVM_VERSION_MAJOR == 4
-    delete wrapper->getValue();
-#else
     wrapper->getValue()->deleteValue();
-#endif
 }
 
 NAN_METHOD(ValueWrapper::replaceAllUsesWith)

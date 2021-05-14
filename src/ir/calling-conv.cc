@@ -34,14 +34,7 @@ NAN_MODULE_INIT(InitCallingConv) {
     Nan::Set(object, Nan::New("SPIR_KERNEL").ToLocalChecked(), Nan::New(llvm::CallingConv::SPIR_KERNEL));
     Nan::Set(object, Nan::New("Intel_OCL_BI").ToLocalChecked(), Nan::New(llvm::CallingConv::Intel_OCL_BI));
     Nan::Set(object, Nan::New("X86_64_SysV").ToLocalChecked(), Nan::New(llvm::CallingConv::X86_64_SysV));
-
-#if LLVM_VERSION_MAJOR == 4
-    Nan::Set(object, Nan::New("X86_64_Win64").ToLocalChecked(), Nan::New(llvm::CallingConv::X86_64_Win64));
-#else
-    Nan::Set(object, Nan::New("X86_64_Win64").ToLocalChecked(), Nan::New(llvm::CallingConv::Win64));
     Nan::Set(object, Nan::New("Win64").ToLocalChecked(), Nan::New(llvm::CallingConv::Win64));
-#endif
-
     Nan::Set(object, Nan::New("X86_VectorCall").ToLocalChecked(), Nan::New(llvm::CallingConv::X86_VectorCall));
     Nan::Set(object, Nan::New("HHVM").ToLocalChecked(), Nan::New(llvm::CallingConv::HHVM));
     Nan::Set(object, Nan::New("HHVM_C").ToLocalChecked(), Nan::New(llvm::CallingConv::HHVM_C));

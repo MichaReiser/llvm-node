@@ -65,11 +65,7 @@ NAN_METHOD(ArgumentWrapper::New) {
         argNo = Nan::To<uint32_t>(info[3]).FromJust();
     }
 
-#if LLVM_VERSION_MAJOR == 4
-    auto* argument = new llvm::Argument { type, name, function };
-#else
     auto* argument = new llvm::Argument { type, name, function, argNo };
-#endif
     auto* wrapper = new ArgumentWrapper { argument };
     wrapper->Wrap(info.This());
 
@@ -126,12 +122,7 @@ NAN_METHOD(ArgumentWrapper::addDereferenceableAttr) {
     llvm::AttrBuilder builder {};
     builder.addDereferenceableAttr(bytes);
 
-#if LLVM_VERSION_MAJOR == 4
-    auto attributes = llvm::AttributeSet::get(argument->getContext(), argument->getArgNo() + 1, builder);
-    argument->addAttr(attributes);
-#else
     argument->addAttrs(builder);
-#endif
 }
 
 llvm::Argument *ArgumentWrapper::getArgument() {

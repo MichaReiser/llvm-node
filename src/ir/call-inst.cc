@@ -78,11 +78,7 @@ NAN_METHOD(CallInstWrapper::hasRetAttr) {
     auto kind = static_cast<llvm::Attribute::AttrKind >(Nan::To<uint32_t>(info[0]).FromJust());
     bool hasRetAttr = false;
 
-#if LLVM_VERSION_MAJOR == 4
-    hasRetAttr = call->paramHasAttr(llvm::AttributeSet::ReturnIndex, kind);
-#else
     hasRetAttr = call->hasRetAttr(kind);
-#endif
 
     info.GetReturnValue().Set(hasRetAttr);
 }
@@ -98,11 +94,7 @@ NAN_METHOD(CallInstWrapper::paramHasAttr) {
     const auto kind = static_cast<llvm::Attribute::AttrKind >(Nan::To<uint32_t>(info[1]).FromJust());
     bool paramHasAttr = false;
 
-#if LLVM_VERSION_MAJOR == 4
-    paramHasAttr = call->paramHasAttr(index + 1, kind);
-#else
     paramHasAttr = call->paramHasAttr(index, kind);
-#endif
     info.GetReturnValue().Set(paramHasAttr);
 }
 

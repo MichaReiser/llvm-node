@@ -105,7 +105,7 @@ declare namespace llvm {
     Acquire,
     Release,
     AcquireRelease,
-    SequentiallyConsistent
+    SequentiallyConsistent,
   }
 
   class Value {
@@ -337,10 +337,6 @@ declare namespace llvm {
     SPIR_KERNEL,
     Intel_OCL_BI,
     X86_64_SysV,
-    /**
-     * @deprecated use Win64 instead
-     */
-    X86_64_Win64,
     Win64,
     X86_VectorCall,
     HHVM,
@@ -698,7 +694,7 @@ declare namespace llvm {
       Max,
       Min,
       UMax,
-      UMin
+      UMin,
     }
   }
 
