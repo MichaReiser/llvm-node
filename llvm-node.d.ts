@@ -733,6 +733,14 @@ declare namespace llvm {
     getTypeByName(name: string): StructType | null;
   }
 
+  class ExecutionEngine {
+    /**
+     * Add a Module to the list of modules that we can JIT from.
+     * @param module
+     */
+    addModule(module: Module): void;
+  }
+
   // support
   class TargetRegistry {
     private constructor();
